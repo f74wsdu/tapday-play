@@ -51,7 +51,6 @@
 
     .blue { background: #2d8cff; color: #fff; }
     .green { background: #2ecc71; color: #fff; }
-    .gray { background: #555; color: #fff; }
   </style>
 </head>
 
@@ -70,6 +69,9 @@
   const tg = window.Telegram.WebApp;
   tg.expand();
 
+  const userId = tg.initDataUnsafe?.user?.id || "guest";
+  const storageKey = "tapday_" + userId;
+
   let coins = 0;
   let multiplier = 1;
   let autoTapActive = false;
@@ -81,17 +83,45 @@
   const autoBtn = document.getElementById("autoBtn");
   const supportBtn = document.getElementById("supportBtn");
 
-  function updateCoins() {
-    coinsEl.innerText = coins + " 💰";
+  function saveGame() {
+    localStorage.setItem(storageKey, JSON.stringify({
+      coins,
+      multiplier,
+      autoTapActive
+    }));
   }
 
-  // TAP
+  function loadGame() {
+    const data = localStorage.getItem(storageKey);
+    if (!data) return;
+
+    const saved = JSON.parse(data);
+    coins = saved.coins || 0;
+    multiplier = saved.multiplier || 1;
+    autoTapActive = saved.autoTapActive || false;
+
+    if (autoTapActive) startAutoTap();
+    updateCoins();
+  }
+
+  function updateCoins() {
+    coinsEl.innerText = coins + " 💰";
+    saveGame();
+  }
+
+  function startAutoTap() {
+    if (autoTapInterval) return;
+    autoTapInterval = setInterval(() => {
+      coins += multiplier;
+      updateCoins();
+    }, 1000);
+  }
+
   tapBtn.addEventListener("click", () => {
     coins += multiplier;
     updateCoins();
   });
 
-  // x2
   x2Btn.addEventListener("click", () => {
     if (multiplier === 2) {
       alert("x2 вже активний ⚡");
@@ -107,7 +137,6 @@
     alert("x2 активовано! ⚡");
   });
 
-  // AUTOTAP
   autoBtn.addEventListener("click", () => {
     if (autoTapActive) {
       alert("Автотапер вже працює 🤖");
@@ -119,20 +148,16 @@
     }
     coins -= 100;
     autoTapActive = true;
+    startAutoTap();
     updateCoins();
-
-    autoTapInterval = setInterval(() => {
-      coins += multiplier;
-      updateCoins();
-    }, 1000);
-
     alert("Автотапер увімкнено 🤖");
   });
 
-  // SUPPORT
   supportBtn.addEventListener("click", () => {
-    alert("⭐ Підтримка через Telegram Stars буде додана скоро");
+    window.open("https://t.me/your_link_here", "_blank");
   });
+
+  loadGame();
 </script>
 
 </body>
