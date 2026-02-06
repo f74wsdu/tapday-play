@@ -4,14 +4,16 @@
   <meta charset="UTF-8">
   <title>TapDay</title>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
+
   <style>
     body {
       background:#0b1020;
       color:#fff;
-      font-family:Arial;
+      font-family:Arial, sans-serif;
       text-align:center;
       padding:20px;
     }
+
     .tap {
       width:240px;
       height:240px;
@@ -23,15 +25,19 @@
       align-items:center;
       justify-content:center;
       cursor:pointer;
+      user-select:none;
     }
+
     button {
       width:90%;
       padding:15px;
-      margin:10px;
+      margin:10px auto;
       font-size:18px;
       border:none;
       border-radius:10px;
+      cursor:pointer;
     }
+
     .blue { background:#2d8cff; color:#fff; }
     .green { background:#2ecc71; color:#fff; }
   </style>
@@ -41,108 +47,59 @@
 <h1>TapDay 💰</h1>
 <h2 id="coins">0 💰</h2>
 
-<div class="tap" onclick="tap()">TAP</div>
+<div class="tap" id="tapBtn">TAP</div>
 
-<button class="blue" onclick="buyX2()">⚡ x2 монети</button>
-<button class="blue" onclick="buyAuto()">🤖 Автотапер</button>
-<button class="green" onclick="donate()">💎 <button id="supportBtn">Підтримати гру</button>
-
-<script>
-let coins = 0;
-let multiplier = 1;
-let autoTap = false;
-
-function tap() {
-  coins += multiplier;
-  update();
-}
-
-function update() {
-  document.getElementById("coins").innerText = coins + " 💰";
-}
-
-// --- ПОКУПКИ ---
-function buyX2() {
-  Telegram.WebApp.openInvoice("X2_STARS");
-  multiplier = 2;
-}
-
-function buyAuto() {
-  Telegram.WebApp.openInvoice("AUTO_STARS");
-  if (!autoTap) {
-    autoTap = true;
-    setInterval(() => {
-      coins += multiplier;
-      update();
-    }, 1000);
-  }
-}
-
-function donate() {
-  Telegram.WebApp.openInvoice("DONATE_STARS");
-}
-</script>
+<button class="blue" id="x2Btn">⚡ x2 монети</button>
+<button class="blue" id="autoBtn">🤖 Автотапер</button>
+<button class="green" id="supportBtn">💎 Підтримати гру</button>
 
 <script>
   const tg = window.Telegram.WebApp;
+  tg.ready();
 
+  let coins = 0;
+  let multiplier = 1;
+  let autoTapStarted = false;
+
+  const coinsEl = document.getElementById("coins");
+  const tapBtn = document.getElementById("tapBtn");
+  const x2Btn = document.getElementById("x2Btn");
+  const autoBtn = document.getElementById("autoBtn");
   const supportBtn = document.getElementById("supportBtn");
-  if (supportBtn) {
-    supportBtn.addEventListener("click", () => {
-      tg.openInvoice({
-        slug: "support_tapday_100"
-      });
-    });
+
+  function updateCoins() {
+    coinsEl.innerText = coins + " 💰";
   }
-</script>
-<script>
-let coins = 0;
-let autoTapInterval = null;
 
-// оновлення лічильника
-function updateCoins() {
-  document.querySelector("h2").innerText = coins;
-}
-
-// TAP
-const tapBtn = document.querySelector(".tap-btn, .tap, button");
-if (tapBtn) {
-  tapBtn.addEventListener("click", () => {
-    coins += 1;
+  // TAP
+  tapBtn.onclick = () => {
+    coins += multiplier;
     updateCoins();
-  });
-}
+  };
 
-// x2 монети
-const x2Btn = document.querySelector(".x2, .double");
-if (x2Btn) {
-  x2Btn.addEventListener("click", () => {
-    coins += 10;
-    updateCoins();
-    alert("x2 бонус активований (тест)");
-  });
-}
+  // x2 монети (тест)
+  x2Btn.onclick = () => {
+    multiplier = 2;
+    alert("x2 монети активовано (тестовий режим)");
+  };
 
-// автотапер
-const autoBtn = document.querySelector(".auto, .robot");
-if (autoBtn) {
-  autoBtn.addEventListener("click", () => {
-    if (autoTapInterval) return;
-    autoTapInterval = setInterval(() => {
-      coins += 1;
+  // Автотапер
+  autoBtn.onclick = () => {
+    if (autoTapStarted) return;
+    autoTapStarted = true;
+    alert("Автотапер увімкнено (1 монета / сек)");
+
+    setInterval(() => {
+      coins += multiplier;
       updateCoins();
     }, 1000);
-    alert("Автотапер увімкнено (1 монета/сек)");
-  });
-}
+  };
 
-// підтримати гру (під Stars)
-const supportBtn = document.querySelector(".support");
-if (supportBtn) {
-  supportBtn.addEventListener("click", () => {
-    alert("Тут буде підтримка через ⭐ Telegram Stars");
-  });
-}
+  // Підтримати гру (під Stars — наступний крок)
+  supportBtn.onclick = () => {
+    alert("Підтримка гри ⭐\n(далі підключимо Telegram Stars)");
+  };
 </script>
+
 </body>
 </html>
