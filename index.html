@@ -8,50 +8,55 @@
 <style>
 body {
   margin: 0;
-  background: radial-gradient(circle at top, #101c3d, #050812);
+  background: radial-gradient(circle at top, #0f1b3d, #050812);
   color: #fff;
   font-family: Arial, sans-serif;
   text-align: center;
   user-select: none;
 }
 
-/* MONEY HEADER */
-.money-wrap {
-  position: relative;
-  margin: 20px auto;
+/* HEADER */
+.top-card {
+  margin: 18px auto;
   width: 92%;
-  max-width: 380px;
-  padding: 25px 20px;
+  max-width: 390px;
+  padding: 22px;
   border-radius: 22px;
   background:
-    linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)),
+    linear-gradient(rgba(0,0,0,.6),rgba(0,0,0,.6)),
     url("https://i.imgur.com/8Km9tLL.png");
   background-size: cover;
-  box-shadow: 0 0 40px rgba(0,0,0,0.6);
+  box-shadow: 0 0 40px rgba(0,0,0,.6);
 }
 
-.money-wrap h1 {
+.top-card h1 {
   margin: 0;
-  font-size: 30px;
+  font-size: 28px;
 }
 
 .balance {
-  font-size: 44px;
+  font-size: 46px;
   font-weight: bold;
-  margin-top: 10px;
-  text-shadow: 0 0 15px rgba(255,215,0,0.8);
+  margin-top: 8px;
+  text-shadow: 0 0 20px rgba(255,215,0,.9);
 }
 
-/* TAP BUTTON */
+.sub-info {
+  margin-top: 10px;
+  font-size: 14px;
+  opacity: .9;
+}
+
+/* TAP */
 .tap {
   width: 260px;
   height: 260px;
   margin: 40px auto;
   border-radius: 50%;
-  background: radial-gradient(circle at top, #ffe07a, #ff9f00);
+  background: radial-gradient(circle at top, #ffe08a, #ff9f00);
   box-shadow:
-    0 0 60px rgba(255,170,0,0.9),
-    inset 0 -8px 20px rgba(0,0,0,0.25);
+    0 0 70px rgba(255,180,0,.95),
+    inset 0 -10px 25px rgba(0,0,0,.25);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -59,18 +64,17 @@ body {
   font-weight: bold;
   color: #3b2400;
   cursor: pointer;
-  transition: transform 0.08s;
+  transition: transform .08s;
 }
 
 .tap:active {
-  transform: scale(0.93);
-  box-shadow: 0 0 80px rgba(255,200,0,1);
+  transform: scale(.92);
 }
 
 /* BUTTONS */
 button {
   width: 92%;
-  max-width: 380px;
+  max-width: 390px;
   padding: 18px;
   margin: 12px auto;
   font-size: 18px;
@@ -80,23 +84,30 @@ button {
 }
 
 .blue { background: linear-gradient(145deg,#4da3ff,#1c6bff); color:#fff; }
-.green { background: linear-gradient(145deg,#3cff9e,#1dbf73); color:#fff; }
+.green { background: linear-gradient(145deg,#3cff9e,#1dbf73); color:#003a1e; }
 .gold { background: linear-gradient(145deg,#ffe08a,#ffb300); color:#3b2400; }
+.gray { background: linear-gradient(145deg,#666,#444); color:#fff; }
 </style>
 </head>
 
 <body>
 
-<div class="money-wrap">
+<div class="top-card">
   <h1>TapDay 💰</h1>
   <div class="balance" id="coins">0 💰</div>
+  <div class="sub-info">
+    🔓 Рівень: <b id="level">1</b> |
+    💸 До виводу: <b id="toWithdraw">5000</b> 💰 |
+    ⏳ <span id="timer">23:59:59</span>
+  </div>
 </div>
 
 <div class="tap" id="tapBtn">TAP</div>
 
 <button class="blue" id="x2Btn">⚡ x2 монети (50 💰)</button>
 <button class="blue" id="autoBtn">🤖 Автотапер (100 💰)</button>
-<button class="gold" id="subBtn">💎 Отримати +500 💰</button>
+<button class="gold" id="subBtn">🎁 Підписка +500 💰</button>
+<button class="gray" id="withdrawBtn">🏦 Вивести (скоро)</button>
 
 <script>
 const tg = window.Telegram.WebApp;
@@ -106,11 +117,16 @@ let coins = 0;
 let multiplier = 1;
 let autoTap = false;
 let bonusTaken = false;
+let level = 1;
 
 const coinsEl = document.getElementById("coins");
+const levelEl = document.getElementById("level");
+const toWithdrawEl = document.getElementById("toWithdraw");
 
 function update() {
   coinsEl.innerText = coins + " 💰";
+  level = Math.floor(coins / 1000) + 1;
+  levelEl.innerText = level;
 }
 
 document.getElementById("tapBtn").onclick = () => {
@@ -147,6 +163,10 @@ document.getElementById("subBtn").onclick = () => {
     update();
     alert("🎉 Ви отримали +500 монет!");
   }, 2000);
+};
+
+document.getElementById("withdrawBtn").onclick = () => {
+  alert("🚧 Вивід коштів у розробці. Слідкуйте за оновленнями!");
 };
 </script>
 
