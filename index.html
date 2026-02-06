@@ -95,5 +95,54 @@ function donate() {
     });
   }
 </script>
+<script>
+let coins = 0;
+let autoTapInterval = null;
+
+// оновлення лічильника
+function updateCoins() {
+  document.querySelector("h2").innerText = coins;
+}
+
+// TAP
+const tapBtn = document.querySelector(".tap-btn, .tap, button");
+if (tapBtn) {
+  tapBtn.addEventListener("click", () => {
+    coins += 1;
+    updateCoins();
+  });
+}
+
+// x2 монети
+const x2Btn = document.querySelector(".x2, .double");
+if (x2Btn) {
+  x2Btn.addEventListener("click", () => {
+    coins += 10;
+    updateCoins();
+    alert("x2 бонус активований (тест)");
+  });
+}
+
+// автотапер
+const autoBtn = document.querySelector(".auto, .robot");
+if (autoBtn) {
+  autoBtn.addEventListener("click", () => {
+    if (autoTapInterval) return;
+    autoTapInterval = setInterval(() => {
+      coins += 1;
+      updateCoins();
+    }, 1000);
+    alert("Автотапер увімкнено (1 монета/сек)");
+  });
+}
+
+// підтримати гру (під Stars)
+const supportBtn = document.querySelector(".support");
+if (supportBtn) {
+  supportBtn.addEventListener("click", () => {
+    alert("Тут буде підтримка через ⭐ Telegram Stars");
+  });
+}
+</script>
 </body>
 </html>
