@@ -8,90 +8,95 @@
 <style>
 body {
   margin: 0;
-  background: radial-gradient(circle at top, #1b2a4a, #050812);
+  background: radial-gradient(circle at top, #101c3d, #050812);
   color: #fff;
   font-family: Arial, sans-serif;
   text-align: center;
   user-select: none;
 }
 
-.money-card {
+/* MONEY HEADER */
+.money-wrap {
+  position: relative;
   margin: 20px auto;
-  width: 90%;
-  max-width: 360px;
-  padding: 20px;
-  border-radius: 20px;
-  background: linear-gradient(145deg, #ffd36a, #ff9f1a);
-  box-shadow: 0 0 40px rgba(255,180,0,0.6);
-  color: #3b2400;
+  width: 92%;
+  max-width: 380px;
+  padding: 25px 20px;
+  border-radius: 22px;
+  background:
+    linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)),
+    url("https://i.imgur.com/8Km9tLL.png");
+  background-size: cover;
+  box-shadow: 0 0 40px rgba(0,0,0,0.6);
 }
 
-.money-card h1 {
+.money-wrap h1 {
   margin: 0;
   font-size: 30px;
 }
 
 .balance {
-  font-size: 42px;
+  font-size: 44px;
   font-weight: bold;
   margin-top: 10px;
+  text-shadow: 0 0 15px rgba(255,215,0,0.8);
 }
 
+/* TAP BUTTON */
 .tap {
-  width: 240px;
-  height: 240px;
-  margin: 30px auto;
+  width: 260px;
+  height: 260px;
+  margin: 40px auto;
   border-radius: 50%;
-  background: radial-gradient(circle, #ffda79, #ff8800);
-  box-shadow: 0 0 50px rgba(255,150,0,0.7);
+  background: radial-gradient(circle at top, #ffe07a, #ff9f00);
+  box-shadow:
+    0 0 60px rgba(255,170,0,0.9),
+    inset 0 -8px 20px rgba(0,0,0,0.25);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 44px;
+  font-size: 46px;
   font-weight: bold;
+  color: #3b2400;
   cursor: pointer;
+  transition: transform 0.08s;
 }
 
 .tap:active {
-  transform: scale(0.95);
+  transform: scale(0.93);
+  box-shadow: 0 0 80px rgba(255,200,0,1);
 }
 
+/* BUTTONS */
 button {
-  width: 90%;
-  max-width: 360px;
-  padding: 16px;
-  margin: 10px auto;
+  width: 92%;
+  max-width: 380px;
+  padding: 18px;
+  margin: 12px auto;
   font-size: 18px;
-  border-radius: 14px;
+  border-radius: 16px;
   border: none;
   cursor: pointer;
 }
 
-.blue { background: #2d8cff; color: #fff; }
-.green { background: #2ecc71; color: #fff; }
+.blue { background: linear-gradient(145deg,#4da3ff,#1c6bff); color:#fff; }
+.green { background: linear-gradient(145deg,#3cff9e,#1dbf73); color:#fff; }
 .gold { background: linear-gradient(145deg,#ffe08a,#ffb300); color:#3b2400; }
-.gray { background: #555; color: #fff; }
-
-.status {
-  font-size: 14px;
-  opacity: 0.8;
-}
 </style>
 </head>
 
 <body>
 
-<div class="money-card">
+<div class="money-wrap">
   <h1>TapDay 💰</h1>
   <div class="balance" id="coins">0 💰</div>
-  <div class="status" id="status">Готовий заробляти</div>
 </div>
 
 <div class="tap" id="tapBtn">TAP</div>
 
 <button class="blue" id="x2Btn">⚡ x2 монети (50 💰)</button>
 <button class="blue" id="autoBtn">🤖 Автотапер (100 💰)</button>
-<button class="gold" id="subBtn">⭐ Отримати +500 💰</button>
+<button class="gold" id="subBtn">💎 Отримати +500 💰</button>
 
 <script>
 const tg = window.Telegram.WebApp;
@@ -100,10 +105,9 @@ tg.expand();
 let coins = 0;
 let multiplier = 1;
 let autoTap = false;
-let subBonusTaken = false;
+let bonusTaken = false;
 
 const coinsEl = document.getElementById("coins");
-const statusEl = document.getElementById("status");
 
 function update() {
   coinsEl.innerText = coins + " 💰";
@@ -116,21 +120,18 @@ document.getElementById("tapBtn").onclick = () => {
 
 document.getElementById("x2Btn").onclick = () => {
   if (multiplier === 2) return alert("x2 вже активний ⚡");
-  if (coins < 50) return alert("Мало монет 😢");
+  if (coins < 50) return alert("Недостатньо монет");
   coins -= 50;
   multiplier = 2;
-  statusEl.innerText = "x2 активний ⚡";
   update();
 };
 
 document.getElementById("autoBtn").onclick = () => {
-  if (autoTap) return alert("Автотапер уже працює 🤖");
-  if (coins < 100) return alert("Мало монет 😢");
+  if (autoTap) return alert("Автотапер вже працює");
+  if (coins < 100) return alert("Недостатньо монет");
   coins -= 100;
   autoTap = true;
-  statusEl.innerText = "Автотапер працює 🤖";
   update();
-
   setInterval(() => {
     coins += multiplier;
     update();
@@ -138,13 +139,11 @@ document.getElementById("autoBtn").onclick = () => {
 };
 
 document.getElementById("subBtn").onclick = () => {
-  if (subBonusTaken) return alert("Бонус уже отримано ⭐");
-
+  if (bonusTaken) return alert("Бонус вже отримано");
   tg.openTelegramLink("https://t.me/fuckskam");
-
   setTimeout(() => {
     coins += 500;
-    subBonusTaken = true;
+    bonusTaken = true;
     update();
     alert("🎉 Ви отримали +500 монет!");
   }, 2000);
