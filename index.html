@@ -45,7 +45,7 @@
 
 <button class="blue" onclick="buyX2()">⚡ x2 монети</button>
 <button class="blue" onclick="buyAuto()">🤖 Автотапер</button>
-<button class="green" onclick="donate()">💎 Підтримати гру</button>
+<button class="green" onclick="donate()">💎 <button id="supportBtn">Підтримати гру</button>
 
 <script>
 let coins = 0;
@@ -83,5 +83,17 @@ function donate() {
 }
 </script>
 
+<script>
+  const tg = window.Telegram.WebApp;
+
+  const supportBtn = document.getElementById("supportBtn");
+  if (supportBtn) {
+    supportBtn.addEventListener("click", () => {
+      tg.openInvoice({
+        slug: "support_tapday_100"
+      });
+    });
+  }
+</script>
 </body>
 </html>
