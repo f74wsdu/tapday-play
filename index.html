@@ -1,69 +1,87 @@
 <!DOCTYPE html>
 <html lang="uk">
 <head>
-  <meta charset="UTF-8" />
-  <title>TapDay Play</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta charset="UTF-8">
+  <title>TapDay</title>
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <style>
     body {
-      margin: 0;
-      font-family: Arial, sans-serif;
-      background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
-      color: #fff;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      height: 100vh;
+      background:#0b1020;
+      color:#fff;
+      font-family:Arial;
+      text-align:center;
+      padding:20px;
     }
-    .game {
-      text-align: center;
-      background: rgba(0,0,0,0.4);
-      padding: 30px;
-      border-radius: 16px;
-      width: 90%;
-      max-width: 360px;
-    }
-    h1 {
-      margin-bottom: 10px;
-    }
-    .score {
-      font-size: 28px;
-      margin: 20px 0;
+    .tap {
+      width:240px;
+      height:240px;
+      border-radius:50%;
+      background:orange;
+      margin:40px auto;
+      font-size:40px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      cursor:pointer;
     }
     button {
-      font-size: 22px;
-      padding: 15px 30px;
-      border: none;
-      border-radius: 12px;
-      background: #00ffcc;
-      color: #000;
-      cursor: pointer;
+      width:90%;
+      padding:15px;
+      margin:10px;
+      font-size:18px;
+      border:none;
+      border-radius:10px;
     }
-    button:active {
-      transform: scale(0.95);
-    }
-    .note {
-      margin-top: 15px;
-      font-size: 14px;
-      opacity: 0.8;
-    }
+    .blue { background:#2d8cff; color:#fff; }
+    .green { background:#2ecc71; color:#fff; }
   </style>
 </head>
 <body>
-  <div class="game">
-    <h1>TapDay Play</h1>
-    <p>Натискай і заробляй очки</p>
-    <div class="score" id="score">0</div>
-    <button onclick="tap()">TAP</button>
-    <div class="note">Демо-гра. Скоро винагороди 🎁</div>
-  </div>
 
-  <script>
-    let score = 0;
-    function tap() {
-      score++;
-      document.getElementById("score").innerText = score;
-    }
-  </script>
+<h1>TapDay 💰</h1>
+<h2 id="coins">0 💰</h2>
+
+<div class="tap" onclick="tap()">TAP</div>
+
+<button class="blue" onclick="buyX2()">⚡ x2 монети</button>
+<button class="blue" onclick="buyAuto()">🤖 Автотапер</button>
+<button class="green" onclick="donate()">💎 Підтримати гру</button>
+
+<script>
+let coins = 0;
+let multiplier = 1;
+let autoTap = false;
+
+function tap() {
+  coins += multiplier;
+  update();
+}
+
+function update() {
+  document.getElementById("coins").innerText = coins + " 💰";
+}
+
+// --- ПОКУПКИ ---
+function buyX2() {
+  Telegram.WebApp.openInvoice("X2_STARS");
+  multiplier = 2;
+}
+
+function buyAuto() {
+  Telegram.WebApp.openInvoice("AUTO_STARS");
+  if (!autoTap) {
+    autoTap = true;
+    setInterval(() => {
+      coins += multiplier;
+      update();
+    }, 1000);
+  }
+}
+
+function donate() {
+  Telegram.WebApp.openInvoice("DONATE_STARS");
+}
+</script>
+
 </body>
 </html>
