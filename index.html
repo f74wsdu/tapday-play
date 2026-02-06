@@ -7,41 +7,54 @@
 
   <style>
     body {
-      background:#0b1020;
-      color:#fff;
-      font-family:Arial, sans-serif;
-      text-align:center;
-      padding:20px;
+      background: #0b1020;
+      color: #ffffff;
+      font-family: Arial, sans-serif;
+      text-align: center;
+      padding: 20px;
+      user-select: none;
     }
 
+    h1 { font-size: 32px; }
+    h2 { font-size: 28px; margin-top: 10px; }
+
     .tap {
-      width:240px;
-      height:240px;
-      border-radius:50%;
-      background:orange;
-      margin:40px auto;
-      font-size:40px;
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      cursor:pointer;
-      user-select:none;
+      width: 240px;
+      height: 240px;
+      border-radius: 50%;
+      background: linear-gradient(145deg, #ffb347, #ff7b00);
+      margin: 40px auto;
+      font-size: 42px;
+      font-weight: bold;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.4);
+      transition: transform 0.1s;
+    }
+
+    .tap:active {
+      transform: scale(0.95);
     }
 
     button {
-      width:90%;
-      padding:15px;
-      margin:10px auto;
-      font-size:18px;
-      border:none;
-      border-radius:10px;
-      cursor:pointer;
+      width: 90%;
+      padding: 16px;
+      margin: 10px auto;
+      font-size: 18px;
+      border: none;
+      border-radius: 12px;
+      cursor: pointer;
+      display: block;
     }
 
-    .blue { background:#2d8cff; color:#fff; }
-    .green { background:#2ecc71; color:#fff; }
+    .blue { background: #2d8cff; color: #fff; }
+    .green { background: #2ecc71; color: #fff; }
+    .gray { background: #555; color: #fff; }
   </style>
 </head>
+
 <body>
 
 <h1>TapDay 💰</h1>
@@ -49,17 +62,18 @@
 
 <div class="tap" id="tapBtn">TAP</div>
 
-<button class="blue" id="x2Btn">⚡ x2 монети</button>
-<button class="blue" id="autoBtn">🤖 Автотапер</button>
+<button class="blue" id="x2Btn">⚡ x2 монети (50 💰)</button>
+<button class="blue" id="autoBtn">🤖 Автотапер (100 💰)</button>
 <button class="green" id="supportBtn">💎 Підтримати гру</button>
 
 <script>
   const tg = window.Telegram.WebApp;
-  tg.ready();
+  tg.expand();
 
   let coins = 0;
   let multiplier = 1;
-  let autoTapStarted = false;
+  let autoTapActive = false;
+  let autoTapInterval = null;
 
   const coinsEl = document.getElementById("coins");
   const tapBtn = document.getElementById("tapBtn");
@@ -72,33 +86,53 @@
   }
 
   // TAP
-  tapBtn.onclick = () => {
+  tapBtn.addEventListener("click", () => {
     coins += multiplier;
     updateCoins();
-  };
+  });
 
-  // x2 монети (тест)
-  x2Btn.onclick = () => {
+  // x2
+  x2Btn.addEventListener("click", () => {
+    if (multiplier === 2) {
+      alert("x2 вже активний ⚡");
+      return;
+    }
+    if (coins < 50) {
+      alert("Недостатньо монет 😢");
+      return;
+    }
+    coins -= 50;
     multiplier = 2;
-    alert("x2 монети активовано (тестовий режим)");
-  };
+    updateCoins();
+    alert("x2 активовано! ⚡");
+  });
 
-  // Автотапер
-  autoBtn.onclick = () => {
-    if (autoTapStarted) return;
-    autoTapStarted = true;
-    alert("Автотапер увімкнено (1 монета / сек)");
+  // AUTOTAP
+  autoBtn.addEventListener("click", () => {
+    if (autoTapActive) {
+      alert("Автотапер вже працює 🤖");
+      return;
+    }
+    if (coins < 100) {
+      alert("Недостатньо монет 😢");
+      return;
+    }
+    coins -= 100;
+    autoTapActive = true;
+    updateCoins();
 
-    setInterval(() => {
+    autoTapInterval = setInterval(() => {
       coins += multiplier;
       updateCoins();
     }, 1000);
-  };
 
-  // Підтримати гру (під Stars — наступний крок)
-  supportBtn.onclick = () => {
-    alert("Підтримка гри ⭐\n(далі підключимо Telegram Stars)");
-  };
+    alert("Автотапер увімкнено 🤖");
+  });
+
+  // SUPPORT
+  supportBtn.addEventListener("click", () => {
+    alert("⭐ Підтримка через Telegram Stars буде додана скоро");
+  });
 </script>
 
 </body>
