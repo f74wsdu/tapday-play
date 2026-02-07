@@ -2,134 +2,93 @@
 <html lang="uk">
 <head>
 <meta charset="UTF-8">
-<title>City Tap Life</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tap City</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <style>
-body {
-  margin:0;
-  font-family:Arial,sans-serif;
-  background:#1e1e1e;
-  color:#fff;
-  text-align:center;
-}
-.top {
-  padding:10px;
-  background:#111;
-}
-button {
-  padding:12px;
-  margin:5px;
-  font-size:16px;
-  border:none;
-  border-radius:8px;
-}
-.tap { background:#00c853; color:#000; }
-.city { background:#2979ff; color:#fff; }
-.bonus { background:#ffca28; color:#000; }
-.screen { display:none; padding:20px; }
-.active { display:block; }
-.card {
-  background:#2a2a2a;
-  margin:10px;
-  padding:10px;
-  border-radius:10px;
-}
+body{margin:0;font-family:sans-serif;background:#111;color:#fff;text-align:center}
+header{padding:10px;background:#000}
+button{padding:12px 18px;margin:6px;font-size:16px;border-radius:10px;border:none}
+.tap{background:#00e676}
+.city{background:#2979ff;color:#fff}
+.bonus{background:#ffca28}
+.link{background:#ff5252;color:#fff}
+.screen{display:none;padding:20px}
+.active{display:block}
+.card{background:#1f1f1f;padding:15px;margin:10px;border-radius:12px}
 </style>
 </head>
 <body>
 
-<div class="top">
-💰 <span id="money">0</span> | +<span id="perSec">0</span>/сек | 🌍 <span id="season">Весна</span>
-</div>
+<header>
+💰 <span id="money">0</span> | +<span id="income">0</span>/сек
+</header>
 
 <div>
 <button class="tap" onclick="show('tap')">Тап</button>
 <button class="city" onclick="show('city')">Місто</button>
 <button class="bonus" onclick="show('bonus')">Бонус</button>
+<button class="link" onclick="goChannel()">Канал</button>
 </div>
 
 <div id="tap" class="screen active">
 <h2>Тапай</h2>
-<button class="tap" style="font-size:30px" onclick="tap()">👆 ТАП</button>
+<button class="tap" style="font-size:32px" onclick="tap()">👆 ТАП</button>
 </div>
 
 <div id="city" class="screen">
 <h2>Місто</h2>
 
 <div class="card">
-🏠 Житло (+1/сек) — 20
-<br><button onclick="buy('house',20,1)">Купити</button>
+🏠 Будинок (+1/сек) – 20
+<br><button onclick="buy(20,1)">Купити</button>
 </div>
 
 <div class="card">
-🌾 Ферма (+3/сек) — 60
-<br><button onclick="buy('farm',60,3)">Купити</button>
-</div>
-
-<div class="card">
-🏭 Бізнес (+6/сек) — 120
-<br><button onclick="buy('biz',120,6)">Купити</button>
+🌾 Ферма (+3/сек) – 60
+<br><button onclick="buy(60,3)">Купити</button>
 </div>
 
 </div>
 
 <div id="bonus" class="screen">
 <h2>Бонус</h2>
-<div id="bonusText">Готово!</div>
-<button onclick="claimBonus()">🎁 Забрати +50</button>
+<p id="bonusText">Доступно</p>
+<button onclick="bonus()">🎁 +50</button>
 </div>
 
 <script>
-let money=0, perSec=0;
-let bonusReady=true;
-let seasonIndex=0;
-const seasons=["Весна","Літо","Осінь","Зима"];
+let money=0,income=0,bonusReady=true;
 
 function show(id){
-  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
-  document.getElementById(id).classList.add('active');
+document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+document.getElementById(id).classList.add('active');
 }
 
-function tap(){
-  money++;
-  update();
+function tap(){money++;update();}
+
+function buy(cost,inc){
+if(money>=cost){money-=cost;income+=inc;update();}
 }
 
-function buy(type,cost,inc){
-  if(money>=cost){
-    money-=cost;
-    perSec+=inc;
-    update();
-  }
+function bonus(){
+if(!bonusReady)return;
+money+=50;
+bonusReady=false;
+document.getElementById('bonusText').innerText="Чекати 60 сек";
+setTimeout(()=>{bonusReady=true;document.getElementById('bonusText').innerText="Доступно";},60000);
+update();
 }
 
-function claimBonus(){
-  if(bonusReady){
-    money+=50;
-    bonusReady=false;
-    document.getElementById('bonusText').innerText="Чекай 30 сек...";
-    setTimeout(()=>{
-      bonusReady=true;
-      document.getElementById('bonusText').innerText="Готово!";
-    },30000);
-    update();
-  }
+function goChannel(){
+window.open("https://t.me/YOUR_CHANNEL","_blank");
 }
 
 function update(){
-  document.getElementById('money').innerText=money;
-  document.getElementById('perSec').innerText=perSec;
+document.getElementById('money').innerText=money;
+document.getElementById('income').innerText=income;
 }
 
-setInterval(()=>{
-  money+=perSec;
-  update();
-},1000);
-
-setInterval(()=>{
-  seasonIndex=(seasonIndex+1)%4;
-  document.getElementById('season').innerText=seasons[seasonIndex];
-},60000);
+setInterval(()=>{money+=income;update();},1000);
 </script>
 
 </body>
