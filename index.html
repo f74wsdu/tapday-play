@@ -1,206 +1,239 @@
 <!DOCTYPE html>
 <html lang="uk">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-<title>TapDay Play</title>
-
+<meta charset="UTF-8">
+<title>Core Empire</title>
 <style>
-* { margin:0; padding:0; box-sizing:border-box; font-family: system-ui, -apple-system; }
-body {
-  background: radial-gradient(circle at top, #0b1220, #05070d);
+html,body{
+  margin:0;
+  padding:0;
+  background:#0b0f1a;
   color:#fff;
+  font-family:Arial,Helvetica,sans-serif;
+  height:100%;
   overflow:hidden;
 }
-
-.top {
+#app{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:space-between;
+  height:100%;
+}
+header{
+  width:100%;
   display:flex;
   justify-content:space-between;
-  padding:14px 16px;
+  padding:12px 20px;
   font-size:14px;
-  opacity:.85;
+  opacity:.9;
 }
-
-#coin {
-  position:absolute;
-  left:50%;
-  top:45%;
-  transform:translate(-50%,-50%);
-  width:240px;
-  height:240px;
+#core-wrapper{
+  position:relative;
+  width:260px;
+  height:260px;
+  margin-top:20px;
+}
+#core{
+  width:100%;
+  height:100%;
   border-radius:50%;
-  background: radial-gradient(circle at 30% 30%, #fff2a8, #ffb700);
-  box-shadow: 0 0 60px rgba(255,190,0,.7);
+  background:radial-gradient(circle at top,#ffd76a,#f5a400);
+  box-shadow:0 0 60px rgba(255,200,50,.6);
   display:flex;
   align-items:center;
   justify-content:center;
-  font-size:64px;
-  user-select:none;
+  cursor:pointer;
+  transition:.2s;
 }
-
-#coin.super { background:radial-gradient(circle,#b9f7ff,#00d9ff); box-shadow:0 0 80px #00d9ff;}
-#coin.ultra { background:radial-gradient(circle,#ffb9f7,#ff00aa); box-shadow:0 0 90px #ff00aa;}
-
-.counter {
-  position:absolute;
-  top:68%;
-  width:100%;
-  text-align:center;
-  font-size:48px;
-  font-weight:700;
+#core.level2{background:radial-gradient(circle,#ff7bd5,#ff2aa3);box-shadow:0 0 80px #ff4fc4;}
+#core.level3{background:radial-gradient(circle,#7bf0ff,#1bb7ff);box-shadow:0 0 90px #3bdcff;}
+#core:active{transform:scale(.96);}
+#coin{
+  width:60px;
+  height:60px;
+  border-radius:50%;
+  background:gold;
+  box-shadow:inset -5px -5px 0 rgba(0,0,0,.2);
 }
-
-.bottom {
+#count{
+  font-size:42px;
+  font-weight:bold;
+  margin-top:20px;
+}
+#effects span{
   position:absolute;
-  bottom:24px;
-  width:100%;
+  color:gold;
+  font-weight:bold;
+  animation:fly 1s ease-out forwards;
+}
+@keyframes fly{
+  from{transform:translateY(0);opacity:1;}
+  to{transform:translateY(-80px);opacity:0;}
+}
+footer{
   display:flex;
-  justify-content:center;
-  gap:16px;
+  gap:20px;
+  padding-bottom:30px;
 }
-
-.btn {
-  width:64px;
-  height:64px;
+.btn{
+  width:70px;
+  height:70px;
   border-radius:18px;
-  background:#121a30;
+  background:#131a33;
   display:flex;
   align-items:center;
   justify-content:center;
-  font-size:26px;
+  cursor:pointer;
+  font-size:22px;
 }
-
-.bonus {
+.btn small{
   position:absolute;
-  top:30%;
-  left:50%;
-  transform:translateX(-50%);
-  font-size:20px;
-  opacity:.8;
+  bottom:6px;
+  font-size:10px;
+  opacity:.7;
 }
-
-.coin-fall {
+#overlay{
   position:absolute;
-  font-size:18px;
-  animation: fall 1s linear forwards;
+  inset:0;
+  background:rgba(0,0,0,.6);
+  display:none;
+  align-items:center;
+  justify-content:center;
 }
-
-@keyframes fall {
-  to { transform: translateY(120px); opacity:0; }
+.modal{
+  background:#141a35;
+  padding:20px;
+  border-radius:20px;
+  width:80%;
+  max-width:320px;
 }
-
-.flash {
-  animation: flash .4s ease;
-}
-
-@keyframes flash {
-  0%{box-shadow:0 0 0 #fff;}
-  50%{box-shadow:0 0 120px #fff;}
-  100%{box-shadow:0 0 60px;}
+.modal h3{margin-top:0;}
+.modal button{
+  width:100%;
+  padding:10px;
+  margin-top:10px;
+  border:none;
+  border-radius:10px;
+  background:#ffd76a;
+  font-weight:bold;
 }
 </style>
 </head>
-
 <body>
 
-<div class="top">
-  <div>💰 <span id="balance">100</span></div>
-  <div>Активні: <span id="active">12482</span></div>
+<div id="app">
+  <header>
+    <div>💰 <span id="money">0</span></div>
+    <div>⚡ x<span id="mult">1</span></div>
+  </header>
+
+  <div id="core-wrapper">
+    <div id="core">
+      <div id="coin"></div>
+    </div>
+    <div id="effects"></div>
+  </div>
+
+  <div id="count">0</div>
+
+  <footer>
+    <div class="btn" id="bonus">🎁<small>Бонус</small></div>
+    <div class="btn" id="x2">⚡<small>2X</small></div>
+    <div class="btn" id="robot">🤖<small>Робот</small></div>
+  </footer>
 </div>
 
-<div class="bonus" id="multiplier">Бонус: 1X</div>
-
-<div id="coin">🪙</div>
-
-<div class="counter" id="counter">100</div>
-
-<div class="bottom">
-  <div class="btn" id="gift">🎁</div>
-  <div class="btn" id="x2">⚡</div>
-  <div class="btn" id="bot">🤖</div>
+<div id="overlay">
+  <div class="modal" id="modal"></div>
 </div>
+
+<audio id="clickSound" src="https://actions.google.com/sounds/v1/cartoon/wood_plank_flicks.ogg"></audio>
 
 <script>
-let coins = 100;
-let multi = 1;
-let taps = 0;
-let level = 1;
+let money=0;
+let level=1;
+let mult=1;
+let robotIncome=0;
+let x2Active=false;
 
-const balance = document.getElementById('balance');
-const counter = document.getElementById('counter');
-const coin = document.getElementById('coin');
-const active = document.getElementById('active');
-const multText = document.getElementById('multiplier');
+const moneyEl=document.getElementById('money');
+const countEl=document.getElementById('count');
+const core=document.getElementById('core');
+const effects=document.getElementById('effects');
+const multEl=document.getElementById('mult');
+const clickSound=document.getElementById('clickSound');
 
-function sound(freq=400){
-  const ctx = new AudioContext();
-  const o = ctx.createOscillator();
-  const g = ctx.createGain();
-  o.frequency.value=freq;
-  o.connect(g); g.connect(ctx.destination);
-  o.start();
-  g.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.2);
+function updateUI(){
+  moneyEl.textContent=Math.floor(money);
+  countEl.textContent=Math.floor(money);
+  multEl.textContent=mult;
+  core.className='';
+  if(money>=1000)core.classList.add('level2');
+  if(money>=10000)core.classList.add('level3');
 }
 
-function update(){
-  balance.textContent = coins;
-  counter.textContent = coins;
+function spawnEffect(x,y,val){
+  const s=document.createElement('span');
+  s.style.left=x+'px';
+  s.style.top=y+'px';
+  s.textContent='+'+val;
+  effects.appendChild(s);
+  setTimeout(()=>s.remove(),1000);
 }
 
-coin.addEventListener('touchstart', tap);
-coin.addEventListener('mousedown', tap);
-
-function tap(e){
-  e.preventDefault();
-  coins += multi;
-  taps++;
-  sound(500);
-  update();
-  fallCoin();
-  checkMilestones();
-}
-
-function fallCoin(){
-  const c = document.createElement('div');
-  c.className='coin-fall';
-  c.textContent='🪙';
-  c.style.left = (50 + Math.random()*40-20)+'%';
-  c.style.top = '45%';
-  document.body.appendChild(c);
-  setTimeout(()=>c.remove(),1000);
-}
-
-function checkMilestones(){
-  if(coins>=1000) coin.classList.add('super');
-  if(coins>=10000) coin.classList.add('ultra');
-  if(coins===1000||coins===10000||coins===100000){
-    coin.classList.add('flash');
-    sound(800);
-    setTimeout(()=>coin.classList.remove('flash'),400);
-  }
-}
-
-document.getElementById('x2').onclick=()=>{
-  multi=2;
-  multText.textContent='Бонус: 2X (30с)';
-  sound(900);
-  setTimeout(()=>{
-    multi=1;
-    multText.textContent='Бонус: 1X';
-  },30000);
-};
-
-document.getElementById('gift').onclick=()=>{
-  coins+=5000;
-  sound(1000);
-  update();
+core.onclick=(e)=>{
+  const gain=1*mult;
+  money+=gain;
+  clickSound.currentTime=0;
+  clickSound.play();
+  spawnEffect(e.offsetX,e.offsetY,gain);
+  updateUI();
 };
 
 setInterval(()=>{
-  active.textContent = 12000 + Math.floor(Math.random()*800);
-},4000);
+  money+=robotIncome;
+  updateUI();
+},1000);
 
-update();
+const overlay=document.getElementById('overlay');
+const modal=document.getElementById('modal');
+
+function openModal(html){
+  modal.innerHTML=html;
+  overlay.style.display='flex';
+}
+overlay.onclick=()=>overlay.style.display='none';
+
+document.getElementById('bonus').onclick=()=>{
+  openModal(`
+    <h3>🎁 Бонус</h3>
+    <p>Отримати +50 монет</p>
+    <button onclick="money+=50;updateUI();overlay.style.display='none'">Забрати</button>
+  `);
+};
+
+document.getElementById('x2').onclick=()=>{
+  if(x2Active)return;
+  x2Active=true;
+  mult=2;
+  updateUI();
+  setTimeout(()=>{
+    mult=1;
+    x2Active=false;
+    updateUI();
+  },30000);
+};
+
+document.getElementById('robot').onclick=()=>{
+  openModal(`
+    <h3>🤖 Робот</h3>
+    <p>Пасивний дохід +1/сек</p>
+    <button onclick="robotIncome+=1;overlay.style.display='none'">Активувати</button>
+  `);
+};
+
+updateUI();
 </script>
 
 </body>
