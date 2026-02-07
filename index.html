@@ -7,107 +7,96 @@
 
 <style>
 body{
-    margin:0;
-    background:#0b0b0b;
-    color:#fff;
-    font-family:Arial,sans-serif;
-    text-align:center;
+  margin:0;
+  background:#0b0b0b;
+  color:#fff;
+  font-family:Arial,sans-serif;
+  text-align:center;
 }
 .header{
-    display:flex;
-    justify-content:space-between;
-    padding:12px;
-    background:#111;
-    font-size:14px;
+  display:flex;
+  justify-content:space-between;
+  padding:12px;
+  background:#111;
+  font-size:14px;
 }
 .balance{
-    font-size:36px;
-    font-weight:bold;
-    margin:15px 0;
+  font-size:36px;
+  font-weight:bold;
+  margin:15px 0;
 }
-.side-row{
-    display:flex;
-    justify-content:space-between;
-    padding:0 20px;
-    align-items:center;
+.row{
+  display:flex;
+  justify-content:space-between;
+  padding:0 20px;
+  align-items:center;
 }
-.ad-btn{
-    background:#1c1c1c;
-    padding:8px 14px;
-    border-radius:20px;
-}
-.level{font-size:14px;}
-
-.folder{
-    position:absolute;
-    left:15px;
-    top:55%;
-    font-size:30px;
-    cursor:pointer;
-}
-
-.circle-wrap{
-    display:flex;
-    justify-content:center;
-    margin:25px 0;
+.badge{
+  background:#1c1c1c;
+  padding:8px 14px;
+  border-radius:20px;
 }
 .circle{
-    width:260px;
-    height:260px;
-    border-radius:50%;
-    background:radial-gradient(circle,#ffd500,#ffb700);
-    display:flex;
-    justify-content:center;
-    align-items:center;
-    transition:0.4s;
+  width:260px;
+  height:260px;
+  border-radius:50%;
+  margin:25px auto;
+  background:radial-gradient(circle,#ffd500,#ffb700);
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  transition:.3s;
 }
 .circle img{width:90px;}
-
 .multi{
-    display:flex;
-    justify-content:center;
-    gap:10px;
-    margin-bottom:15px;
+  display:flex;
+  justify-content:center;
+  gap:10px;
 }
 .multi button{
-    padding:8px 18px;
-    border-radius:14px;
-    border:none;
-    background:#2b2b2b;
-    color:#fff;
+  background:#2b2b2b;
+  border:none;
+  color:#fff;
+  padding:8px 18px;
+  border-radius:14px;
 }
-
 .main-btn{
-    background:#ffc400;
-    border:none;
-    padding:14px;
-    width:85%;
-    border-radius:18px;
-    font-size:18px;
-    font-weight:bold;
+  width:85%;
+  margin:15px auto 5px;
+  padding:14px;
+  font-size:18px;
+  border-radius:18px;
+  border:none;
+  font-weight:bold;
+  background:#ffc400;
 }
 .gold{background:linear-gradient(90deg,#ffd700,#ffae00);}
-
-.timer{margin-top:6px;font-size:14px;opacity:0.8;}
-
+.timer{font-size:14px;opacity:.8;}
 .withdraw{
-    background:#1e8e3e;
-    border:none;
-    padding:14px;
-    width:85%;
-    border-radius:18px;
-    font-size:18px;
-    color:#fff;
-    margin-top:10px;
+  background:#1e8e3e;
+  color:#fff;
+  border:none;
+  width:85%;
+  padding:14px;
+  font-size:18px;
+  border-radius:18px;
+  margin-top:10px;
+}
+.folder{
+  position:absolute;
+  left:15px;
+  top:55%;
+  font-size:30px;
+  cursor:pointer;
 }
 .rain{
-    position:fixed;
-    top:-40px;
-    font-size:24px;
-    animation:fall 1.2s linear forwards;
+  position:fixed;
+  top:-40px;
+  font-size:24px;
+  animation:fall 1.2s linear forwards;
 }
 @keyframes fall{
-    to{transform:translateY(120vh);opacity:0;}
+  to{transform:translateY(120vh);opacity:0;}
 }
 </style>
 </head>
@@ -115,87 +104,124 @@ body{
 <body>
 
 <div class="header">
-    <div>Онлайн: <span id="online">3963</span></div>
-    <div>Бонусів сьогодні: <span id="today">4796</span></div>
+  <div>Онлайн: <span id="online">3960</span></div>
+  <div>Бонусів сьогодні: <span id="today">4790</span></div>
 </div>
 
-<div class="balance">Баланс: ₴<span id="balance">1280</span></div>
+<div class="balance">Баланс: ₴<span id="balance">0</span></div>
 
-<div class="side-row">
-    <div class="ad-btn">📺 Реклама +50</div>
-    <div class="level">Рівень: 2</div>
+<div class="row">
+  <div class="badge">📺 Реклама +50</div>
+  <div>Рівень: 2</div>
 </div>
 
-<div class="folder" onclick="daily()">📁</div>
+<div class="folder" onclick="dailyBonus()">📁</div>
 
-<div class="circle-wrap">
-    <div id="circle" class="circle">
-        <img id="icon" src="https://cdn-icons-png.flaticon.com/512/679/679720.png">
-    </div>
+<div class="circle" id="circle">
+  <img id="icon" src="https://cdn-icons-png.flaticon.com/512/679/679720.png">
 </div>
 
 <div class="multi">
-    <button>x1</button>
-    <button>x3</button>
-    <button>x5</button>
+  <button>x1</button>
+  <button>x3</button>
+  <button>x5</button>
 </div>
 
-<button id="tapBtn" class="main-btn">TapDay Play</button>
-
+<button id="mainBtn" class="main-btn">TapDay Play</button>
 <button id="subBtn" class="main-btn" style="display:none"></button>
 <div id="timer" class="timer"></div>
 
 <button class="withdraw">💳 Вивід</button>
 
 <script>
-let balance=Number(localStorage.balance)||1280;
-let taps=Number(localStorage.taps)||0;
-let sub=localStorage.sub;
-let timerEnd=localStorage.timerEnd;
+let balance = Number(localStorage.balance)||1280;
+let taps = Number(localStorage.taps)||0;
+let subscribed = localStorage.subscribed;
+let bonusTimer = Number(localStorage.bonusTimer)||0;
 
-balanceEl.innerText=balance;
+balanceEl.innerText = balance;
 
 setInterval(()=>online.innerText++,3000);
-setInterval(()=>today.innerText++,2500);
+setInterval(()=>today.innerText++,2000);
 
-tapBtn.onclick=()=>{
-    navigator.vibrate(40);
-    taps++; balance++;
-    localStorage.taps=taps; localStorage.balance=balance;
-    update();
-    rain();
+mainBtn.onclick=()=>{
+  navigator.vibrate(40);
+  taps++;
+  balance++;
+  localStorage.taps=taps;
+  localStorage.balance=balance;
+  balanceEl.innerText=balance;
+  rain();
+  updateIcon();
 };
 
 function rain(){
-    let el=document.createElement("div");
-    el.className="rain";
-    el.innerText=taps<100?"🪙":taps<1000?"👑":taps<10000?"💎":taps<100000?"⭐":"🦁";
-    el.style.left=Math.random()*100+"vw";
-    document.body.appendChild(el);
-    setTimeout(()=>el.remove(),1200);
+  let e=document.createElement("div");
+  e.className="rain";
+  e.innerText =
+    taps<100?"🪙":
+    taps<1000?"👑":
+    taps<10000?"💎":
+    taps<100000?"⭐":
+    taps<1000000?"📦":"🦁";
+  e.style.left=Math.random()*100+"vw";
+  document.body.appendChild(e);
+  setTimeout(()=>e.remove(),1200);
 }
 
-function update(){
+function updateIcon(){
+  if(taps>=1000000){icon.src="https://cdn-icons-png.flaticon.com/512/616/616489.png";mainBtn.classList.add("gold");}
+  else if(taps>=100000){icon.src="https://cdn-icons-png.flaticon.com/512/679/679922.png";}
+  else if(taps>=10000){icon.src="https://cdn-icons-png.flaticon.com/512/616/616490.png";}
+  else if(taps>=1000){icon.src="https://cdn-icons-png.flaticon.com/512/616/616554.png";}
+  else if(taps>=100){icon.src="https://cdn-icons-png.flaticon.com/512/616/616430.png";}
+}
+
+function dailyBonus(){
+  let last=Number(localStorage.lastDaily)||0;
+  let day=Number(localStorage.day)||0;
+  if(Date.now()-last<86400000)return alert("Ще рано");
+  let reward=[25,50,75,100,150,200,300][day]||0;
+  balance+=reward;
+  localStorage.balance=balance;
+  localStorage.lastDaily=Date.now();
+  localStorage.day=day+1;
+  balanceEl.innerText=balance;
+}
+
+if(!subscribed){
+  subBtn.style.display="block";
+  subBtn.innerText="Підпишись · Отримай 500 грн бонус";
+  subBtn.onclick=()=>{
+    window.open("https://t.me/tapday_clicker","_blank");
+    subscribed=true;
+    localStorage.subscribed=1;
+    balance+=500;
+    localStorage.balance=balance;
     balanceEl.innerText=balance;
-    if(taps>=1000000){icon.src="https://cdn-icons-png.flaticon.com/512/616/616489.png";tapBtn.classList.add("gold");}
-    else if(taps>=100000){icon.src="https://cdn-icons-png.flaticon.com/512/679/679922.png";}
-    else if(taps>=10000){icon.src="https://cdn-icons-png.flaticon.com/512/616/616490.png";}
-    else if(taps>=1000){icon.src="https://cdn-icons-png.flaticon.com/512/616/616554.png";}
-    else if(taps>=100){icon.src="https://cdn-icons-png.flaticon.com/512/616/616430.png";}
+    startTimer();
+  };
 }
 
-function daily(){
-    let d=Number(localStorage.daily)||0;
-    let last=Number(localStorage.lastDaily)||0;
-    if(Date.now()-last<86400000)return alert("Ще не можна");
-    let reward=[25,50,75,100,150,200,300][d]||0;
-    balance+=reward;
-    localStorage.daily=d+1;
-    localStorage.lastDaily=Date.now();
-    update();
+function startTimer(){
+  subBtn.innerText="TapDay Play · Бонус +1000";
+  bonusTimer=Date.now()+2592000000;
+  localStorage.bonusTimer=bonusTimer;
+  updateTimer();
 }
 
-update();
+function updateTimer(){
+  if(!bonusTimer)return;
+  let d=bonusTimer-Date.now();
+  if(d<=0)return timer.innerText="Готово!";
+  let days=Math.floor(d/86400000);
+  let h=Math.floor(d%86400000/3600000);
+  let m=Math.floor(d%3600000/60000);
+  timer.innerText=`${days}д ${h}г ${m}хв`;
+}
+setInterval(updateTimer,1000);
+updateTimer();
+updateIcon();
 </script>
 
 </body>
