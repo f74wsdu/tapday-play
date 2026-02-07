@@ -2,153 +2,134 @@
 <html lang="uk">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>TapDay Play</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <style>
 body {
-    margin: 0;
-    background: #0b0b0b;
-    color: #fff;
-    font-family: Arial, sans-serif;
-    text-align: center;
-    overflow: hidden;
+  margin: 0;
+  background: #0b0b0b;
+  color: #fff;
+  font-family: system-ui, sans-serif;
+  text-align: center;
 }
 
-.balance {
-    font-size: 46px;
-    margin-top: 20px;
-    font-weight: bold;
+#balance {
+  font-size: 42px;
+  margin-top: 20px;
 }
 
-.sub {
-    opacity: .7;
-    margin-bottom: 10px;
+#label {
+  opacity: 0.7;
+  margin-bottom: 20px;
 }
 
-.circle-wrap {
-    display: flex;
-    justify-content: center;
-    margin: 20px 0;
-    position: relative;
+#circle {
+  width: 260px;
+  height: 260px;
+  margin: 0 auto;
+  border-radius: 50%;
+  background: #222;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: box-shadow 0.3s ease;
 }
 
-.circle {
-    width: 260px;
-    height: 260px;
-    border-radius: 50%;
-    background: radial-gradient(circle, #555, #222);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 110px;
-    transition: all .5s ease;
+#icon {
+  width: 120px;
+  height: 120px;
 }
 
-.multi {
-    display: flex;
-    justify-content: center;
-    gap: 12px;
-}
-
-.multi button {
-    padding: 10px 22px;
-    border-radius: 18px;
-    border: none;
-    background: #2b2b2b;
-    color: #fff;
-}
-
-.multi .active {
-    background: #ffd500;
-    color: #000;
+#tap {
+  margin-top: 30px;
+  padding: 16px 40px;
+  font-size: 20px;
+  border-radius: 14px;
+  border: none;
+  background: #1fa84f;
+  color: #fff;
 }
 
 .rain {
-    position: absolute;
-    top: 130px;
-    font-size: 26px;
-    animation: fall 1.3s linear forwards;
-    pointer-events: none;
+  position: fixed;
+  width: 28px;
+  pointer-events: none;
+  animation: fall 1.2s linear forwards;
 }
 
 @keyframes fall {
-    from { transform: translateY(0); opacity: 1; }
-    to { transform: translateY(260px); opacity: 0; }
+  from { transform: translateY(0); opacity: 1; }
+  to { transform: translateY(260px); opacity: 0; }
 }
 </style>
 </head>
 
 <body>
 
-<div class="balance" id="balance">2140</div>
-<div class="sub" id="label">💎 кристалів</div>
+<div id="balance">0</div>
+<div id="label">мішечків</div>
 
-<div class="circle-wrap">
-    <div class="circle" id="circle">💎</div>
+<div id="circle">
+  <img id="icon" src="assets/money.png">
 </div>
 
-<div class="multi">
-    <button onclick="setMulti(1)">x1</button>
-    <button onclick="setMulti(2)">x2</button>
-    <button onclick="setMulti(5)" class="active">x5</button>
-</div>
+<button id="tap">TAP</button>
 
 <script>
-let balance = Number(localStorage.getItem("balance")) || 2140;
-let multi = 5;
+let balance = 0;
+const tapPower = 1;
 
 const stages = [
-  { max: 100, icon: "🪙", label: "мішечків", rain: "🪙", bright: 0.3 },
-  { max: 1000, icon: "👑", label: "корон", rain: "👑", bright: 0.45 },
-  { max: 5000, icon: "💎", label: "кристалів", rain: "💎", bright: 0.6 },
-  { max: 20000, icon: "⭐", label: "зірок", rain: "⭐", bright: 0.75 },
-  { max: 100000, icon: "🧰", label: "сундуків", rain: "🧰", bright: 0.9 },
-  { max: 1000000, icon: "🦁", label: "лев", rain: null, bright: 1 }
+  { from: 0, to: 100, icon: "money", rain: "money", glow: 0.3, label: "мішечків" },
+  { from: 100, to: 1000, icon: "crown", rain: "crown", glow: 0.45, label: "корон" },
+  { from: 1000, to: 10000, icon: "crystal", rain: "crystal", glow: 0.6, label: "кристалів" },
+  { from: 10000, to: 100000, icon: "star", rain: "star", glow: 0.75, label: "зірок" },
+  { from: 100000, to: 1000000, icon: "chest", rain: "chest", glow: 0.9, label: "сундуків" },
+  { from: 1000000, to: Infinity, icon: "lion", rain: null, glow: 1, label: "лев" }
 ];
 
+const balanceEl = document.getElementById("balance");
+const labelEl = document.getElementById("label");
+const iconEl = document.getElementById("icon");
+const circleEl = document.getElementById("circle");
+const tapBtn = document.getElementById("tap");
+
 function getStage() {
-    return stages.find(s => balance < s.max) || stages[stages.length - 1];
+  return stages.find(s => balance >= s.from && balance < s.to);
 }
 
 function updateUI() {
-    const s = getStage();
-    balanceEl.innerText = balance;
-    label.innerText = s.icon + " " + s.label;
-    circle.innerText = s.icon;
-    circle.style.background = `radial-gradient(circle, rgba(255,213,0,${s.bright}), #222)`;
-}
-
-function tap() {
-    balance += multi;
-    localStorage.setItem("balance", balance);
-    rain();
-    updateUI();
+  const s = getStage();
+  balanceEl.innerText = balance;
+  labelEl.innerText = s.label;
+  iconEl.src = "assets/" + s.icon + ".png";
+  circleEl.style.boxShadow =
+    `0 0 ${50 * s.glow}px rgba(255,215,0,${s.glow})`;
 }
 
 function rain() {
-    const s = getStage();
-    if (!s.rain) return;
+  const s = getStage();
+  if (!s.rain) return;
 
-    const r = document.createElement("div");
-    r.className = "rain";
-    r.innerText = s.rain;
-    r.style.left = "50%";
-    document.body.appendChild(r);
-    setTimeout(() => r.remove(), 1300);
+  const img = document.createElement("img");
+  img.src = "assets/" + s.rain + ".png";
+  img.className = "rain";
+
+  const r = iconEl.getBoundingClientRect();
+  img.style.left = r.left + r.width / 2 + "px";
+  img.style.top = r.top + r.height / 2 + "px";
+
+  document.body.appendChild(img);
+  setTimeout(() => img.remove(), 1200);
 }
 
-function setMulti(x) {
-    multi = x;
-    document.querySelectorAll(".multi button").forEach(b => b.classList.remove("active"));
-    event.target.classList.add("active");
-}
-
-circle.onclick = tap;
-
-const balanceEl = document.getElementById("balance");
-const label = document.getElementById("label");
-const circle = document.getElementById("circle");
+tapBtn.onclick = () => {
+  balance += tapPower;
+  updateUI();
+  rain();
+  if (navigator.vibrate) navigator.vibrate(20);
+};
 
 updateUI();
 </script>
