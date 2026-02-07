@@ -12,6 +12,7 @@ body {
   background: #0b0b0b;
   color: #fff;
   text-align: center;
+  transition: background 0.3s;
 }
 
 .header {
@@ -102,7 +103,7 @@ body {
 .sub {
   font-size: 13px;
   margin-top: 4px;
-  opacity: 0.8;
+  opacity: 0.85;
 }
 
 .withdraw {
@@ -121,14 +122,14 @@ body {
 <body>
 
 <div class="header">
-  <div>Онлайн: <span id="online">3940</span></div>
-  <div>Бонусів сьогодні: <span id="today">4744</span></div>
+  <div>Онлайн: 3945</div>
+  <div>Бонусів сьогодні: 4763</div>
 </div>
 
-<div class="balance">Баланс: $<span id="bal">296.64</span></div>
+<div class="balance">Баланс: $<span id="bal">397.64</span></div>
 
 <div class="row">
-  <div class="ad" onclick="ad()">📺 Реклама +500</div>
+  <div class="ad" onclick="ad()">📺 Реклама +50</div>
   <div>Рівень: 2</div>
 </div>
 
@@ -150,18 +151,19 @@ body {
   Підпишись — отримай бонус 500 грн
 </button>
 
-<div class="sub" id="subText"></div>
+<div class="sub" id="timer"></div>
 
 <button class="withdraw">💳 Вивід</button>
 
 <script>
-let bal = 296.64;
+let bal = 397.64;
 let multi = 1;
 let taps = 0;
 let subscribed = false;
+let bonusTime = null;
 
 function vibrate() {
-  if (navigator.vibrate) navigator.vibrate(30);
+  if (navigator.vibrate) navigator.vibrate(40);
 }
 
 function sound() {
@@ -169,15 +171,26 @@ function sound() {
 }
 
 function tap() {
+  vibrate();
   taps += multi;
   bal += multi;
   document.getElementById("bal").innerText = bal.toFixed(2);
-  vibrate();
 
-  if (taps >= 100) {
-    document.getElementById("icon").src =
-      "https://cdn-icons-png.flaticon.com/512/3523/3523063.png";
-    document.getElementById("circle").style.filter = "brightness(1.2)";
+  let icon = document.getElementById("icon");
+  let circle = document.getElementById("circle");
+
+  if (taps < 100) {
+    icon.src = "https://cdn-icons-png.flaticon.com/512/649/649931.png";
+    circle.style.filter = "brightness(1)";
+  } else if (taps < 1000) {
+    icon.src = "https://cdn-icons-png.flaticon.com/512/3523/3523063.png";
+    circle.style.filter = "brightness(1.2)";
+  } else if (taps < 10000) {
+    icon.src = "https://cdn-icons-png.flaticon.com/512/616/616489.png";
+    circle.style.filter = "brightness(1.4)";
+  } else {
+    icon.src = "https://cdn-icons-png.flaticon.com/512/1828/1828884.png";
+    circle.style.filter = "brightness(1.6)";
   }
 }
 
@@ -194,15 +207,18 @@ function ad() {
 }
 
 function daily() {
-  let last = localStorage.getItem("daily") || 0;
+  let day = parseInt(localStorage.getItem("day") || "1");
+  let last = parseInt(localStorage.getItem("daily") || "0");
   let now = Date.now();
-  if (now - last > 86400000) {
-    bal += 25;
+
+  if (day <= 7 && now - last > 86400000) {
+    bal += 5;
     localStorage.setItem("daily", now);
-    alert("+25 грн");
+    localStorage.setItem("day", day + 1);
+    alert("+5 грн (день " + day + ")");
     sound(); vibrate();
   } else {
-    alert("Чекай 24 години");
+    alert("Ще не можна");
   }
 }
 
@@ -210,16 +226,27 @@ function subscribe() {
   if (subscribed) return;
   subscribed = true;
   bal += 500;
+  bonusTime = Date.now() + 2592000000;
   document.getElementById("bal").innerText = bal.toFixed(2);
-  document.getElementById("mainBtn").innerText = "TapDay Play";
-  document.getElementById("subText").innerText = "Бонус через 30 днів +1000";
+  document.getElementById("mainBtn").innerText = "TapDay Play · Бонус +1000";
   sound(); vibrate();
+  setInterval(timer, 1000);
 }
 
-setInterval(()=> {
-  document.getElementById("online").innerText++;
-  document.getElementById("today").innerText++;
-}, 2500);
+function timer() {
+  if (!bonusTime) return;
+  let t = bonusTime - Date.now();
+  if (t <= 0) {
+    document.getElementById("timer").innerText = "Забрати +1000 грн";
+    return;
+  }
+  let d = Math.floor(t / 86400000);
+  let h = Math.floor((t % 86400000) / 3600000);
+  let m = Math.floor((t % 3600000) / 60000);
+  let s = Math.floor((t % 60000) / 1000);
+  document.getElementById("timer").innerText =
+    `⏳ ${d}д ${h}г ${m}х ${s}с`;
+}
 </script>
 
 </body>
