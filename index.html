@@ -2,109 +2,151 @@
 <html lang="uk">
 <head>
 <meta charset="UTF-8">
-<title>TapDay City 2026</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>TapDay World 2026</title>
+<meta name="viewport" content="width=device-width,initial-scale=1.0,user-scalable=no">
 <style>
-html,body{margin:0;overflow:hidden;background:#0b1020;color:#fff;font-family:system-ui}
-#ui{
-position:fixed;top:10px;left:10px;right:10px;
-display:flex;justify-content:space-between;
-z-index:10;font-weight:700
-}
+html,body{margin:0;background:#020814;color:#fff;font-family:system-ui;overflow:hidden}
+#ui{position:fixed;top:10px;left:10px;right:10px;display:flex;justify-content:space-between;z-index:10}
+.badge{background:rgba(0,0,0,.6);padding:10px 14px;border-radius:14px}
 #panel{
 position:fixed;bottom:0;left:0;right:0;
-background:rgba(0,0,0,.8);
-padding:14px;text-align:center
+background:linear-gradient(180deg,rgba(0,0,0,.1),rgba(0,0,0,.85));
+padding:14px;text-align:center;font-size:14px
 }
 button{
-padding:12px 16px;border-radius:14px;border:0;
+margin:6px;padding:12px 16px;border:0;border-radius:14px;
 background:linear-gradient(135deg,#ffd54f,#ffb300);
 font-weight:700
 }
+canvas{display:block}
 </style>
 </head>
 
 <body>
 
 <div id="ui">
-<div>💰 <span id="money">1200</span></div>
-<div>🏙 Рівень <span id="lvl">1</span></div>
+<div class="badge">💰 <span id="money">1500</span></div>
+<div class="badge">🌍 Сезон <span id="season">1</span></div>
+<div class="badge">⏳ <span id="timer">00:00</span></div>
 </div>
 
-<canvas id="game"></canvas>
+<canvas id="world"></canvas>
 
-<div id="panel">Торкнись будівлі на карті</div>
+<div id="panel">
+<b>TapDay World</b><br>
+Натисни на регіон
+</div>
+
+<audio id="click" src="https://cdn.pixabay.com/download/audio/2022/03/15/audio_5c8a04a4b2.mp3"></audio>
+<audio id="bgm" loop src="https://cdn.pixabay.com/download/audio/2023/03/30/audio_2f4c4f99df.mp3"></audio>
 
 <script>
-const canvas=document.getElementById("game");
-const ctx=canvas.getContext("2d");
+const c=document.getElementById("world");
+const ctx=c.getContext("2d");
 resize();window.onresize=resize;
 
-let cam={x:0,y:0,zoom:1};
-let money=1200, lvl=1;
+let cam={x:0,y:0,z:1};
+let money=1500;
+let season=1;
+let passive=0;
 
-const buildings=[
-{x:0,y:0,type:"Ферма",icon:"🌾",income:5},
-{x:2,y:1,type:"Завод",icon:"🏭",income:20},
-{x:-2,y:2,type:"Лікарня",icon:"🏥",income:12},
-{x:3,y:-1,type:"Банк",icon:"🏦",income:35}
+document.getElementById("bgm").volume=0.3;
+document.getElementById("bgm").play();
+
+const regions=[
+{name:"Фермерський край",x:-200,y:-100,r:90,icon:"🌾",income:4},
+{name:"Індустріальний пояс",x:200,y:-80,r:100,icon:"🏭",income:12},
+{name:"Фінансовий центр",x:0,y:150,r:110,icon:"🏦",income:20},
+{name:"Портовий регіон",x:-180,y:180,r:95,icon:"⚓",income:8}
 ];
 
-function iso(x,y){
-return {
-x:(x-y)*64*cam.zoom+canvas.width/2+cam.x,
-y:(x+y)*32*cam.zoom+canvas.height/2+cam.y
-};
-}
-
 function draw(){
-ctx.clearRect(0,0,canvas.width,canvas.height);
+ctx.clearRect(0,0,c.width,c.height);
 
-// map
-for(let x=-10;x<10;x++){
-for(let y=-10;y<10;y++){
-let p=iso(x,y);
-ctx.fillStyle="#1b2450";
+// space
+const g=ctx.createRadialGradient(c.width/2,c.height/2,0,c.width/2,c.height/2,c.width);
+g.addColorStop(0,"#071833");
+g.addColorStop(1,"#000");
+ctx.fillStyle=g;
+ctx.fillRect(0,0,c.width,c.height);
+
+// planet
+ctx.save();
+ctx.translate(c.width/2+cam.x,c.height/2+cam.y);
+ctx.scale(cam.z,cam.z);
+
 ctx.beginPath();
-ctx.moveTo(p.x,p.y);
-ctx.lineTo(p.x+64*cam.zoom,p.y+32*cam.zoom);
-ctx.lineTo(p.x,p.y+64*cam.zoom);
-ctx.lineTo(p.x-64*cam.zoom,p.y+32*cam.zoom);
-ctx.closePath();
+ctx.arc(0,0,300,0,Math.PI*2);
+ctx.fillStyle="#0b3d2e";
 ctx.fill();
-}
+
+// regions
+for(let r of regions){
+ctx.beginPath();
+ctx.arc(r.x,r.y,r.r,0,Math.PI*2);
+ctx.fillStyle="rgba(0,0,0,.35)";
+ctx.fill();
+ctx.font="28px serif";
+ctx.textAlign="center";
+ctx.fillText(r.icon,r.x,r.y+10);
 }
 
-// buildings
-for(let b of buildings){
-let p=iso(b.x,b.y);
-ctx.font=`${32*cam.zoom}px serif`;
-ctx.textAlign="center";
-ctx.fillText(b.icon,p.x,p.y+10);
-}
+ctx.restore();
 requestAnimationFrame(draw);
 }
 draw();
 
 // click
-canvas.onclick=e=>{
-for(let b of buildings){
-let p=iso(b.x,b.y);
-if(Math.abs(e.clientX-p.x)<40 && Math.abs(e.clientY-p.y)<40){
-money+=b.income;
+c.onclick=e=>{
+const x=(e.clientX-c.width/2-cam.x)/cam.z;
+const y=(e.clientY-c.height/2-cam.y)/cam.z;
+for(let r of regions){
+if(Math.hypot(x-r.x,y-r.y)<r.r){
+money+=r.income;
+passive+=r.income;
 document.getElementById("money").textContent=money;
 document.getElementById("panel").innerHTML=
-`<b>${b.type}</b><br>+${b.income} 💰`;
+`<b>${r.name}</b><br>+${r.income} 💰<br><button onclick="upgrade('${r.name}')">Апгрейд</button>`;
+document.getElementById("click").play();
 }
 }
 };
 
+// upgrade
+function upgrade(name){
+const r=regions.find(x=>x.name===name);
+if(money>=200){
+money-=200;
+r.income+=5;
+document.getElementById("money").textContent=money;
+}
+}
+
+// passive income
+setInterval(()=>{
+money+=passive;
+document.getElementById("money").textContent=money;
+},1000);
+
+// timer + season
+let t=0;
+setInterval(()=>{
+t++;
+document.getElementById("timer").textContent=
+String(Math.floor(t/60)).padStart(2,"0")+":"+String(t%60).padStart(2,"0");
+if(t>=420){ // 7 хв = сезон (для тесту)
+season++;
+document.getElementById("season").textContent=season;
+t=0;
+}
+},1000);
+
 // drag
-let drag=false,lx,ly;
-canvas.onpointerdown=e=>{drag=true;lx=e.clientX;ly=e.clientY;}
-canvas.onpointerup=()=>drag=false;
-canvas.onpointermove=e=>{
-if(drag){
+let d=false,lx,ly;
+c.onpointerdown=e=>{d=true;lx=e.clientX;ly=e.clientY;}
+c.onpointerup=()=>d=false;
+c.onpointermove=e=>{
+if(d){
 cam.x+=e.clientX-lx;
 cam.y+=e.clientY-ly;
 lx=e.clientX;ly=e.clientY;
@@ -112,14 +154,14 @@ lx=e.clientX;ly=e.clientY;
 };
 
 // zoom
-canvas.onwheel=e=>{
-cam.zoom+=e.deltaY*-0.001;
-cam.zoom=Math.max(.5,Math.min(1.6,cam.zoom));
+c.onwheel=e=>{
+cam.z+=e.deltaY*-0.001;
+cam.z=Math.max(.6,Math.min(1.4,cam.z));
 };
 
 function resize(){
-canvas.width=innerWidth;
-canvas.height=innerHeight;
+c.width=innerWidth;
+c.height=innerHeight;
 }
 </script>
 
