@@ -4,175 +4,169 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>TapDay Play</title>
-<script src="https://telegram.org/js/telegram-web-app.js"></script>
 
 <style>
-body{margin:0;background:#0b0b0b;color:#fff;font-family:Arial;text-align:center;overflow:hidden}
-.top{padding:12px}
-.row{display:flex;justify-content:space-between;font-size:14px}
-.balance{font-size:44px;font-weight:bold;margin:10px 0}
-.middle{display:flex;justify-content:space-between;align-items:center}
-.ad{background:#222;padding:8px 14px;border-radius:20px;cursor:pointer}
-.ball{
- width:260px;height:260px;margin:30px auto;border-radius:50%;
- background:radial-gradient(circle,#ffe600,#ffb700);
- box-shadow:0 0 35px rgba(255,200,0,.6);
- display:flex;align-items:center;justify-content:center;
- font-size:64px;cursor:pointer;position:relative;
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background: #0b0b0b;
+    color: #fff;
+    text-align: center;
 }
-.fly{
- position:absolute;font-size:32px;
- animation:fly .9s ease-out forwards;
- pointer-events:none;
+
+.header {
+    padding: 12px;
+    background: #111;
+    display: flex;
+    justify-content: space-between;
+    font-size: 14px;
 }
-@keyframes fly{
- 0%{transform:translate(0,0);opacity:1}
- 100%{transform:translate(var(--x),-120px) scale(1.3);opacity:0}
+
+.balance {
+    font-size: 38px;
+    font-weight: bold;
+    margin: 10px 0;
 }
-.controls{display:flex;justify-content:center;gap:15px}
-.mult{background:#222;padding:10px 18px;border-radius:14px}
-.mult.active{background:#ffb700;color:#000}
-.folder{position:absolute;left:14px;bottom:210px;font-size:28px;cursor:pointer}
-.days{
- position:absolute;left:14px;bottom:250px;
- background:#111;border-radius:14px;
- padding:10px;width:180px;display:none
+
+.ad-btn {
+    display: inline-block;
+    background: #1c1c1c;
+    padding: 8px 14px;
+    border-radius: 20px;
+    margin-bottom: 10px;
 }
-.day{padding:6px;border-bottom:1px solid #222;cursor:pointer}
-.mainBtn{
- margin-top:20px;width:90%;padding:18px;border-radius:20px;
- background:#ffb700;font-size:20px;border:none
+
+.level {
+    margin-top: 5px;
+    font-size: 14px;
 }
-.subText{font-size:12px;opacity:.7;margin-top:6px}
-.withdraw{
- margin:10px auto;width:160px;padding:10px;
- background:#1f8f3a;border-radius:14px;font-size:16px
+
+.circle-wrap {
+    display: flex;
+    justify-content: center;
+    margin: 20px 0;
+}
+
+.circle {
+    width: 260px;
+    height: 260px;
+    background: radial-gradient(circle, #ffd500, #ffb700);
+    border-radius: 50%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+.circle img {
+    width: 80px;
+}
+
+.bonus-30 {
+    margin-top: 10px;
+    font-size: 14px;
+    color: #000;
+    font-weight: bold;
+}
+
+.multi {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin-bottom: 15px;
+}
+
+.multi button {
+    padding: 8px 18px;
+    border-radius: 14px;
+    border: none;
+    background: #2b2b2b;
+    color: #fff;
+}
+
+.main-btn {
+    background: #ffc400;
+    border: none;
+    padding: 14px;
+    width: 80%;
+    border-radius: 16px;
+    font-size: 18px;
+    font-weight: bold;
+    margin-bottom: 10px;
+}
+
+.withdraw {
+    background: #1e8e3e;
+    border: none;
+    padding: 12px;
+    width: 70%;
+    border-radius: 14px;
+    font-size: 16px;
+    color: #fff;
 }
 </style>
 </head>
 
 <body>
 
-<div class="top">
- <div class="row">
-  <div>Онлайн: <span id="online">3940</span></div>
-  <div>Бонусів сьогодні: <span id="bonuses">4744</span></div>
- </div>
- <div class="balance">Баланс: $<span id="balance">296.64</span></div>
- <div class="middle">
-  <div class="ad" id="adBtn">📺 Реклама +500</div>
-  <div>Рівень: 2</div>
- </div>
+<div class="header">
+    <div>Онлайн: <span id="online">3940</span></div>
+    <div>Бонусів сьогодні: <span id="bonusToday">4744</span></div>
 </div>
 
-<div class="ball" id="ball">👑</div>
+<div class="balance">Баланс: ₴<span id="balance">296.64</span></div>
 
-<div class="folder" id="folder">📁</div>
-<div class="days" id="days">
- <div class="day" data-v="25">День 1 — 25</div>
- <div class="day" data-v="50">День 2 — 50</div>
- <div class="day" data-v="100">День 3 — 100</div>
- <div class="day" data-v="200">День 4 — 200</div>
- <div class="day" data-v="300">День 5 — 300</div>
- <div class="day" data-v="500">День 6 — 500</div>
- <div class="day" data-v="1000">День 7 — 1000</div>
+<div class="ad-btn" onclick="watchAd()">📺 Реклама +50 грн</div>
+<div class="level">Рівень: 2</div>
+
+<div class="circle-wrap">
+    <div class="circle">
+        <img src="https://cdn-icons-png.flaticon.com/512/616/616430.png">
+        <div class="bonus-30">Бонус через 30 днів: +1000</div>
+    </div>
 </div>
 
-<div class="controls">
- <div class="mult active" data-m="1">x1</div>
- <div class="mult" data-m="3">x3</div>
- <div class="mult" data-m="5">x5</div>
+<div class="multi">
+    <button>x1</button>
+    <button>x3</button>
+    <button>x5</button>
 </div>
 
-<button class="mainBtn">TapDay Play</button>
-<div class="subText">Бонус через 30 днів: +3000</div>
+<button id="mainBtn" class="main-btn" onclick="subscribe()">
+Підпишись<br>Отримай бонус +50 грн
+</button>
 
-<div class="withdraw">💳 Вивід</div>
-
-<audio id="sound">
-<source src="https://assets.mixkit.co/sfx/preview/mixkit-achievement-bell-600.mp3">
-</audio>
+<button class="withdraw">💳 Вивід</button>
 
 <script>
-let balance=296.64, mult=1;
-let online=3940, bonuses=4744;
-const bEl=document.getElementById("balance");
-const oEl=document.getElementById("online");
-const bonEl=document.getElementById("bonuses");
-const ball=document.getElementById("ball");
-const sound=document.getElementById("sound");
+let online = 3940;
+let bonusToday = 4744;
+let subscribed = false;
+let balance = 296.64;
 
-// онлайн живий
-setInterval(()=>{
- online+=Math.random()>.5?1:-1;
- oEl.textContent=online;
-},5000);
+setInterval(() => {
+    online += Math.floor(Math.random() * 3);
+    document.getElementById("online").innerText = online;
+}, 3000);
 
-// бонуси сьогодні живі
-setInterval(()=>{
- bonuses++;
- bonEl.textContent=bonuses;
-},10000);
+setInterval(() => {
+    bonusToday += Math.floor(Math.random() * 5);
+    document.getElementById("bonusToday").innerText = bonusToday;
+}, 2000);
 
-function icon(){
- if(balance>=1000) return "💎";
- if(balance>=100) return "👑";
- return "💰";
+function watchAd() {
+    balance += 50;
+    document.getElementById("balance").innerText = balance.toFixed(2);
 }
 
-function fly(){
- const f=document.createElement("div");
- f.className="fly";
- f.textContent=icon();
- f.style.setProperty("--x",`${Math.random()*80-40}px`);
- ball.appendChild(f);
- setTimeout(()=>f.remove(),900);
+function subscribe() {
+    if (!subscribed) {
+        subscribed = true;
+        balance += 50;
+        document.getElementById("balance").innerText = balance.toFixed(2);
+        document.getElementById("mainBtn").innerText = "TapDay Play";
+    }
 }
-
-ball.onclick=()=>{
- navigator.vibrate(40);
- balance+=0.01*mult;
- bEl.textContent=balance.toFixed(2);
- ball.textContent=icon();
- fly();
-};
-
-document.querySelectorAll(".mult").forEach(b=>{
- b.onclick=()=>{
-  document.querySelectorAll(".mult").forEach(x=>x.classList.remove("active"));
-  b.classList.add("active");
-  mult=+b.dataset.m;
- };
-});
-
-// реклама +500
-document.getElementById("adBtn").onclick=()=>{
- navigator.vibrate(80);
- sound.play();
- balance+=500;
- bonuses++;
- bEl.textContent=balance.toFixed(2);
- bonEl.textContent=bonuses;
-};
-
-folder.onclick=()=>{
- days.style.display=days.style.display==="block"?"none":"block";
-};
-
-document.querySelectorAll(".day").forEach(d=>{
- d.onclick=()=>{
-  const last=localStorage.getItem("daily");
-  const now=Date.now();
-  if(last && now-last<86400000) return;
-  localStorage.setItem("daily",now);
-  navigator.vibrate(80);
-  sound.play();
-  balance+=+d.dataset.v;
-  bonuses++;
-  bEl.textContent=balance.toFixed(2);
-  bonEl.textContent=bonuses;
- };
-});
 </script>
 
 </body>
