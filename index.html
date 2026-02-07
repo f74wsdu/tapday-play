@@ -2,231 +2,182 @@
 <html lang="uk">
 <head>
 <meta charset="UTF-8">
-<title>TapDay Play</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>TapDay Play — DEMO</title>
+
 <style>
-body{
-margin:0;
-font-family:system-ui;
-background:radial-gradient(circle at top,#0b1220,#020617);
-color:#fff;
-overflow:hidden;
+html,body{
+  margin:0;
+  padding:0;
+  background:#050b18;
+  overflow:hidden;
+  font-family:Arial, sans-serif;
+  color:#fff;
+  touch-action:manipulation;
 }
 
-.top{
-display:flex;
-justify-content:space-between;
-padding:14px;
-font-size:14px;
-opacity:.9;
+#top{
+  position:fixed;
+  top:0; left:0; right:0;
+  padding:10px 14px;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  background:linear-gradient(#0b1224,#050b18);
+  z-index:10;
 }
 
-.money{
-display:flex;
-align-items:center;
-gap:6px;
+.badge{
+  display:flex;
+  align-items:center;
+  gap:6px;
+  font-size:14px;
 }
+
+#players{opacity:.8;font-size:12px}
 
 #game{
-height:calc(100vh - 150px);
-display:flex;
-align-items:center;
-justify-content:center;
-position:relative;
+  position:absolute;
+  inset:0;
+  display:flex;
+  justify-content:center;
+  align-items:center;
 }
 
-.coin{
-width:240px;
-height:240px;
-border-radius:50%;
-display:flex;
-align-items:center;
-justify-content:center;
-font-size:48px;
-transition:.25s;
-box-shadow:0 0 60px rgba(255,200,80,.6);
+#coin{
+  width:260px;
+  height:260px;
+  border-radius:50%;
+  background:
+    radial-gradient(circle at 30% 30%, #fff2a8, #ffb700 60%, #b67600);
+  box-shadow:0 0 60px rgba(255,180,0,.7);
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  font-size:32px;
+  font-weight:bold;
+  user-select:none;
 }
 
-.bronze{background:radial-gradient(circle,#cd7f32,#7c3f00);}
-.silver{background:radial-gradient(circle,#e5e7eb,#9ca3af);}
-.gold{background:radial-gradient(circle,#ffe08a,#f59e0b);}
-.diamond{background:radial-gradient(circle,#dbeafe,#60a5fa);}
-.emerald{background:radial-gradient(circle,#a7f3d0,#10b981);}
-.ruby{background:radial-gradient(circle,#fecaca,#dc2626);}
-.legend{background:radial-gradient(circle,#fde68a,#facc15);box-shadow:0 0 100px gold;}
-
-#score{
-position:absolute;
-bottom:60px;
-font-size:34px;
-font-weight:700;
+#count{
+  position:absolute;
+  bottom:110px;
+  font-size:40px;
+  font-weight:bold;
 }
 
-.level{
-position:absolute;
-top:60px;
-font-size:14px;
-opacity:.8;
-}
-
-.hud{
-position:absolute;
-bottom:0;
-width:100%;
-display:flex;
-justify-content:space-around;
-padding:14px;
-background:linear-gradient(to top,rgba(2,6,23,.95),transparent);
-}
-
-.hud-item{
-display:flex;
-flex-direction:column;
-align-items:center;
-font-size:12px;
-opacity:.9;
+#bottom{
+  position:fixed;
+  bottom:10px;
+  left:0; right:0;
+  display:flex;
+  justify-content:space-around;
 }
 
 .btn{
-width:64px;
-height:64px;
-border-radius:18px;
-display:flex;
-align-items:center;
-justify-content:center;
-font-size:26px;
+  width:64px;
+  height:64px;
+  border-radius:16px;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  background:#18264d;
+  font-size:12px;
 }
 
-.x2{background:#2563eb;}
-.bot{background:#0ea5e9;}
-.gift{background:#f59e0b;}
-
-.particle{
-position:absolute;
-font-size:18px;
-pointer-events:none;
-animation:fly .9s linear forwards;
+.rain{
+  position:absolute;
+  pointer-events:none;
+  animation:fall 1s linear forwards;
+}
+@keyframes fall{
+  to{transform:translateY(400px);opacity:0}
 }
 
-@keyframes fly{
-to{transform:translate(var(--x),var(--y)) scale(0);opacity:0;}
+.flash{
+  animation:flash .4s ease;
+}
+@keyframes flash{
+  50%{box-shadow:0 0 120px #fff}
 }
 </style>
 </head>
 
 <body>
 
-<div class="top">
-<div class="money">💵 <span id="cash">0</span></div>
-<div>Level: <span id="lvl">1</span></div>
+<div id="top">
+  <div class="badge">💰 <span id="money">0</span></div>
+  <div id="players">Активні: 12 482</div>
 </div>
 
 <div id="game">
-<div id="coin" class="coin bronze">🪙</div>
-<div id="score">0</div>
+  <div id="coin">★</div>
+  <div id="count">0</div>
 </div>
 
-<div class="hud">
-<div class="hud-item">
-<div class="btn gift">🎁</div>
-<div>Бонус</div>
+<div id="bottom">
+  <div class="btn">🎁</div>
+  <div class="btn">⚡</div>
+  <div class="btn">🤖</div>
 </div>
-
-<div class="hud-item">
-<div class="btn x2">⚡</div>
-<div>X2</div>
-</div>
-
-<div class="hud-item">
-<div class="btn bot">🤖</div>
-<div>Auto</div>
-</div>
-</div>
-
-<audio id="tap" src="https://assets.mixkit.co/sfx/preview/mixkit-arcade-click-1115.mp3"></audio>
-<audio id="up" src="https://assets.mixkit.co/sfx/preview/mixkit-achievement-bell-600.mp3"></audio>
 
 <script>
-let score=0,cash=0,level=1,tapValue=1,auto=false,sound=false;
+let coins=0;
+let taps=0;
+let level=1;
+let audioCtx=new (window.AudioContext||window.webkitAudioContext)();
 
-const coin=document.getElementById("coin");
-const scoreEl=document.getElementById("score");
-const cashEl=document.getElementById("cash");
-const lvlEl=document.getElementById("lvl");
-const tap=document.getElementById("tap");
-const up=document.getElementById("up");
-
-const levels=[1000,10000,30000,100000,300000,1000000];
-
-function updateCoin(){
-coin.className="coin";
-if(score>=1e9)coin.classList.add("legend");
-else if(score>=1e8)coin.classList.add("ruby");
-else if(score>=1e7)coin.classList.add("emerald");
-else if(score>=1e6)coin.classList.add("diamond");
-else if(score>=1000)coin.classList.add("gold");
-else if(score>=100)coin.classList.add("silver");
-else coin.classList.add("bronze");
+function sound(freq){
+  let o=audioCtx.createOscillator();
+  let g=audioCtx.createGain();
+  o.connect(g); g.connect(audioCtx.destination);
+  o.frequency.value=freq;
+  o.start();
+  g.gain.exponentialRampToValueAtTime(0.0001,audioCtx.currentTime+.2);
+  o.stop(audioCtx.currentTime+.2);
 }
 
-function checkLevel(){
-if(levels[level-1] && score>=levels[level-1]){
-level++;
-lvlEl.textContent=level;
-up.play();
-}
-}
-
-function particles(x,y){
-for(let i=0;i<5;i++){
-let p=document.createElement("div");
-p.className="particle";
-p.textContent="💸";
-p.style.left=x+"px";
-p.style.top=y+"px";
-p.style.setProperty("--x",(Math.random()*120-60)+"px");
-p.style.setProperty("--y",(Math.random()*-120)+"px");
-document.body.appendChild(p);
-setTimeout(()=>p.remove(),900);
-}
+function rain(x,y){
+  let r=document.createElement('div');
+  r.textContent='🪙';
+  r.className='rain';
+  r.style.left=x+'px';
+  r.style.top=y+'px';
+  document.body.appendChild(r);
+  setTimeout(()=>r.remove(),1000);
 }
 
-coin.onclick=e=>{
-sound=true;
-score+=tapValue;
-cash+=tapValue;
-scoreEl.textContent=score.toLocaleString();
-cashEl.textContent=cash.toLocaleString();
-tap.currentTime=0;tap.play();
-particles(e.clientX,e.clientY);
-updateCoin();
-checkLevel();
-};
+function upgrade(){
+  let c=document.getElementById('coin');
+  c.classList.add('flash');
+  setTimeout(()=>c.classList.remove('flash'),300);
+}
 
-document.querySelector(".x2").onclick=()=>{
-tapValue=2;
-setTimeout(()=>tapValue=1,10000);
-};
+document.getElementById('game').addEventListener('pointerdown',e=>{
+  audioCtx.resume();
+  taps++;
+  coins+=1;
+  document.getElementById('money').textContent=coins;
+  document.getElementById('count').textContent=coins;
+  sound(300+Math.random()*200);
+  for(let i=0;i<5;i++) rain(e.clientX,e.clientY);
 
-document.querySelector(".bot").onclick=()=>{
-if(auto)return;
-auto=true;
-let i=0;
-let t=setInterval(()=>{
-score+=tapValue;
-cash+=tapValue;
-scoreEl.textContent=score.toLocaleString();
-cashEl.textContent=cash.toLocaleString();
-updateCoin();
-checkLevel();
-i++;
-if(i>=25){clearInterval(t);auto=false;}
-},1300);
-};
+  if([100,1000,10000,100000,1000000].includes(coins)){
+    sound(800);
+    upgrade();
+  }
+});
 
-document.querySelector(".gift").onclick=()=>{
-window.open("https://t.me/your_channel","_blank");
-};
+coins+=100; // стартовий бонус
+document.getElementById('money').textContent=coins;
+document.getElementById('count').textContent=coins;
+
+setInterval(()=>{
+  let base=12482;
+  document.getElementById('players').textContent=
+    'Активні: '+(base+Math.floor(Math.random()*400-200));
+},4000);
 </script>
+
 </body>
 </html>
