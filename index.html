@@ -1,100 +1,45 @@
 <!DOCTYPE html>
 <html lang="uk">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>TapDay Play</title>
-
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
 
 <style>
-*{box-sizing:border-box;font-family:Arial,Helvetica,sans-serif}
 body{
   margin:0;
   background:#0b0b0b;
   color:#fff;
+  font-family:Arial;
   text-align:center;
 }
-.top{
-  padding:10px 14px;
-}
-.row{
-  display:flex;
-  justify-content:space-between;
-  font-size:14px;
-  opacity:.85;
-}
-.balance{
-  font-size:42px;
-  font-weight:bold;
-  margin:15px 0 10px;
-}
-.middle{
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  padding:0 14px;
-}
-.ad{
-  background:#222;
-  padding:8px 14px;
-  border-radius:20px;
-  font-size:14px;
-}
-.level{
-  font-size:16px;
-}
-.ball-wrap{
-  margin:30px 0;
-}
+.top{padding:12px}
+.row{display:flex;justify-content:space-between;font-size:14px}
+.balance{font-size:44px;font-weight:bold;margin:10px 0}
+.middle{display:flex;justify-content:space-between;align-items:center}
+.ad{background:#222;padding:8px 14px;border-radius:20px}
 .ball{
-  width:260px;
-  height:260px;
-  margin:0 auto;
-  border-radius:50%;
+  width:260px;height:260px;margin:30px auto;border-radius:50%;
   background:radial-gradient(circle,#ffe600,#ffb700);
-  box-shadow:0 0 40px rgba(255,230,0,.6);
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  font-size:60px;
-  cursor:pointer;
+  box-shadow:0 0 25px rgba(255,200,0,.4);
+  display:flex;align-items:center;justify-content:center;
+  font-size:64px;cursor:pointer;
+  transition:.3s;
 }
-.controls{
-  display:flex;
-  justify-content:center;
-  gap:15px;
-  margin-bottom:20px;
+.controls{display:flex;justify-content:center;gap:15px}
+.mult{background:#222;padding:10px 18px;border-radius:14px}
+.mult.active{background:#ffb700;color:#000}
+.folder{position:absolute;left:14px;bottom:190px;font-size:28px;cursor:pointer}
+.days{
+  position:absolute;left:14px;bottom:230px;
+  background:#111;border-radius:14px;
+  padding:10px;width:180px;display:none;
 }
-.mult{
-  padding:10px 18px;
-  border-radius:14px;
-  background:#222;
-  color:#fff;
-}
-.mult.active{
-  background:#ffb700;
-  color:#000;
-}
-.folder{
-  position:absolute;
-  left:14px;
-  bottom:190px;
-  font-size:28px;
-  cursor:pointer;
-}
-.big-btn{
-  margin:10px auto;
-  width:90%;
-  padding:18px;
-  border-radius:18px;
-  font-size:20px;
-  border:none;
-  cursor:pointer;
-}
-.orange{background:#ffb700;color:#000}
+.day{padding:6px;border-bottom:1px solid #222;cursor:pointer}
+.big{width:90%;padding:18px;border-radius:18px;font-size:20px;border:none}
+.orange{background:#ffb700}
 .green{background:#1f8f3a;color:#fff}
-.hidden{display:none}
 </style>
 </head>
 
@@ -102,25 +47,28 @@ body{
 
 <div class="top">
   <div class="row">
-    <div>Онлайн: <span id="online">4100</span></div>
-    <div>Бонусів сьогодні: <span id="bonuses">4933</span></div>
+    <div>Онлайн: <span id="online">3959</span></div>
+    <div>Бонусів сьогодні: <span id="bonuses">4730</span></div>
   </div>
-
-  <div class="balance">
-    Баланс: $<span id="balance">31.83</span>
-  </div>
-
+  <div class="balance">Баланс: $<span id="balance">101.74</span></div>
   <div class="middle">
     <div class="ad">📺 Реклама +500</div>
-    <div class="level">Рівень: <span id="level">2</span></div>
+    <div>Рівень: 2</div>
   </div>
 </div>
 
-<div class="ball-wrap">
-  <div class="ball" id="ball">💰</div>
-</div>
+<div class="ball" id="ball">💰</div>
 
 <div class="folder" id="folder">📁</div>
+<div class="days" id="days">
+  <div class="day" data-v="25">День 1 — 25</div>
+  <div class="day" data-v="50">День 2 — 50</div>
+  <div class="day" data-v="100">День 3 — 100</div>
+  <div class="day" data-v="200">День 4 — 200</div>
+  <div class="day" data-v="300">День 5 — 300</div>
+  <div class="day" data-v="500">День 6 — 500</div>
+  <div class="day" data-v="1000">День 7 — 1000</div>
+</div>
 
 <div class="controls">
   <div class="mult active" data-m="1">x1</div>
@@ -128,64 +76,55 @@ body{
   <div class="mult" data-m="5">x5</div>
 </div>
 
-<button class="big-btn orange" id="bonusBtn">TapDay Play</button>
-<button class="big-btn green">Вивід</button>
+<button class="big orange">TapDay Play</button>
+<button class="big green">Вивід</button>
 
-<audio id="rewardSound">
-  <source src="https://assets.mixkit.co/sfx/preview/mixkit-achievement-bell-600.mp3" type="audio/mpeg">
+<audio id="sound">
+<source src="https://assets.mixkit.co/sfx/preview/mixkit-achievement-bell-600.mp3">
 </audio>
 
 <script>
-const tg = window.Telegram.WebApp;
-tg.expand();
+let balance=101.74, mult=1;
+const bEl=document.getElementById("balance");
+const ball=document.getElementById("ball");
+const sound=document.getElementById("sound");
 
-let balance = 31.83;
-let level = 2;
-let mult = 1;
-let subscribed = false;
+function updateBall(){
+  if(balance>=100000){ball.textContent="🔥";ball.style.boxShadow="0 0 60px gold"}
+  else if(balance>=10000){ball.textContent="🦁";ball.style.boxShadow="0 0 45px gold"}
+  else if(balance>=1000){ball.textContent="💎";ball.style.boxShadow="0 0 35px gold"}
+  else if(balance>=100){ball.textContent="👑";ball.style.boxShadow="0 0 30px gold"}
+  else ball.textContent="💰";
+}
 
-const balanceEl = document.getElementById("balance");
-const levelEl = document.getElementById("level");
-const ball = document.getElementById("ball");
-const sound = document.getElementById("rewardSound");
+ball.onclick=()=>{
+  navigator.vibrate(40);
+  balance+=0.01*mult;
+  bEl.textContent=balance.toFixed(2);
+  updateBall();
+};
 
 document.querySelectorAll(".mult").forEach(b=>{
   b.onclick=()=>{
     document.querySelectorAll(".mult").forEach(x=>x.classList.remove("active"));
     b.classList.add("active");
-    mult = +b.dataset.m;
+    mult=+b.dataset.m;
   }
 });
 
-ball.onclick=()=>{
-  navigator.vibrate(40);
-  balance += 0.01 * mult;
-  balanceEl.textContent = balance.toFixed(2);
-
-  if(balance>=5000) ball.textContent="🦁";
-  else ball.textContent="💰";
-};
-
-document.getElementById("bonusBtn").onclick=()=>{
-  tg.openTelegramLink("https://t.me/ТВІЙ_КАНАЛ");
-  setTimeout(()=>{
-    subscribed=true;
-    balance+=1;
-    sound.play();
-    balanceEl.textContent = balance.toFixed(2);
-  },4000);
-};
-
 document.getElementById("folder").onclick=()=>{
-  balance+=0.5;
-  sound.play();
-  balanceEl.textContent = balance.toFixed(2);
+  const d=document.getElementById("days");
+  d.style.display=d.style.display==="block"?"none":"block";
 };
 
-setInterval(()=>{
-  document.getElementById("online").textContent = 3800+Math.floor(Math.random()*600);
-  document.getElementById("bonuses").textContent = 4500+Math.floor(Math.random()*600);
-},3000);
+document.querySelectorAll(".day").forEach(d=>{
+  d.onclick=()=>{
+    balance+=+d.dataset.v;
+    sound.play();
+    bEl.textContent=balance.toFixed(2);
+    updateBall();
+  }
+});
 </script>
 
 </body>
