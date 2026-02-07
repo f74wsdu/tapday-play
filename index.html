@@ -1,10 +1,9 @@
 <!DOCTYPE html>
 <html lang="uk">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>TapDay Play</title>
-
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
 
 <style>
@@ -12,78 +11,67 @@ body{
   margin:0;
   background:#0b0f1a;
   color:#fff;
-  font-family:Arial, sans-serif;
+  font-family:Arial,sans-serif;
   overflow:hidden;
 }
 
-/* TOP BAR */
+/* TOP */
 .top{
   display:flex;
   justify-content:space-between;
-  align-items:center;
+  align-items:flex-start;
   padding:10px 14px;
 }
-.balance{font-size:16px;}
-.center-stats{
-  font-size:12px;
-  opacity:.8;
-  text-align:center;
+.balance{
+  font-size:16px;
 }
-.ad{background:#222;padding:6px 10px;border-radius:12px;font-size:12px;}
-
-/* INFO LINE */
-.info{
+.level{
+  font-size:12px;
+  opacity:.7;
+}
+.stats{
+  font-size:12px;
   text-align:center;
-  font-size:14px;
-  margin-top:6px;
   opacity:.85;
 }
+.ad{
+  background:#222;
+  padding:6px 12px;
+  border-radius:14px;
+}
 
-/* SUN */
-.sun-wrap{
+/* COIN */
+.coin-wrap{
   display:flex;
   justify-content:center;
-  align-items:center;
-  margin-top:20px;
+  margin-top:40px;
 }
-.sun{
-  width:260px;
-  height:260px;
+.coin{
+  width:240px;
+  height:240px;
   border-radius:50%;
-  background:
-    radial-gradient(circle at 30% 30%, #fff3a0, #ffd633 40%, #ffb300 65%, #ff8c00 100%);
-  box-shadow:0 0 60px #ffb300;
-  position:relative;
-}
-.sun::after{
-  content:"";
-  position:absolute;
-  inset:-35px;
-  border-radius:50%;
-  background:
-    repeating-conic-gradient(
-      from 0deg,
-      rgba(255,200,0,.9) 0deg 6deg,
-      transparent 6deg 14deg
-    );
-  filter:blur(1px);
+  background:radial-gradient(circle,#ffd86b,#ffb300);
+  box-shadow:0 0 50px rgba(255,200,0,.8);
+  transition:.3s;
 }
 
-/* MULTIPLIERS */
+/* MULTI */
 .multi{
   display:flex;
   justify-content:center;
-  gap:14px;
-  margin:20px 0;
+  gap:12px;
+  margin:18px 0;
 }
 .multi button{
   padding:10px 18px;
   border-radius:20px;
   border:none;
-  font-size:14px;
+}
+.multi .active{
+  background:#1ec7a0;
 }
 
-/* SUBSCRIBE */
+/* SUB */
 .sub{
   margin:0 16px;
   background:#141a2a;
@@ -93,11 +81,11 @@ body{
 }
 .sub button{
   margin-top:8px;
-  padding:14px;
   width:100%;
+  padding:14px;
+  font-size:18px;
   border:none;
   border-radius:12px;
-  font-size:18px;
   background:#1ec7a0;
 }
 
@@ -109,7 +97,11 @@ body{
   display:flex;
   justify-content:space-between;
   padding:12px 14px;
-  font-size:13px;
+}
+.bottom button{
+  background:none;
+  border:none;
+  color:#fff;
 }
 </style>
 </head>
@@ -117,35 +109,36 @@ body{
 <body>
 
 <div class="top">
-  <div class="balance">🪙 <span id="money">40</span></div>
-  <div class="center-stats">
-    👥 Онлайн: <span id="online">3842</span><br>
-    🎁 Бонусів сьогодні: <span id="bonuses">3124</span>
+  <div>
+    <div class="balance">💵 <span id="money">85</span></div>
+    <div class="level">Рівень: <span id="level">1</span></div>
   </div>
-  <div class="ad">Реклама +2000</div>
+
+  <div class="stats">
+    👥 Онлайн: 3842<br>
+    🎁 Бонусів сьогодні: 3124
+  </div>
+
+  <div class="ad">Реклама +2000<br><small>Скоро вибий</small></div>
 </div>
 
-<div class="info">
-  Натискай швидше — відкривай нові можливості
-</div>
-
-<div class="sun-wrap">
-  <div class="sun" id="sun"></div>
+<div class="coin-wrap">
+  <div class="coin" id="coin"></div>
 </div>
 
 <div class="multi">
-  <button>x1</button>
-  <button>x3</button>
-  <button>x5</button>
+  <button onclick="setMulti(1)" class="active">x1</button>
+  <button onclick="setMulti(3)">x3</button>
+  <button onclick="setMulti(5)">x5</button>
 </div>
 
 <div class="sub">
   🎁 Підпишись на канал
-  <button id="subBtn">Отримати +10 000</button>
+  <button onclick="subscribe()">Отримати +10 000</button>
 </div>
 
 <div class="bottom">
-  <div>🏙 Місто</div>
+  <button onclick="openCity()">🏙 Місто</button>
   <div>🎁 Щоденний бонус <span id="timer">24:00:00</span></div>
 </div>
 
@@ -153,28 +146,55 @@ body{
 const tg = window.Telegram.WebApp;
 tg.expand();
 
-let money = 40;
+let money = 85;
+let level = 1;
+let multi = 1;
+
 const moneyEl = document.getElementById("money");
-const sun = document.getElementById("sun");
+const levelEl = document.getElementById("level");
+const coin = document.getElementById("coin");
 
-sun.addEventListener("click",()=>{
-  money += 1;
-  moneyEl.textContent = money;
-  const audio = new Audio("tap.mp3");
-  audio.play();
-});
-
-document.getElementById("subBtn").onclick = ()=>{
-  tg.openTelegramLink("https://t.me/YOUR_CHANNEL");
+coin.onclick = ()=>{
+  money += multi;
+  update();
 };
 
-let seconds = 86400;
+function setMulti(x){
+  multi = x;
+  document.querySelectorAll(".multi button").forEach(b=>b.classList.remove("active"));
+  event.target.classList.add("active");
+}
+
+function update(){
+  moneyEl.textContent = money;
+  level = Math.floor(Math.log10(money+1))+1;
+  levelEl.textContent = level;
+
+  if(money>=1e7) coin.style.background="radial-gradient(circle,#00ffff,#0066ff)";
+  else if(money>=1e6) coin.style.background="radial-gradient(circle,#b9f2ff,#4dd0e1)";
+  else if(money>=1e5) coin.style.background="radial-gradient(circle,#e5e4e2,#aaa)";
+  else if(money>=1e4) coin.style.background="radial-gradient(circle,#ffd700,#ffb300)";
+  else if(money>=1e3) coin.style.background="radial-gradient(circle,#ddd,#aaa)";
+  else if(money>=100) coin.style.background="radial-gradient(circle,#cd7f32,#a97142)";
+}
+
+function subscribe(){
+  tg.openTelegramLink("YOUR_CHANNEL_LINK");
+  money += 10000;
+  update();
+}
+
+function openCity(){
+  alert("Місто: пасивний дохід (в розробці)");
+}
+
+let t=86400;
 setInterval(()=>{
-  seconds--;
-  let h = String(Math.floor(seconds/3600)).padStart(2,"0");
-  let m = String(Math.floor(seconds%3600/60)).padStart(2,"0");
-  let s = String(seconds%60).padStart(2,"0");
-  document.getElementById("timer").textContent = `${h}:${m}:${s}`;
+  t--;
+  let h=String(Math.floor(t/3600)).padStart(2,"0");
+  let m=String(Math.floor(t%3600/60)).padStart(2,"0");
+  let s=String(t%60).padStart(2,"0");
+  document.getElementById("timer").textContent=`${h}:${m}:${s}`;
 },1000);
 </script>
 
