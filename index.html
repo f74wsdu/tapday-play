@@ -4,24 +4,96 @@
 <meta charset="UTF-8">
 <title>TapDay Play</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
 <style>
-body{margin:0;background:#0b0b0b;color:#fff;font-family:system-ui;text-align:center}
-.top{display:flex;justify-content:space-between;padding:10px 14px;font-size:14px}
+body{
+  margin:0;
+  background:#0b0b0b;
+  color:#fff;
+  font-family:system-ui;
+  text-align:center;
+  overflow:hidden;
+}
+.top{
+  display:flex;
+  justify-content:space-between;
+  padding:10px 14px;
+  font-size:14px;
+}
 .green{color:#2aff6a}
 .yellow{color:#ffd400}
-#balance{font-size:42px;margin-top:20px}
-#label{opacity:.7}
-#circle{width:260px;height:260px;margin:20px auto;border-radius:50%;background:#222;
-display:flex;align-items:center;justify-content:center}
-#icon{width:120px}
-.btn{margin:8px;padding:14px;border-radius:14px;border:none;font-size:16px;width:80%}
-.ad{background:#ffd400;color:#000}
-.bonus{background:#1c1c1c;color:#fff}
-.play{background:#333;color:#aaa}
-.play.active{background:#1fa84f;color:#fff}
-#tap{background:#1fa84f;color:#fff;font-size:20px;padding:16px 40px;
-border:none;border-radius:18px}
-.timer{opacity:.6;font-size:14px;margin-top:6px}
+
+#center{
+  margin-top:30px;
+  position:relative;
+}
+
+#circle{
+  width:260px;
+  height:260px;
+  border-radius:50%;
+  background:#222;
+  margin:auto;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:64px;
+}
+
+#level{
+  position:absolute;
+  right:10px;
+  top:0;
+  font-size:14px;
+}
+
+#ad{
+  position:absolute;
+  left:10px;
+  top:0;
+  background:#ffd400;
+  color:#000;
+  padding:8px;
+  border-radius:10px;
+}
+
+#balance{
+  font-size:40px;
+  margin-top:10px;
+}
+
+.btn{
+  margin:6px;
+  padding:12px;
+  border-radius:14px;
+  border:none;
+  width:80%;
+  font-size:16px;
+}
+
+#tap{
+  background:#1fa84f;
+  color:#fff;
+  font-size:20px;
+}
+
+#rain span{
+  position:absolute;
+  font-size:20px;
+  animation:fall 0.8s linear forwards;
+}
+@keyframes fall{
+  to{transform:translateY(300px);opacity:0}
+}
+
+.folder{
+  position:fixed;
+  bottom:120px;
+  left:10px;
+  font-size:26px;
+}
+
+.timer{opacity:.7;font-size:14px}
 </style>
 </head>
 
@@ -32,114 +104,117 @@ border:none;border-radius:18px}
   <div class="yellow">Бонус сьогодні: <span id="today"></span></div>
 </div>
 
-<div id="balance">0</div>
-<div id="label">монет</div>
+<div id="center">
+  <div id="ad" onclick="watchAd()">▶ +50</div>
+  <div id="level">Рівень: <span id="lvl">1</span></div>
 
-<div id="circle">
-  <img id="icon" src="assets/money.png">
+  <div id="circle">🪙</div>
 </div>
 
-<button class="btn ad" onclick="watchAd()">▶ Реклама +50</button>
+<div id="balance">0</div>
 
-<button class="btn bonus" id="subBtn" onclick="channelBonus()">
-🎁 Підпишись — отримай 500
-</button>
+<button class="btn" id="tap" onclick="tap()">TAP</button>
 
-<button class="btn play" id="playBtn" onclick="playBonus()" disabled>
-▶ PLAY бонус +1000
-</button>
+<button class="btn" id="subBtn" onclick="subBonus()">Підпишись — +500</button>
+<button class="btn" id="playBtn" style="display:none" onclick="claim1000()">Бонус +1000</button>
 <div class="timer" id="timer"></div>
 
-<button id="tap" onclick="tap()">TAP</button>
+<button class="btn" onclick="withdraw()">💳 Вивід</button>
+
+<div class="folder" onclick="openFolder()">📁</div>
+
+<div id="rain"></div>
 
 <script>
-let balance = 0;
+let balance=0;
+let level=1;
 
-// 🔗 ТВОЄ ПОСИЛАННЯ НА КАНАЛ
-const CHANNEL_LINK = "https://t.me/tapday_clicker";
+const CHANNEL="https://t.me/tapday_clicker";
+const sound=new Audio("https://actions.google.com/sounds/v1/cartoon/coin_drop.ogg");
 
-// онлайн / сьогодні
-document.getElementById("online").innerText =
-4000 + Math.floor(Math.random()*600);
-document.getElementById("today").innerText =
-2500 + Math.floor(Math.random()*500);
+document.getElementById("online").innerText=4000+Math.floor(Math.random()*500);
+document.getElementById("today").innerText=2000+Math.floor(Math.random()*500);
 
-// tap
 function tap(){
  balance++;
  update();
  if(navigator.vibrate) navigator.vibrate(20);
+ if(balance<1_000_000) rain();
 }
 
-// реклама
-function watchAd(){
- balance += 50;
- update();
-}
-
-// бонус за підписку
-function channelBonus(){
- window.open(CHANNEL_LINK,"_blank");
- setTimeout(()=>{
-   balance += 500;
-   update();
-   localStorage.setItem("subBonus","1");
-   document.getElementById("subBtn").style.display="none";
-   activatePlayBonus();
- },3000);
-}
-
-// PLAY бонус логіка
-let end = localStorage.getItem("playEnd");
-
-function activatePlayBonus(){
- if(!end){
-   end = Date.now() + 30*24*60*60*1000;
-   localStorage.setItem("playEnd", end);
- }
- document.getElementById("playBtn").disabled = true;
- tick();
-}
-
-// таймер
-function tick(){
- if(!end) return;
- let diff = end - Date.now();
- if(diff <= 0){
-   document.getElementById("timer").innerText = "Бонус доступний";
-   document.getElementById("playBtn").disabled = false;
-   document.getElementById("playBtn").classList.add("active");
-   return;
- }
- let d = Math.floor(diff/86400000);
- let h = Math.floor(diff/3600000)%24;
- let m = Math.floor(diff/60000)%60;
- let s = Math.floor(diff/1000)%60;
- document.getElementById("timer").innerText =
- `${d}д ${h}г ${m}хв ${s}с`;
-}
-setInterval(tick,1000);
-
-// отримання +1000
-function playBonus(){
- if(Date.now() < end) return;
- balance += 1000;
- update();
- localStorage.removeItem("playEnd");
- document.getElementById("playBtn").disabled = true;
- document.getElementById("timer").innerText = "";
-}
-
-// відновлення стану
-if(localStorage.getItem("subBonus")){
- document.getElementById("subBtn").style.display="none";
- activatePlayBonus();
+function rain(){
+ const r=document.createElement("span");
+ r.innerText="🪙";
+ r.style.left="50%";
+ r.style.top="50%";
+ document.getElementById("rain").appendChild(r);
+ setTimeout(()=>r.remove(),800);
 }
 
 function update(){
- document.getElementById("balance").innerText = balance;
+ document.getElementById("balance").innerText=balance;
+ if(balance>=100) level=1;
+ if(balance>=1000) level=2;
+ if(balance>=10000) level=3;
+ if(balance>=100000) level=4;
+ if(balance>=1000000) level=5;
+ document.getElementById("lvl").innerText=level;
 }
-update();
+
+function watchAd(){
+ balance+=50;
+ sound.play();
+ update();
+}
+
+function subBonus(){
+ window.open(CHANNEL,"_blank");
+ setTimeout(()=>{
+  balance+=500;
+  sound.play();
+  document.getElementById("subBtn").style.display="none";
+  startTimer();
+ },3000);
+}
+
+function startTimer(){
+ const end=Date.now()+30*24*60*60*1000;
+ localStorage.setItem("end",end);
+ document.getElementById("playBtn").style.display="block";
+}
+
+setInterval(()=>{
+ const end=localStorage.getItem("end");
+ if(!end) return;
+ let d=end-Date.now();
+ if(d<=0){
+  document.getElementById("timer").innerText="Бонус доступний";
+  return;
+ }
+ let dd=Math.floor(d/86400000);
+ let h=Math.floor(d/3600000)%24;
+ let m=Math.floor(d/60000)%60;
+ let s=Math.floor(d/1000)%60;
+ document.getElementById("timer").innerText=`${dd}д ${h}г ${m}хв ${s}с`;
+},1000);
+
+function claim1000(){
+ balance+=1000;
+ sound.play();
+ localStorage.removeItem("end");
+ document.getElementById("playBtn").style.display="none";
+ document.getElementById("timer").innerText="";
+ update();
+}
+
+function withdraw(){
+ alert("Вивід буде доступний пізніше");
+}
+
+function openFolder(){
+ sound.play();
+ alert("Бонус дня (логіка 1–7 днів)");
+}
 </script>
 
 </body>
