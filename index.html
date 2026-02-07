@@ -1,115 +1,86 @@
 <!DOCTYPE html>
 <html lang="uk">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<meta charset="UTF-8">
 <title>TapDay Play</title>
-
-<script src="https://telegram.org/js/telegram-web-app.js"></script>
-
 <style>
 body {
-  margin:0;
+  margin: 0;
+  background: radial-gradient(#0b1020, #05070f);
+  color: #fff;
   font-family: Arial, sans-serif;
-  background: radial-gradient(circle at top, #111827, #000);
-  color:#fff;
-  text-align:center;
+  text-align: center;
 }
-
-/* TOP */
 .top {
-  display:flex;
-  justify-content:space-between;
-  padding:12px 16px;
-  font-size:14px;
+  padding: 12px;
+}
+.balance {
+  font-size: 20px;
 }
 .hint {
-  text-align:center;
-  font-size:13px;
-  opacity:.8;
-  margin-top:-6px;
-}
-
-/* SUN */
-.sun-wrap {
-  display:flex;
-  justify-content:center;
-  margin:40px 0 20px;
+  opacity: .8;
+  font-size: 14px;
+  margin-top: 4px;
 }
 .sun {
-  width:260px;
-  height:260px;
-  border-radius:50%;
-  background: radial-gradient(circle at 30% 30%, #fff7b0, #ffcc00, #ff9f00);
-  box-shadow:
-    0 0 40px #ffcc00,
-    0 0 80px #ffb700;
-  position:relative;
-  animation:pulse 2s infinite;
+  width: 260px;
+  height: 260px;
+  margin: 30px auto;
+  border-radius: 50%;
+  background: radial-gradient(circle at 30% 30%, #fff6a0, #ffcc00);
+  box-shadow: 0 0 60px 20px rgba(255,200,0,.6);
+  position: relative;
+  cursor: pointer;
 }
-.sun::before {
-  content:"";
-  position:absolute;
-  inset:-25px;
-  border-radius:50%;
-  background: repeating-conic-gradient(
-    from 0deg,
-    rgba(255,200,0,.6) 0deg 10deg,
-    transparent 10deg 20deg
-  );
-  filter:blur(6px);
+.ray {
+  position: absolute;
+  width: 8px;
+  height: 30px;
+  background: #ffcc00;
+  top: -25px;
+  left: 50%;
+  transform-origin: center 155px;
 }
-@keyframes pulse {
-  0% {transform:scale(1)}
-  50% {transform:scale(1.05)}
-  100% {transform:scale(1)}
+.money {
+  position: absolute;
+  font-size: 20px;
+  animation: fly 1s linear forwards;
 }
-
-/* MULTI */
-.multi {
-  display:flex;
-  justify-content:center;
-  gap:12px;
-  margin-bottom:25px;
+@keyframes fly {
+  to {
+    transform: translateY(80px);
+    opacity: 0;
+  }
 }
-.multi button {
-  padding:10px 18px;
-  border-radius:14px;
-  border:none;
-  background:#1f2937;
-  color:#fff;
-  font-size:16px;
+.buttons button {
+  margin: 10px;
+  padding: 10px 20px;
+  border-radius: 20px;
+  border: none;
+  font-size: 16px;
 }
-.multi button.active {
-  background:#22c55e;
-  color:#000;
+.active {
+  background: #2ecc71;
 }
-
-/* SUB */
-.sub {
-  background:#0f172a;
-  margin:0 16px;
-  border-radius:18px;
-  padding:16px;
+.subscribe {
+  margin: 25px;
+  padding: 15px;
+  background: #1e2438;
+  border-radius: 16px;
 }
-.sub button {
-  width:100%;
-  padding:16px;
-  border-radius:16px;
-  border:none;
-  background:#2dd4bf;
-  color:#000;
-  font-size:18px;
-  font-weight:bold;
+.subscribe button {
+  margin-top: 10px;
+  padding: 14px 25px;
+  font-size: 18px;
+  background: #1abc9c;
+  border: none;
+  border-radius: 20px;
 }
-
-/* BOTTOM */
 .bottom {
-  display:flex;
-  justify-content:space-between;
-  padding:14px 16px;
-  font-size:14px;
-  opacity:.9;
+  display: flex;
+  justify-content: space-around;
+  padding: 15px;
+  opacity: .8;
 }
 </style>
 </head>
@@ -117,85 +88,93 @@ body {
 <body>
 
 <div class="top">
-  <div>💵 <span id="money">0</span><br>Рівень 1</div>
-  <div>РЕКЛАМА +2000</div>
+  <div class="balance">💵 <span id="money">0</span></div>
+  <div class="hint">Тапай сонце — збирай капітал. Чим довше граєш, тим більше.</div>
 </div>
 
-<div class="hint">
-  Тапай сонце — заробляй. Чим довше граєш, тим більше.
-</div>
+<div class="sun" id="sun"></div>
 
-<div class="sun-wrap">
-  <div class="sun" id="sun"></div>
-</div>
-
-<div class="multi">
+<div class="buttons">
   <button onclick="setMulti(1)" class="active" id="m1">x1</button>
   <button onclick="setMulti(3)" id="m3">x3</button>
   <button onclick="setMulti(5)" id="m5">x5</button>
 </div>
 
-<div class="sub">
-  🎁 Підпишись на канал<br><br>
-  <button id="subBtn">Отримати +10 000</button>
+<div class="subscribe">
+  🎁 Підпишись на канал
+  <br>
+  <button onclick="subscribe()">Отримати +10 000</button>
 </div>
 
 <div class="bottom">
   <div>🏙 Місто +5/сек</div>
-  <div>🎁 Щоденний бонус <span id="daily">24:00:00</span></div>
+  <div>🎁 Щоденний бонус активний</div>
 </div>
 
 <script>
-Telegram.WebApp.ready();
-
 let money = 0;
 let multi = 1;
 let subscribed = false;
-let dailyTime = 86400;
 
-const moneyEl = document.getElementById("money");
+const stages = [
+  {v:100, glow:40},
+  {v:1000, glow:60},
+  {v:10000, glow:80},
+  {v:100000, glow:100},
+  {v:1000000, glow:130},
+  {v:10000000, glow:160}
+];
 
-function updateMoney() {
-  moneyEl.innerText = money.toLocaleString();
+const sun = document.getElementById('sun');
+
+for(let i=0;i<24;i++){
+  const r = document.createElement('div');
+  r.className = 'ray';
+  r.style.transform = `rotate(${i*15}deg)`;
+  sun.appendChild(r);
 }
 
-function setMulti(x) {
+sun.onclick = () => {
+  money += multi;
+  update();
+  dropMoney();
+};
+
+function dropMoney(){
+  const m = document.createElement('div');
+  m.className = 'money';
+  m.innerText = '💵';
+  m.style.left = '50%';
+  sun.appendChild(m);
+  setTimeout(()=>m.remove(),1000);
+}
+
+function setMulti(x){
   multi = x;
-  document.querySelectorAll(".multi button").forEach(b=>b.classList.remove("active"));
-  document.getElementById("m"+x).classList.add("active");
+  document.querySelectorAll('.buttons button').forEach(b=>b.classList.remove('active'));
+  document.getElementById('m'+x).classList.add('active');
 }
 
-document.getElementById("sun").onclick = () => {
-  money += 1 * multi;
-  updateMoney();
-};
+function subscribe(){
+  if(subscribed) return;
+  window.open('https://t.me/TVIY_KANAL', '_blank'); // ← ТУТ ВСТАВИ СВІЙ КАНАЛ
+  money += 10000;
+  subscribed = true;
+  update();
+}
 
-document.getElementById("subBtn").onclick = () => {
-  if (!subscribed) {
-    subscribed = true;
-    Telegram.WebApp.openTelegramLink("https://t.me/ТУТ_ТВІЙ_КАНАЛ");
-    money += 10000;
-    updateMoney();
-    document.getElementById("subBtn").innerText = "Отримано";
-    document.getElementById("subBtn").disabled = true;
-  }
-};
+function update(){
+  document.getElementById('money').innerText = money.toLocaleString();
+  stages.forEach(s=>{
+    if(money >= s.v){
+      sun.style.boxShadow = `0 0 ${s.glow}px ${s.glow/2}px rgba(255,200,0,.7)`;
+    }
+  });
+}
 
-/* DAILY TIMER */
-setInterval(()=>{
-  if (dailyTime > 0) {
-    dailyTime--;
-    let h = String(Math.floor(dailyTime/3600)).padStart(2,"0");
-    let m = String(Math.floor(dailyTime%3600/60)).padStart(2,"0");
-    let s = String(dailyTime%60).padStart(2,"0");
-    document.getElementById("daily").innerText = `${h}:${m}:${s}`;
-  }
-},1000);
-
-/* PASSIVE */
 setInterval(()=>{
   money += 5;
-  updateMoney();
+  update();
 },1000);
 </script>
 
