@@ -2,13 +2,14 @@
 <html lang="uk">
 <head>
 <meta charset="UTF-8">
-<title>City Empire 2026</title>
+<title>City Empire</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <style>
 body {
   margin:0;
-  background:#0f172a;
+  background:#0b1020;
   color:#fff;
-  font-family:Arial;
+  font-family:system-ui;
 }
 #top {
   display:flex;
@@ -16,15 +17,12 @@ body {
   padding:10px;
   background:#020617;
 }
-.stat {
-  font-weight:bold;
-}
+.stat { font-weight:600 }
 canvas {
   display:block;
   margin:auto;
-  background:#020617;
 }
-#panel {
+#ui {
   position:fixed;
   bottom:0;
   width:100%;
@@ -37,36 +35,41 @@ button {
   background:#2563eb;
   color:#fff;
   border:none;
-  padding:10px;
-  border-radius:8px;
+  padding:10px 14px;
+  border-radius:10px;
+  font-weight:600;
 }
+button:active { transform:scale(.96) }
 </style>
 </head>
 <body>
 
 <div id="top">
-  <div class="stat">💰 <span id="money">1000</span></div>
-  <div class="stat">🏙 Населення: <span id="pop">50</span></div>
-  <div class="stat">💵/год: <span id="income">20</span></div>
+  <div class="stat">💰 <span id="money">500</span></div>
+  <div class="stat">🏙 <span id="pop">10</span></div>
+  <div class="stat">💵/год <span id="income">5</span></div>
 </div>
 
-<canvas id="city" width="420" height="520"></canvas>
+<canvas id="map" width="420" height="520"></canvas>
 
-<div id="panel">
+<div id="ui">
   <button onclick="build('farm')">🌾 Ферма</button>
-  <button onclick="build('factory')">🏭 Завод</button>
   <button onclick="build('house')">🏠 Будинок</button>
+  <button onclick="build('factory')">🏭 Завод</button>
 </div>
+
+<audio id="click" src="data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAQB8AAIA+AAACABAAZGF0YQAAAAA="></audio>
 
 <script>
-const canvas = document.getElementById('city');
-const ctx = canvas.getContext('2d');
+const c = document.getElementById("map");
+const ctx = c.getContext("2d");
+const click = document.getElementById("click");
 
-let money = 1000;
-let income = 20;
-let population = 50;
+let money = 500;
+let income = 5;
+let pop = 10;
 
-const tiles = [];
+const grid = [];
 const size = 40;
 
 function iso(x,y){
@@ -89,42 +92,45 @@ function drawTile(x,y,color){
 }
 
 function render(){
-  ctx.clearRect(0,0,canvas.width,canvas.height);
+  ctx.clearRect(0,0,c.width,c.height);
   for(let x=0;x<6;x++){
     for(let y=0;y<6;y++){
-      drawTile(x,y,'#1e293b');
+      drawTile(x,y,"#1e293b");
     }
   }
-  tiles.forEach(t=>{
-    drawTile(t.x,t.y,t.color);
+  grid.forEach(b=>{
+    drawTile(b.x,b.y,b.color);
   });
 }
 
 function build(type){
-  const cost = {farm:300,factory:600,house:400}[type];
-  if(money<cost) return;
-  money-=cost;
+  const cost = {farm:100,house:150,factory:300}[type];
+  if(money < cost) return;
+
+  money -= cost;
+  click.play();
 
   const tile = {
     x: Math.floor(Math.random()*6),
     y: Math.floor(Math.random()*6),
-    color: type==='farm'?'#22c55e':type==='factory'?'#64748b':'#38bdf8'
+    color: type==="farm" ? "#22c55e" :
+           type==="house" ? "#38bdf8" : "#64748b"
   };
+  grid.push(tile);
 
-  tiles.push(tile);
-
-  if(type==='farm') income+=10;
-  if(type==='factory') income+=25;
-  if(type==='house') population+=30;
+  if(type==="farm") income += 3;
+  if(type==="house") pop += 5;
+  if(type==="factory") income += 8;
 
   update();
   render();
 }
 
 function update(){
-  document.getElementById('money').innerText = Math.floor(money);
-  document.getElementById('income').innerText = income;
-  document.getElementById('pop').innerText = population;
+  money = Math.floor(money);
+  document.getElementById("money").innerText = money;
+  document.getElementById("income").innerText = income;
+  document.getElementById("pop").innerText = pop;
 }
 
 setInterval(()=>{
