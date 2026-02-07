@@ -1,109 +1,171 @@
 <!DOCTYPE html>
 <html lang="uk">
 <head>
-<meta charset="utf-8"/>
-<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"/>
-<title>TapCoin 2026</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
+<title>City Idle 2026</title>
+
 <style>
-:root{
- --bg:#070b1a; --panel:#0b122a; --gold1:#ffd76a; --gold2:#f2a900;
- --txt:#e6e9ff; --glow:0 0 40px rgba(255,210,90,.6);
+body{
+ margin:0;
+ font-family:system-ui,Arial;
+ background:linear-gradient(#0b1022,#050814);
+ color:#fff;
 }
-*{box-sizing:border-box} html,body{margin:0;background:radial-gradient(1200px 800px at 50% -10%,#10194a,#050816 60%,#030612);color:var(--txt);font-family:system-ui}
-#top{position:fixed;inset:0 0 auto 0;height:56px;display:flex;align-items:center;justify-content:space-between;padding:0 14px;background:linear-gradient(#0a1130,#070b1a);border-bottom:1px solid #11194a}
-.stat{font-weight:800;letter-spacing:.3px}
-#wrap{height:100svh;display:grid;grid-template-rows:56px 1fr 96px}
-#stage{position:relative;overflow:hidden;touch-action:manipulation}
-#coin{
- position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);
- width:min(68vmin,320px);aspect-ratio:1;border-radius:50%;
- background:
- radial-gradient(35% 35% at 30% 30%,#fff6,transparent 40%),
- radial-gradient(70% 70% at 70% 70%,#0006,transparent 55%),
- radial-gradient(circle at 50% 50%,var(--gold1),var(--gold2) 60%,#b67a00 100%);
- box-shadow:var(--glow), inset 0 0 40px rgba(255,255,255,.25);
- transition:transform .06s ease;
+header{
+ height:56px;
+ display:flex;
+ justify-content:space-between;
+ align-items:center;
+ padding:0 14px;
+ background:#0f1738;
+ border-bottom:1px solid #1f2b5c;
 }
-#coin:active{transform:translate(-50%,-50%) scale(.985)}
-#ring{position:absolute;inset:-12%;border-radius:50%;filter:blur(8px);
- background:conic-gradient(from 0deg,#fff0,#ffd76a55,#fff0);animation:spin 6s linear infinite}
-@keyframes spin{to{transform:rotate(360deg)}}
-#count{position:absolute;left:50%;top:calc(50% + min(38vmin,160px));transform:translateX(-50%);
- font-size:42px;font-weight:900;text-shadow:0 8px 30px #000}
-.p{position:absolute;pointer-events:none;font-weight:800;animation:pop .9s ease-out forwards}
-@keyframes pop{from{opacity:1;transform:translate(-50%,-50%) scale(.9)}
- to{opacity:0;transform:translate(-50%,-90%) scale(1.2)}}
-#panel{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;padding:12px;background:linear-gradient(#070b1a,#060a18);border-top:1px solid #11194a}
-.btn{border-radius:14px;background:linear-gradient(#1a2a7a,#0f1b4a);border:1px solid #1c2b7a;color:#fff;font-weight:800}
-.small{font-size:12px;opacity:.85}
+.stat{font-weight:800}
+#map{
+ display:grid;
+ grid-template-columns:repeat(2,1fr);
+ gap:12px;
+ padding:12px;
+}
+.card{
+ background:linear-gradient(#131e52,#0b1436);
+ border-radius:18px;
+ padding:14px;
+ box-shadow:0 0 30px #000;
+}
+.card h3{margin:0 0 6px}
+.card button{
+ width:100%;
+ margin-top:8px;
+ padding:10px;
+ border:none;
+ border-radius:12px;
+ background:linear-gradient(#ffd76a,#f2a900);
+ font-weight:900;
+}
+.progress{
+ height:8px;
+ background:#000;
+ border-radius:6px;
+ overflow:hidden;
+ margin-top:6px;
+}
+.bar{
+ height:100%;
+ width:0%;
+ background:#2cff8f;
+ transition:width .2s;
+}
+footer{
+ position:fixed;
+ bottom:0;
+ left:0;
+ right:0;
+ height:70px;
+ background:#0b1436;
+ display:flex;
+ justify-content:space-around;
+ align-items:center;
+ border-top:1px solid #1f2b5c;
+}
+.big{
+ font-size:22px;
+ font-weight:900;
+}
 </style>
 </head>
+
 <body>
-<div id="wrap">
- <div id="top">
-  <div class="stat">💵 <span id="money">0</span></div>
-  <div class="stat">⚡ x<span id="mult">1</span></div>
- </div>
 
- <div id="stage">
-  <div id="coin"><div id="ring"></div></div>
-  <div id="count">0</div>
- </div>
+<header>
+ <div class="stat">💵 <span id="money">100</span></div>
+ <div class="stat">⭐ Рівень <span id="lvl">1</span></div>
+</header>
 
- <div id="panel">
-  <button class="btn" id="boost">⚡ x2<br><span class="small">10 сек</span></button>
-  <button class="btn" id="sound">🔊 Звук</button>
-  <button class="btn" id="reset">♻ Скинути</button>
- </div>
-</div>
+<main id="map"></main>
+
+<footer>
+ <div class="big">🏙 МІСТО</div>
+</footer>
 
 <script>
-let money=0,mult=1,snd=true,boostT=0;
-const $=id=>document.getElementById(id);
-const stage=$('stage'),coin=$('coin'),count=$('count');
-const moneyEl=$('money'),multEl=$('mult');
+let money=100,lvl=1,exp=0;
+const snd=new AudioContext();
 
-const AudioCtx=window.AudioContext||window.webkitAudioContext;
-const ctx=new AudioCtx();
-function clickSound(){
- if(!snd) return;
- const o=ctx.createOscillator(), g=ctx.createGain();
- o.type='triangle'; o.frequency.value=520+Math.random()*80;
- g.gain.value=.06; o.connect(g); g.connect(ctx.destination);
- o.start(); o.stop(ctx.currentTime+.06);
+function sound(){
+ const o=snd.createOscillator(),g=snd.createGain();
+ o.type="sine";o.frequency.value=420;
+ g.gain.value=.05;
+ o.connect(g);g.connect(snd.destination);
+ o.start();o.stop(snd.currentTime+.07);
 }
 
-function add(n,x,y){
- money+=n; moneyEl.textContent=Math.floor(money);
- const p=document.createElement('div');
- p.className='p'; p.textContent='+'+n;
- p.style.left=x+'px'; p.style.top=y+'px';
- stage.appendChild(p); setTimeout(()=>p.remove(),900);
-}
+const buildings=[
+ {name:"🌾 Ферма",base:50,profit:10,time:5,level:0},
+ {name:"🏭 Завод",base:200,profit:40,time:8,level:0},
+ {name:"🏥 Лікарня",base:600,profit:120,time:12,level:0},
+ {name:"🚓 Поліція",base:1200,profit:260,time:15,level:0},
+];
 
-function tap(e){
- ctx.resume();
- const pts=e.touches? [...e.touches]:[e];
- pts.forEach(t=>{
-  const x=t.clientX,y=t.clientY;
-  const val=1*mult; add(val,x,y); clickSound();
+const map=document.getElementById("map");
+
+function render(){
+ map.innerHTML="";
+ buildings.forEach((b,i)=>{
+  const cost=b.base*(b.level+1);
+  const c=document.createElement("div");
+  c.className="card";
+  c.innerHTML=`
+   <h3>${b.name} (LV ${b.level})</h3>
+   <div>Дохід: +${b.profit*(b.level||1)} 💵</div>
+   <div class="progress"><div class="bar" id="bar${i}"></div></div>
+   <button onclick="build(${i})">Купити / Запустити (${cost})</button>
+  `;
+  map.appendChild(c);
  });
- count.textContent=Math.floor(money);
+ updateUI();
 }
 
-coin.addEventListener('touchstart',tap,{passive:true});
-coin.addEventListener('mousedown',tap);
+function build(i){
+ const b=buildings[i];
+ const cost=b.base*(b.level+1);
+ if(money<cost) return;
+ money-=cost;
+ b.level++;
+ sound();
+ let t=0;
+ const bar=document.getElementById("bar"+i);
+ const timer=setInterval(()=>{
+  t++;
+  bar.style.width=(t/b.time*100)+"%";
+  if(t>=b.time){
+   clearInterval(timer);
+   const gain=b.profit*b.level;
+   money+=gain;
+   exp+=gain;
+   bar.style.width="0%";
+   levelUp();
+   updateUI();
+  }
+ },1000);
+ updateUI();
+}
 
-$('boost').onclick=()=>{
- mult=2; multEl.textContent=2; boostT=Date.now()+10000;
-};
-$('sound').onclick=()=>snd=!snd;
-$('reset').onclick=()=>{money=0;count.textContent=0;moneyEl.textContent=0};
+function levelUp(){
+ if(exp>=lvl*500){
+  exp=0;lvl++;
+  sound();
+ }
+}
 
-setInterval(()=>{
- if(boostT && Date.now()>boostT){mult=1;multEl.textContent=1;boostT=0;}
-},100);
+function updateUI(){
+ document.getElementById("money").textContent=Math.floor(money);
+ document.getElementById("lvl").textContent=lvl;
+}
 
+render();
 </script>
+
 </body>
 </html>
