@@ -2,85 +2,86 @@
 <html lang="uk">
 <head>
 <meta charset="UTF-8">
-<title>Tap City</title>
+<title>City Tap</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <style>
-body{margin:0;font-family:sans-serif;background:#111;color:#fff;text-align:center}
-header{padding:10px;background:#000}
-button{padding:12px 18px;margin:6px;font-size:16px;border-radius:10px;border:none}
-.tap{background:#00e676}
-.city{background:#2979ff;color:#fff}
-.bonus{background:#ffca28}
-.link{background:#ff5252;color:#fff}
-.screen{display:none;padding:20px}
-.active{display:block}
-.card{background:#1f1f1f;padding:15px;margin:10px;border-radius:12px}
+body{margin:0;font-family:Arial;background:#0b1220;color:#fff}
+#top{padding:10px;background:#060b16;display:flex;justify-content:space-between;align-items:center}
+.btn{padding:14px;border:none;border-radius:14px;font-size:16px;font-weight:bold}
+.tap{background:#ffd700;color:#000;width:90%;font-size:26px}
+.menu{position:fixed;bottom:0;width:100%;display:flex;background:#060b16}
+.menu button{flex:1}
+.card{background:#121a2f;margin:12px;padding:14px;border-radius:16px}
+.progress{height:14px;background:#333;border-radius:10px;overflow:hidden}
+.bar{height:100%;width:0%;background:#00ff9c}
+.coin{font-size:20px}
 </style>
 </head>
 <body>
 
-<header>
-💰 <span id="money">0</span> | +<span id="income">0</span>/сек
-</header>
-
-<div>
-<button class="tap" onclick="show('tap')">Тап</button>
-<button class="city" onclick="show('city')">Місто</button>
-<button class="bonus" onclick="show('bonus')">Бонус</button>
-<button class="link" onclick="goChannel()">Канал</button>
+<div id="top">
+<div class="coin">🪙 <span id="money">0</span></div>
+<div>+<span id="income">0</span>/сек</div>
 </div>
 
-<div id="tap" class="screen active">
-<h2>Тапай</h2>
-<button class="tap" style="font-size:32px" onclick="tap()">👆 ТАП</button>
+<div id="screen-tap">
+<br>
+<button class="btn tap" onclick="tap()">👆 ТАП</button>
+<br><br>
+<div class="progress"><div class="bar" id="bar"></div></div>
 </div>
 
-<div id="city" class="screen">
-<h2>Місто</h2>
-
+<div id="screen-city" style="display:none">
 <div class="card">
-🏠 Будинок (+1/сек) – 20
-<br><button onclick="buy(20,1)">Купити</button>
+🏠 Будинок (+1/сек) — 50  
+<br><br><button class="btn" onclick="buy(50,1)">Купити</button>
 </div>
-
 <div class="card">
-🌾 Ферма (+3/сек) – 60
-<br><button onclick="buy(60,3)">Купити</button>
+🏭 Завод (+5/сек) — 200  
+<br><br><button class="btn" onclick="buy(200,5)">Купити</button>
+</div>
 </div>
 
+<div id="screen-bonus" style="display:none">
+<div class="card">
+🎁 Подарунок за підписку  
+<br><br>
+<button class="btn" onclick="bonus()">Отримати +100</button>
+</div>
 </div>
 
-<div id="bonus" class="screen">
-<h2>Бонус</h2>
-<p id="bonusText">Доступно</p>
-<button onclick="bonus()">🎁 +50</button>
+<div class="menu">
+<button class="btn" onclick="show('tap')">Тап</button>
+<button class="btn" onclick="show('city')">Місто</button>
+<button class="btn" onclick="show('bonus')">Бонус</button>
 </div>
 
 <script>
-let money=0,income=0,bonusReady=true;
+let money=0,income=0,bar=0,bonusUsed=false;
 
-function show(id){
-document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
-document.getElementById(id).classList.add('active');
+function tap(){
+money++;
+bar+=5;if(bar>100)bar=0;
+document.getElementById('bar').style.width=bar+"%";
+update();
 }
-
-function tap(){money++;update();}
 
 function buy(cost,inc){
 if(money>=cost){money-=cost;income+=inc;update();}
 }
 
 function bonus(){
-if(!bonusReady)return;
-money+=50;
-bonusReady=false;
-document.getElementById('bonusText').innerText="Чекати 60 сек";
-setTimeout(()=>{bonusReady=true;document.getElementById('bonusText').innerText="Доступно";},60000);
-update();
+if(bonusUsed)return;
+bonusUsed=true;
+window.open("https://t.me/YOUR_CHANNEL","_blank");
+setTimeout(()=>{money+=100;update();},3000);
 }
 
-function goChannel(){
-window.open("https://t.me/YOUR_CHANNEL","_blank");
+function show(s){
+document.getElementById('screen-tap').style.display="none";
+document.getElementById('screen-city').style.display="none";
+document.getElementById('screen-bonus').style.display="none";
+document.getElementById('screen-'+s).style.display="block";
 }
 
 function update(){
