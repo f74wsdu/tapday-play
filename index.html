@@ -4,134 +4,96 @@
 <meta charset="UTF-8">
 <title>TapDay Play</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
 <style>
-body {
-  margin: 0;
-  background: #0b0b0b;
-  color: #fff;
-  font-family: system-ui, sans-serif;
-  text-align: center;
-}
-
-#balance {
-  font-size: 42px;
-  margin-top: 20px;
-}
-
-#label {
-  opacity: 0.7;
-  margin-bottom: 20px;
-}
-
-#circle {
-  width: 260px;
-  height: 260px;
-  margin: 0 auto;
-  border-radius: 50%;
-  background: #222;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: box-shadow 0.3s ease;
-}
-
-#icon {
-  width: 120px;
-  height: 120px;
-}
-
-#tap {
-  margin-top: 30px;
-  padding: 16px 40px;
-  font-size: 20px;
-  border-radius: 14px;
-  border: none;
-  background: #1fa84f;
-  color: #fff;
-}
-
-.rain {
-  position: fixed;
-  width: 28px;
-  pointer-events: none;
-  animation: fall 1.2s linear forwards;
-}
-
-@keyframes fall {
-  from { transform: translateY(0); opacity: 1; }
-  to { transform: translateY(260px); opacity: 0; }
-}
+body{margin:0;background:#0b0b0b;color:#fff;font-family:system-ui;text-align:center}
+.top{display:flex;justify-content:space-between;padding:10px 14px;font-size:14px}
+.green{color:#2aff6a}
+.yellow{color:#ffd400}
+#balance{font-size:42px;margin-top:20px}
+#label{opacity:.7}
+#circle{width:260px;height:260px;margin:20px auto;border-radius:50%;background:#222;display:flex;align-items:center;justify-content:center}
+#icon{width:120px}
+.btn{margin:10px;padding:14px;border-radius:14px;border:none;font-size:16px}
+.ad{background:#ffd400}
+.bonus{background:#1c1c1c;color:#fff}
+.play{background:#333;color:#aaa}
+#tap{background:#1fa84f;color:#fff;font-size:20px;padding:16px 40px}
+.timer{opacity:.6;font-size:14px}
 </style>
 </head>
 
 <body>
 
+<div class="top">
+  <div class="green">Онлайн: <span id="online"></span></div>
+  <div class="yellow">Бонус сьогодні: <span id="today"></span></div>
+</div>
+
 <div id="balance">0</div>
-<div id="label">мішечків</div>
+<div id="label">монет</div>
 
 <div id="circle">
   <img id="icon" src="assets/money.png">
 </div>
 
-<button id="tap">TAP</button>
+<button class="btn ad" onclick="watchAd()">▶ Реклама +50</button><br>
+<button class="btn bonus" onclick="channelBonus()">🎁 Бонус з каналу +500</button><br>
+<button class="btn play" id="playBtn" onclick="playBonus()">▶ PLAY бонус +1000</button>
+<div class="timer" id="timer"></div><br>
+
+<button id="tap" onclick="tap()">TAP</button>
 
 <script>
-let balance = 0;
-const tapPower = 1;
+let balance=0;
+const CHANNEL_LINK=https://t.me/https://t.me/tapday_clicker;
 
-const stages = [
-  { from: 0, to: 100, icon: "money", rain: "money", glow: 0.3, label: "мішечків" },
-  { from: 100, to: 1000, icon: "crown", rain: "crown", glow: 0.45, label: "корон" },
-  { from: 1000, to: 10000, icon: "crystal", rain: "crystal", glow: 0.6, label: "кристалів" },
-  { from: 10000, to: 100000, icon: "star", rain: "star", glow: 0.75, label: "зірок" },
-  { from: 100000, to: 1000000, icon: "chest", rain: "chest", glow: 0.9, label: "сундуків" },
-  { from: 1000000, to: Infinity, icon: "lion", rain: null, glow: 1, label: "лев" }
-];
+document.getElementById("online").innerText=4000+Math.floor(Math.random()*500);
+document.getElementById("today").innerText=3000+Math.floor(Math.random()*500);
 
-const balanceEl = document.getElementById("balance");
-const labelEl = document.getElementById("label");
-const iconEl = document.getElementById("icon");
-const circleEl = document.getElementById("circle");
-const tapBtn = document.getElementById("tap");
-
-function getStage() {
-  return stages.find(s => balance >= s.from && balance < s.to);
+function tap(){
+ balance++;
+ update();
+ if(navigator.vibrate)navigator.vibrate(20);
 }
 
-function updateUI() {
-  const s = getStage();
-  balanceEl.innerText = balance;
-  labelEl.innerText = s.label;
-  iconEl.src = "assets/" + s.icon + ".png";
-  circleEl.style.boxShadow =
-    `0 0 ${50 * s.glow}px rgba(255,215,0,${s.glow})`;
+function watchAd(){
+ balance+=50;
+ update();
 }
 
-function rain() {
-  const s = getStage();
-  if (!s.rain) return;
-
-  const img = document.createElement("img");
-  img.src = "assets/" + s.rain + ".png";
-  img.className = "rain";
-
-  const r = iconEl.getBoundingClientRect();
-  img.style.left = r.left + r.width / 2 + "px";
-  img.style.top = r.top + r.height / 2 + "px";
-
-  document.body.appendChild(img);
-  setTimeout(() => img.remove(), 1200);
+function channelBonus(){
+ window.open(CHANNEL_LINK,"_blank");
+ setTimeout(()=>{
+  balance+=500;
+  update();
+ },3000);
 }
 
-tapBtn.onclick = () => {
-  balance += tapPower;
-  updateUI();
-  rain();
-  if (navigator.vibrate) navigator.vibrate(20);
-};
+let end=localStorage.getItem("playEnd");
+if(!end){
+ end=Date.now()+30*24*60*60*1000;
+ localStorage.setItem("playEnd",end);
+}
+function playBonus(){
+ balance+=1000;
+ update();
+}
 
-updateUI();
+function tick(){
+ let diff=end-Date.now();
+ if(diff<=0){document.getElementById("timer").innerText="";return;}
+ let d=Math.floor(diff/86400000);
+ let h=Math.floor(diff/3600000)%24;
+ let m=Math.floor(diff/60000)%60;
+ let s=Math.floor(diff/1000)%60;
+ document.getElementById("timer").innerText=`${d}д ${h}г ${m}хв ${s}с`;
+}
+setInterval(tick,1000);
+
+function update(){
+ document.getElementById("balance").innerText=balance;
+}
+update();
 </script>
 
 </body>
