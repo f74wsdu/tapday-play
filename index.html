@@ -37,7 +37,7 @@ body {
 }
 
 .level {
-    margin-top: 5px;
+    margin-bottom: 10px;
     font-size: 14px;
 }
 
@@ -53,20 +53,12 @@ body {
     background: radial-gradient(circle, #ffd500, #ffb700);
     border-radius: 50%;
     display: flex;
-    flex-direction: column;
     justify-content: center;
     align-items: center;
 }
 
 .circle img {
-    width: 80px;
-}
-
-.bonus-30 {
-    margin-top: 10px;
-    font-size: 14px;
-    color: #000;
-    font-weight: bold;
+    width: 90px;
 }
 
 .multi {
@@ -92,7 +84,12 @@ body {
     border-radius: 16px;
     font-size: 18px;
     font-weight: bold;
-    margin-bottom: 10px;
+}
+
+.bonus-30 {
+    margin-top: 6px;
+    font-size: 14px;
+    color: #aaa;
 }
 
 .withdraw {
@@ -103,6 +100,7 @@ body {
     border-radius: 14px;
     font-size: 16px;
     color: #fff;
+    margin-top: 10px;
 }
 </style>
 </head>
@@ -110,11 +108,11 @@ body {
 <body>
 
 <div class="header">
-    <div>Онлайн: <span id="online">3940</span></div>
-    <div>Бонусів сьогодні: <span id="bonusToday">4744</span></div>
+    <div>Онлайн: <span id="online">3946</span></div>
+    <div>Бонусів сьогодні: <span id="bonusToday">4769</span></div>
 </div>
 
-<div class="balance">Баланс: ₴<span id="balance">296.64</span></div>
+<div class="balance">Баланс: ₴<span id="balance">496.64</span></div>
 
 <div class="ad-btn" onclick="watchAd()">📺 Реклама +50 грн</div>
 <div class="level">Рівень: 2</div>
@@ -122,7 +120,6 @@ body {
 <div class="circle-wrap">
     <div class="circle">
         <img src="https://cdn-icons-png.flaticon.com/512/616/616430.png">
-        <div class="bonus-30">Бонус через 30 днів: +1000</div>
     </div>
 </div>
 
@@ -132,40 +129,29 @@ body {
     <button>x5</button>
 </div>
 
-<button id="mainBtn" class="main-btn" onclick="subscribe()">
-Підпишись<br>Отримай бонус +50 грн
-</button>
+<button class="main-btn">TapDay Play</button>
+<div class="bonus-30">Бонус через 30 днів: +1000</div>
 
 <button class="withdraw">💳 Вивід</button>
 
 <script>
-let online = 3940;
-let bonusToday = 4744;
-let subscribed = false;
-let balance = 296.64;
+let online = 3946;
+let bonusToday = 4769;
+let balance = 496.64;
 
 setInterval(() => {
-    online += Math.floor(Math.random() * 3);
+    online += Math.floor(Math.random() * 2);
     document.getElementById("online").innerText = online;
 }, 3000);
 
 setInterval(() => {
-    bonusToday += Math.floor(Math.random() * 5);
+    bonusToday += Math.floor(Math.random() * 4);
     document.getElementById("bonusToday").innerText = bonusToday;
-}, 2000);
+}, 2500);
 
 function watchAd() {
     balance += 50;
     document.getElementById("balance").innerText = balance.toFixed(2);
-}
-
-function subscribe() {
-    if (!subscribed) {
-        subscribed = true;
-        balance += 50;
-        document.getElementById("balance").innerText = balance.toFixed(2);
-        document.getElementById("mainBtn").innerText = "TapDay Play";
-    }
 }
 </script>
 
