@@ -35,9 +35,9 @@ body {
   font-weight: bold;
   cursor: pointer;
 }
-#balance {
-  font-size: 22px;
-  margin-bottom: 15px;
+#balance, #coins {
+  font-size: 20px;
+  margin-bottom: 8px;
 }
 .block {
   margin: 10px auto;
@@ -57,9 +57,6 @@ body {
   font-size: 14px;
   color: #ffcc00;
 }
-#share {
-  background: #444;
-}
 .mult {
   position: fixed;
   top: 55%;
@@ -71,6 +68,31 @@ body {
 #x2 { left: 10px; }
 #x5 { right: 10px; }
 .mult.active { background: #ff9800; }
+
+/* ===== POPUP ===== */
+#coinPopup {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.75);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+#coinPopup .box {
+  background: #222;
+  padding: 20px;
+  border-radius: 16px;
+  width: 85%;
+}
+#coinPopup button {
+  width: 100%;
+  margin-top: 10px;
+  padding: 10px;
+  border-radius: 10px;
+  border: none;
+  cursor: pointer;
+}
 </style>
 </head>
 
@@ -89,151 +111,79 @@ body {
 
 <div id="coin">TAP</div>
 <div id="balance">💰 Balance: 0.00 $</div>
+<div id="coins">🪙 Coins: 0</div>
 
 <div id="daily" class="block">📅 Денний бонус</div>
 <div id="bonus30" class="block">⏳ Бонус через 30 днів</div>
 <div id="subscribe" class="block">📢 Бонус 10$ за підписку</div>
-
 <div id="withdraw" class="block">💳 Вивід</div>
 <div id="leftToWithdraw"></div>
 
-<div id="share" class="block">🔗 Поділитися грою</div>
+<!-- POPUP -->
+<div id="coinPopup">
+  <div class="box">
+    <h3>🪙 Обмін Coins</h3>
+    <button onclick="addCoins(50)">🎁 Отримати бонус</button>
+    <button onclick="boost()">🚀 Подвоїти прогрес</button>
+    <button onclick="addCoins(30)">🎁 Забрати подарунок</button>
+    <button onclick="closePopup()">❌ Закрити</button>
+  </div>
+</div>
 
 <script>
 const CHANNEL_LINK = "https://t.me/tapday_clicker";
 const WITHDRAW_MIN = 300;
-const DAILY_BONUSES = [0.5,0.75,1,1.5,1.75,2,2.5];
 
 let balance = parseFloat(localStorage.getItem("balance")) || 0;
+let coins = parseInt(localStorage.getItem("coins")) || 0;
 let multiplier = 1;
 
-// ===== BALANCE =====
-function updateBalance() {
-  balance = Math.round(balance * 100) / 100;
-  document.getElementById("balance").textContent =
-    `💰 Balance: ${balance.toFixed(2)} $`;
+function updateUI(){
+  document.getElementById("balance").textContent = `💰 Balance: ${balance.toFixed(2)} $`;
+  document.getElementById("coins").textContent = `🪙 Coins: ${coins}`;
   localStorage.setItem("balance", balance);
-  updateWithdrawInfo();
+  localStorage.setItem("coins", coins);
 }
+updateUI();
 
-function updateWithdrawInfo() {
-  const left = WITHDRAW_MIN - balance;
-  const el = document.getElementById("leftToWithdraw");
-  el.textContent = left > 0
-    ? `До виводу залишилось: ${left.toFixed(2)} $`
-    : "✅ Вивід доступний";
-}
-
-updateBalance();
-
-// ===== TAP =====
 coin.onclick = () => {
   balance += 0.01 * multiplier;
-  updateBalance();
-  navigator.vibrate?.(30);
+  updateUI();
 };
 
-// ===== MULTIPLIERS =====
-x2.onclick = () => activateMult(2, x2);
-x5.onclick = () => activateMult(5, x5);
+x2.onclick = () => boost();
+x5.onclick = () => boost();
 
-function activateMult(x, el) {
-  multiplier = x;
-  el.classList.add("active");
-  setTimeout(() => {
-    multiplier = 1;
-    el.classList.remove("active");
-  }, 10000);
+function boost(){
+  multiplier = 2;
+  setTimeout(()=>multiplier=1,10000);
+  closePopup();
 }
 
-// ===== WITHDRAW =====
-withdraw.onclick = () => {
-  alert(balance < WITHDRAW_MIN
-    ? `❌ Мінімум ${WITHDRAW_MIN} $`
-    : "⏳ Вивід буде доступний пізніше");
-};
-
-// ===== SHARE =====
-share.onclick = () => {
-  navigator.clipboard.writeText(CHANNEL_LINK);
-  alert("🔗 Посилання скопійовано");
-};
-
-// ===== SUBSCRIBE BONUS =====
-if (localStorage.getItem("subBonus")) {
-  subscribe.style.display = "none";
+function addCoins(x){
+  coins += x;
+  updateUI();
+  closePopup();
 }
-subscribe.onclick = () => {
-  window.open(CHANNEL_LINK, "_blank");
-  balance += 10;
-  localStorage.setItem("subBonus", "1");
-  subscribe.style.display = "none";
-  updateBalance();
-};
 
-// ===== DAILY BONUS =====
-daily.onclick = () => {
-  const today = new Date().toDateString();
-  let last = localStorage.getItem("dailyDate");
-  let day = parseInt(localStorage.getItem("dailyDay")) || 0;
+function closePopup(){
+  document.getElementById("coinPopup").style.display="none";
+}
 
-  if (last === today) {
-    alert("❌ Ви вже отримали бонус сьогодні");
-    return;
-  }
+setTimeout(()=>{
+  document.getElementById("coinPopup").style.display="flex";
+},5000);
 
-  if (last && (new Date(today) - new Date(last)) > 86400000 * 2) {
-    day = 0;
-  }
+setInterval(()=>{
+  onlineCount.textContent = 3000 + Math.floor(Math.random()*500)-250;
+},3000);
 
-  let reward = DAILY_BONUSES[day] || 0;
-  balance += reward;
-
-  localStorage.setItem("dailyDay", day + 1);
-  localStorage.setItem("dailyDate", today);
-  updateBalance();
-
-  alert(`🎁 Ви отримали ${reward.toFixed(2)} $`);
-};
-
-// ===== BONUS 30 DAYS =====
-bonus30.onclick = () => {
-  let start = localStorage.getItem("startDate");
-  if (!start) {
-    localStorage.setItem("startDate", Date.now());
-    alert("⏳ Ще не настав час");
-    return;
-  }
-  if (Date.now() - start >= 30 * 86400000 &&
-      !localStorage.getItem("bonus30")) {
-    balance += 10;
-    localStorage.setItem("bonus30", "1");
-    updateBalance();
-    alert("🎉 Ви отримали 10$");
-  } else {
-    alert("⏳ Бонус ще недоступний");
-  }
-};
-
-// ===== ONLINE =====
-setInterval(() => {
-  onlineCount.textContent = 3000 + Math.floor(Math.random() * 500) - 250;
-}, 3000);
-
-// ===== BONUS TODAY (ЖИВИЙ) =====
-let bonusTodayValue =
-  parseInt(localStorage.getItem("bonusToday")) || 200;
-
-setInterval(() => {
-  let chance = Math.random();
-  if (chance > 0.95) {
-    bonusTodayValue += 2;
-  } else if (chance > 0.70) {
-    bonusTodayValue += 1;
-  }
-  localStorage.setItem("bonusToday", bonusTodayValue);
+let bonusTodayValue = parseInt(localStorage.getItem("bonusToday")) || 200;
+setInterval(()=>{
+  bonusTodayValue += Math.random()>0.7 ? 1 : 0;
+  localStorage.setItem("bonusToday",bonusTodayValue);
   bonusToday.textContent = bonusTodayValue;
-}, 6000);
+},6000);
 </script>
 
 </body>
