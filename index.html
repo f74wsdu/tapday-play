@@ -7,123 +7,144 @@
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
 
 <style>
-body{
-  margin:0;
-  background:#0b0b0b;
-  color:#fff;
-  font-family:Arial;
-  text-align:center;
-}
+body{margin:0;background:#0b0b0b;color:#fff;font-family:Arial;text-align:center;overflow:hidden}
 .top{padding:12px}
 .row{display:flex;justify-content:space-between;font-size:14px}
 .balance{font-size:44px;font-weight:bold;margin:10px 0}
 .middle{display:flex;justify-content:space-between;align-items:center}
 .ad{background:#222;padding:8px 14px;border-radius:20px}
 .ball{
-  width:260px;height:260px;margin:30px auto;border-radius:50%;
-  background:radial-gradient(circle,#ffe600,#ffb700);
-  box-shadow:0 0 25px rgba(255,200,0,.4);
-  display:flex;align-items:center;justify-content:center;
-  font-size:64px;cursor:pointer;
-  transition:.3s;
+ width:260px;height:260px;margin:30px auto;border-radius:50%;
+ background:radial-gradient(circle,#ffe600,#ffb700);
+ box-shadow:0 0 35px rgba(255,200,0,.6);
+ display:flex;align-items:center;justify-content:center;
+ font-size:64px;cursor:pointer;position:relative;
+}
+.fly{
+ position:absolute;font-size:32px;
+ animation:fly 0.9s ease-out forwards;
+ pointer-events:none;
+}
+@keyframes fly{
+ 0%{transform:translate(0,0) scale(1);opacity:1}
+ 100%{transform:translate(var(--x),-120px) scale(1.4);opacity:0}
 }
 .controls{display:flex;justify-content:center;gap:15px}
 .mult{background:#222;padding:10px 18px;border-radius:14px}
 .mult.active{background:#ffb700;color:#000}
-.folder{position:absolute;left:14px;bottom:190px;font-size:28px;cursor:pointer}
+.folder{position:absolute;left:14px;bottom:210px;font-size:28px;cursor:pointer}
 .days{
-  position:absolute;left:14px;bottom:230px;
-  background:#111;border-radius:14px;
-  padding:10px;width:180px;display:none;
+ position:absolute;left:14px;bottom:250px;
+ background:#111;border-radius:14px;
+ padding:10px;width:180px;display:none
 }
 .day{padding:6px;border-bottom:1px solid #222;cursor:pointer}
-.big{width:90%;padding:18px;border-radius:18px;font-size:20px;border:none}
-.orange{background:#ffb700}
-.green{background:#1f8f3a;color:#fff}
+.mainBtn{margin-top:20px;width:90%;padding:18px;border-radius:20px;
+ background:#ffb700;font-size:20px;border:none}
+.withdraw{
+ margin:10px auto;width:160px;padding:10px;
+ background:#1f8f3a;border-radius:14px;font-size:16px
+}
 </style>
 </head>
 
 <body>
 
 <div class="top">
-  <div class="row">
-    <div>Онлайн: <span id="online">3959</span></div>
-    <div>Бонусів сьогодні: <span id="bonuses">4730</span></div>
-  </div>
-  <div class="balance">Баланс: $<span id="balance">101.74</span></div>
-  <div class="middle">
-    <div class="ad">📺 Реклама +500</div>
-    <div>Рівень: 2</div>
-  </div>
+ <div class="row">
+  <div>Онлайн: <span id="online">3959</span></div>
+  <div>Бонусів сьогодні: <span id="bonuses">4730</span></div>
+ </div>
+ <div class="balance">Баланс: $<span id="balance">253.04</span></div>
+ <div class="middle">
+  <div class="ad">📺 Реклама +500</div>
+  <div>Рівень: 2</div>
+ </div>
 </div>
 
-<div class="ball" id="ball">💰</div>
+<div class="ball" id="ball">👑</div>
 
 <div class="folder" id="folder">📁</div>
 <div class="days" id="days">
-  <div class="day" data-v="25">День 1 — 25</div>
-  <div class="day" data-v="50">День 2 — 50</div>
-  <div class="day" data-v="100">День 3 — 100</div>
-  <div class="day" data-v="200">День 4 — 200</div>
-  <div class="day" data-v="300">День 5 — 300</div>
-  <div class="day" data-v="500">День 6 — 500</div>
-  <div class="day" data-v="1000">День 7 — 1000</div>
+ <div class="day" data-v="25">День 1 — 25</div>
+ <div class="day" data-v="50">День 2 — 50</div>
+ <div class="day" data-v="100">День 3 — 100</div>
+ <div class="day" data-v="200">День 4 — 200</div>
+ <div class="day" data-v="300">День 5 — 300</div>
+ <div class="day" data-v="500">День 6 — 500</div>
+ <div class="day" data-v="1000">День 7 — 1000</div>
 </div>
 
 <div class="controls">
-  <div class="mult active" data-m="1">x1</div>
-  <div class="mult" data-m="3">x3</div>
-  <div class="mult" data-m="5">x5</div>
+ <div class="mult active" data-m="1">x1</div>
+ <div class="mult" data-m="3">x3</div>
+ <div class="mult" data-m="5">x5</div>
 </div>
 
-<button class="big orange">TapDay Play</button>
-<button class="big green">Вивід</button>
+<button class="mainBtn">TapDay Play</button>
+<div class="withdraw">💳 Вивід</div>
 
 <audio id="sound">
 <source src="https://assets.mixkit.co/sfx/preview/mixkit-achievement-bell-600.mp3">
 </audio>
 
 <script>
-let balance=101.74, mult=1;
-const bEl=document.getElementById("balance");
+let balance=253.04, mult=1;
+let online=3959, bonuses=4730;
+const bEl=balanceEl=document.getElementById("balance");
 const ball=document.getElementById("ball");
 const sound=document.getElementById("sound");
 
-function updateBall(){
-  if(balance>=100000){ball.textContent="🔥";ball.style.boxShadow="0 0 60px gold"}
-  else if(balance>=10000){ball.textContent="🦁";ball.style.boxShadow="0 0 45px gold"}
-  else if(balance>=1000){ball.textContent="💎";ball.style.boxShadow="0 0 35px gold"}
-  else if(balance>=100){ball.textContent="👑";ball.style.boxShadow="0 0 30px gold"}
-  else ball.textContent="💰";
+setInterval(()=>{
+ online+=Math.floor(Math.random()*5-2);
+ bonuses+=Math.random()<0.3?1:0;
+ document.getElementById("online").textContent=online;
+ document.getElementById("bonuses").textContent=bonuses;
+},2000);
+
+function icon(){
+ if(balance>=1000) return "💎";
+ if(balance>=100) return "👑";
+ return "💰";
+}
+
+function fly(){
+ const f=document.createElement("div");
+ f.className="fly";
+ f.textContent=icon();
+ f.style.setProperty("--x",`${Math.random()*80-40}px`);
+ ball.appendChild(f);
+ setTimeout(()=>f.remove(),900);
 }
 
 ball.onclick=()=>{
-  navigator.vibrate(40);
-  balance+=0.01*mult;
-  bEl.textContent=balance.toFixed(2);
-  updateBall();
+ navigator.vibrate(40);
+ balance+=0.01*mult;
+ bEl.textContent=balance.toFixed(2);
+ ball.textContent=icon();
+ fly();
 };
 
 document.querySelectorAll(".mult").forEach(b=>{
-  b.onclick=()=>{
-    document.querySelectorAll(".mult").forEach(x=>x.classList.remove("active"));
-    b.classList.add("active");
-    mult=+b.dataset.m;
-  }
+ b.onclick=()=>{
+  document.querySelectorAll(".mult").forEach(x=>x.classList.remove("active"));
+  b.classList.add("active");
+  mult=+b.dataset.m;
+ };
 });
 
-document.getElementById("folder").onclick=()=>{
-  const d=document.getElementById("days");
-  d.style.display=d.style.display==="block"?"none":"block";
+folder.onclick=()=>{
+ days.style.display=days.style.display==="block"?"none":"block";
 };
 
 document.querySelectorAll(".day").forEach(d=>{
-  d.onclick=()=>{
-    balance+=+d.dataset.v;
-    sound.play();
-    bEl.textContent=balance.toFixed(2);
-    updateBall();
-  }
+ d.onclick=()=>{
+  navigator.vibrate(80);
+  sound.play();
+  balance+=+d.dataset.v;
+  bonuses++;
+  bEl.textContent=balance.toFixed(2);
+ };
 });
 </script>
 
