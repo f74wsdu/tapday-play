@@ -1,133 +1,156 @@
 <!DOCTYPE html>
 <html lang="uk">
 <head>
-<meta charset="UTF-8">
-<title>TapDay Clicker</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>TapDay Play</title>
+
 <style>
 body {
-    margin: 0;
-    background: #0e0e0e;
-    color: #fff;
-    font-family: Arial, sans-serif;
-    text-align: center;
+  margin: 0;
+  background: #0d0d0d;
+  color: #fff;
+  font-family: Arial, sans-serif;
+  text-align: center;
 }
+
+/* TOP BAR */
 .top {
-    display: flex;
-    justify-content: space-between;
-    padding: 10px;
-    font-size: 14px;
-    opacity: 0.85;
+  display: flex;
+  justify-content: space-between;
+  padding: 12px 16px;
+  font-size: 14px;
+  color: #bbb;
 }
+
+/* BALANCE */
 .balance {
-    font-size: 28px;
-    margin-top: 10px;
+  margin-top: 10px;
+  font-size: 28px;
 }
-.currency {
-    color: #4caf50;
+.balance span {
+  color: #4cff4c;
 }
-.coin-box {
-    margin: 30px auto;
+
+/* COIN */
+.coin-wrap {
+  margin: 30px auto;
 }
 .coin {
-    width: 180px;
-    height: 180px;
-    border-radius: 50%;
-    background: radial-gradient(circle, gold, orange);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 26px;
-    font-weight: bold;
-    cursor: pointer;
-    transition: 0.1s;
+  width: 240px;
+  height: 240px;
+  border-radius: 50%;
+  background: radial-gradient(circle, #ffd94d, #ffb300);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 40px;
+  cursor: pointer;
+  transition: transform 0.05s, filter 0.2s;
 }
 .coin:active {
-    transform: scale(0.95);
+  transform: scale(0.95);
 }
-.taps {
-    margin-top: 20px;
+.bright {
+  filter: brightness(1.25);
 }
-.taps button {
-    padding: 10px 15px;
-    margin: 5px;
-    background: #222;
-    color: #fff;
-    border: 1px solid #555;
-    border-radius: 6px;
+
+/* MULTI */
+.multi {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
 }
+.multi button {
+  background: #1c1c1c;
+  color: #fff;
+  border: 1px solid #333;
+  padding: 10px 18px;
+  border-radius: 8px;
+  font-size: 16px;
+}
+.multi button.active {
+  background: #ffb300;
+  color: #000;
+}
+
+/* BONUS */
 .bonus {
-    margin-top: 20px;
+  margin-top: 20px;
 }
 .bonus button {
-    padding: 12px 20px;
-    background: #ff9800;
-    border: none;
-    border-radius: 8px;
-    font-size: 16px;
+  background: #ff9800;
+  color: #000;
+  font-size: 18px;
+  padding: 14px 28px;
+  border: none;
+  border-radius: 10px;
 }
 </style>
 </head>
+
 <body>
 
 <div class="top">
-    <div>Онлайн: <b id="online">3124</b></div>
-    <div>Бонусів сьогодні: <b id="bonuses">4872</b></div>
+  <div>Онлайн: <b id="online">3782</b></div>
+  <div>Бонусів сьогодні: <b id="bonuses">4872</b></div>
 </div>
 
 <div class="balance">
-    Баланс: <span class="currency" id="money">0</span> $
+  Баланс: <span id="balance">0</span> $
 </div>
 
-<div class="coin-box">
-    <div class="coin" id="coin">💰</div>
+<div class="coin-wrap">
+  <div class="coin" id="coin">💵</div>
 </div>
 
-<div class="taps">
-    <button onclick="setTap(1)">x1</button>
-    <button onclick="setTap(3)">x3</button>
-    <button onclick="setTap(5)">x5</button>
+<div class="multi">
+  <button onclick="setMulti(1)" id="m1" class="active">x1</button>
+  <button onclick="setMulti(3)" id="m3">x3</button>
+  <button onclick="setMulti(5)" id="m5">x5</button>
 </div>
 
 <div class="bonus">
-    <button onclick="getBonus()">🎁 Бонус</button>
+  <button onclick="bonus()">🎁 Бонус</button>
 </div>
 
 <script>
-let money = 0;
-let tapValue = 1;
+let balance = 0;
+let multi = 1;
 
 const coin = document.getElementById("coin");
-const moneyEl = document.getElementById("money");
+const balanceEl = document.getElementById("balance");
+
+function setMulti(x) {
+  multi = x;
+  document.querySelectorAll(".multi button").forEach(b => b.classList.remove("active"));
+  document.getElementById("m"+x).classList.add("active");
+}
 
 coin.onclick = () => {
-    money += tapValue;
-    update();
+  balance += multi;
+  balanceEl.innerText = balance;
+
+  coin.classList.add("bright");
+  setTimeout(() => coin.classList.remove("bright"), 80);
+
+  updateCoin();
 };
 
-function setTap(x) {
-    tapValue = x;
+function updateCoin() {
+  if (balance >= 10000000) coin.innerText = "💎";
+  else if (balance >= 1000000) coin.innerText = "🏦";
+  else if (balance >= 100000) coin.innerText = "💰";
+  else if (balance >= 10000) coin.innerText = "💵";
+  else if (balance >= 1000) coin.innerText = "💴";
+  else if (balance >= 100) coin.innerText = "🪙";
 }
 
-function getBonus() {
-    money += 50;
-    update();
+function bonus() {
+  balance += 50;
+  balanceEl.innerText = balance;
+  window.open("https://t.me/tapday_clicker", "_blank");
 }
-
-function update() {
-    moneyEl.innerText = money.toLocaleString();
-
-    if (money >= 10000000) coin.innerText = "💎";
-    else if (money >= 1000000) coin.innerText = "🏆";
-    else if (money >= 100000) coin.innerText = "🔥";
-    else if (money >= 10000) coin.innerText = "🪙";
-    else if (money >= 1000) coin.innerText = "💰";
-}
-
-setInterval(() => {
-    document.getElementById("online").innerText =
-        3000 + Math.floor(Math.random() * 800);
-}, 4000);
 </script>
 
 </body>
