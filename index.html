@@ -1,105 +1,139 @@
-<!DOCTYPE html><html lang="uk">
+<!DOCTYPE html>
+<html lang="uk">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Tap Empire 2026</title>
+<meta charset="UTF-8">
+<title>City Empire 2026</title>
 <style>
-  * { box-sizing: border-box; font-family: Inter, Arial, sans-serif; }
-  body { margin:0; background:#0f1220; color:#fff; overflow:hidden; }
-  #topbar { display:flex; justify-content:space-between; align-items:center; padding:10px 14px; background:#151936; }
-  #money { font-size:18px; font-weight:700; }
-  #level { font-size:14px; opacity:.8; }
-  #map { position:absolute; top:52px; bottom:80px; left:0; right:0; background:linear-gradient(180deg,#1a1f4d,#0f1220); display:grid; grid-template-columns:repeat(3,1fr); grid-auto-rows:1fr; gap:12px; padding:12px; }
-  .tile { background:#1f255f; border-radius:16px; padding:12px; display:flex; flex-direction:column; justify-content:space-between; box-shadow:0 10px 30px rgba(0,0,0,.4); }
-  .tile h3 { margin:0; font-size:16px; }
-  .tile p { margin:6px 0; font-size:13px; opacity:.85; }
-  .tile button { border:none; border-radius:12px; padding:10px; background:#ffcc33; color:#000; font-weight:700; cursor:pointer; }
-  .tile button:disabled { background:#555; color:#999; cursor:not-allowed; }
-  #bottom { position:absolute; bottom:0; left:0; right:0; height:80px; background:#151936; display:flex; justify-content:space-around; align-items:center; }
-  .action { text-align:center; cursor:pointer; }
-  .action span { display:block; font-size:12px; opacity:.8; }
-  #tap { width:64px; height:64px; border-radius:50%; background:radial-gradient(circle at 30% 30%,#ffd84d,#e6a800); box-shadow:inset 0 4px 8px rgba(255,255,255,.5), inset 0 -6px 12px rgba(0,0,0,.4), 0 10px 30px rgba(0,0,0,.6); }
-  #modal { position:absolute; inset:0; background:rgba(0,0,0,.7); display:none; justify-content:center; align-items:center; }
-  #modal .box { background:#1f255f; padding:20px; border-radius:20px; width:90%; max-width:360px; }
-  #modal h2 { margin-top:0; }
+body {
+  margin:0;
+  background:#0f172a;
+  color:#fff;
+  font-family:Arial;
+}
+#top {
+  display:flex;
+  justify-content:space-around;
+  padding:10px;
+  background:#020617;
+}
+.stat {
+  font-weight:bold;
+}
+canvas {
+  display:block;
+  margin:auto;
+  background:#020617;
+}
+#panel {
+  position:fixed;
+  bottom:0;
+  width:100%;
+  background:#020617;
+  display:flex;
+  justify-content:space-around;
+  padding:10px;
+}
+button {
+  background:#2563eb;
+  color:#fff;
+  border:none;
+  padding:10px;
+  border-radius:8px;
+}
 </style>
 </head>
-<body><div id="topbar">
-  <div id="money">💵 $<span id="cash">0</span></div>
-  <div id="level">Рівень <span id="lvl">1</span></div>
-</div><div id="map"></div><div id="bottom">
-  <div class="action" onclick="openBonus()">🎁<span>Бонус</span></div>
-  <div class="action" onclick="tap()"><div id="tap"></div><span>Тап</span></div>
-  <div class="action" onclick="openStats()">📊<span>Статус</span></div>
-</div><div id="modal">
-  <div class="box" id="modalContent"></div>
-</div><script>
-let cash = 100;
-let level = 1;
-let income = 0;
+<body>
 
-const buildings = [
-  { id:'farm', name:'Ферма', base:50, inc:1, owned:0, desc:'Стабільний дохід' },
-  { id:'factory', name:'Завод', base:300, inc:5, owned:0, desc:'Серйозне виробництво' },
-  { id:'hospital', name:'Лікарня', base:800, inc:10, owned:0, desc:'Соціальний вплив' },
-  { id:'police', name:'Поліцейська станція', base:1500, inc:20, owned:0, desc:'Контроль міста' }
-];
+<div id="top">
+  <div class="stat">💰 <span id="money">1000</span></div>
+  <div class="stat">🏙 Населення: <span id="pop">50</span></div>
+  <div class="stat">💵/год: <span id="income">20</span></div>
+</div>
 
-function price(b){ return Math.floor(b.base * Math.pow(1.4, b.owned)); }
+<canvas id="city" width="420" height="520"></canvas>
+
+<div id="panel">
+  <button onclick="build('farm')">🌾 Ферма</button>
+  <button onclick="build('factory')">🏭 Завод</button>
+  <button onclick="build('house')">🏠 Будинок</button>
+</div>
+
+<script>
+const canvas = document.getElementById('city');
+const ctx = canvas.getContext('2d');
+
+let money = 1000;
+let income = 20;
+let population = 50;
+
+const tiles = [];
+const size = 40;
+
+function iso(x,y){
+  return {
+    x: 210 + (x-y)*size,
+    y: 80 + (x+y)*size/2
+  }
+}
+
+function drawTile(x,y,color){
+  const p = iso(x,y);
+  ctx.beginPath();
+  ctx.moveTo(p.x, p.y);
+  ctx.lineTo(p.x+size, p.y+size/2);
+  ctx.lineTo(p.x, p.y+size);
+  ctx.lineTo(p.x-size, p.y+size/2);
+  ctx.closePath();
+  ctx.fillStyle = color;
+  ctx.fill();
+}
 
 function render(){
-  document.getElementById('cash').innerText = cash;
-  document.getElementById('lvl').innerText = level;
-  const map = document.getElementById('map');
-  map.innerHTML='';
-  buildings.forEach(b=>{
-    const canBuy = cash >= price(b);
-    const div = document.createElement('div');
-    div.className='tile';
-    div.innerHTML = `
-      <div>
-        <h3>${b.name} (${b.owned})</h3>
-        <p>${b.desc}</p>
-        <p>Дохід: +${b.inc}/сек</p>
-        <p>Ціна: $${price(b)}</p>
-      </div>
-      <button ${!canBuy?'disabled':''} onclick="buy('${b.id}')">Купити</button>
-    `;
-    map.appendChild(div);
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  for(let x=0;x<6;x++){
+    for(let y=0;y<6;y++){
+      drawTile(x,y,'#1e293b');
+    }
+  }
+  tiles.forEach(t=>{
+    drawTile(t.x,t.y,t.color);
   });
 }
 
-function buy(id){
-  const b = buildings.find(x=>x.id===id);
-  const p = price(b);
-  if(cash>=p){ cash-=p; b.owned++; income+=b.inc; checkLevel(); render(); }
-}
+function build(type){
+  const cost = {farm:300,factory:600,house:400}[type];
+  if(money<cost) return;
+  money-=cost;
 
-function tap(){ cash+=1; render(); }
+  const tile = {
+    x: Math.floor(Math.random()*6),
+    y: Math.floor(Math.random()*6),
+    color: type==='farm'?'#22c55e':type==='factory'?'#64748b':'#38bdf8'
+  };
 
-function tick(){ cash+=income; render(); }
+  tiles.push(tile);
 
-function checkLevel(){ level = 1 + Math.floor((income+cash)/500); }
+  if(type==='farm') income+=10;
+  if(type==='factory') income+=25;
+  if(type==='house') population+=30;
 
-function openBonus(){
-  showModal(`<h2>Бонус</h2><p>Підписка = +5000 монет</p><button onclick=\"subscribe()\">Перейти</button>`);
-}
-
-function subscribe(){
-  cash+=5000;
-  closeModal();
+  update();
   render();
-  window.open('https://t.me/your_channel','_blank');
 }
 
-function openStats(){
-  showModal(`<h2>Статистика</h2><p>Дохід/сек: ${income}</p><p>Гроші: $${cash}</p>`);
+function update(){
+  document.getElementById('money').innerText = Math.floor(money);
+  document.getElementById('income').innerText = income;
+  document.getElementById('pop').innerText = population;
 }
 
-function showModal(html){ document.getElementById('modalContent').innerHTML=html; document.getElementById('modal').style.display='flex'; }
-function closeModal(){ document.getElementById('modal').style.display='none'; }
+setInterval(()=>{
+  money += income/60;
+  update();
+},1000);
 
-setInterval(tick,1000);
 render();
-</script></body>
+update();
+</script>
+</body>
 </html>
