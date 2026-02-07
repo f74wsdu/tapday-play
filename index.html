@@ -1,90 +1,256 @@
-const game = {
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="UTF-8">
+<title>TapDay Economy</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<style>
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background: radial-gradient(circle at top, #1b1f2a, #05070c);
+  color: #fff;
+  text-align: center;
+}
+
+header {
+  display: flex;
+  justify-content: space-between;
+  padding: 12px 16px;
+  font-size: 14px;
+}
+
+.money { font-weight: bold; }
+.level { opacity: .8; }
+
+#coin {
+  margin: 30px auto 10px;
+  width: 220px;
+  height: 220px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 30% 30%, #ffe08a, #d49b00);
+  box-shadow: 0 0 40px rgba(255,200,0,.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: transform .1s;
+}
+#coin:active { transform: scale(.96); }
+
+#coin span {
+  font-size: 48px;
+  font-weight: bold;
+}
+
+#stats {
+  opacity: .8;
+  margin-bottom: 20px;
+}
+
+#buildings {
+  padding: 10px;
+}
+
+.building {
+  background: rgba(255,255,255,.05);
+  border-radius: 12px;
+  padding: 12px;
+  margin-bottom: 10px;
+  text-align: left;
+}
+
+.building button {
+  float: right;
+  background: #ffc400;
+  border: none;
+  border-radius: 8px;
+  padding: 6px 10px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+footer {
+  position: fixed;
+  bottom: 0;
+  width: 100%;
+  display: flex;
+  justify-content: space-around;
+  padding: 10px;
+  background: rgba(0,0,0,.6);
+}
+
+footer button {
+  background: none;
+  border: none;
+  color: #fff;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,.7);
+  display: none;
+  align-items: center;
+  justify-content: center;
+}
+
+.modal-content {
+  background: #121826;
+  padding: 20px;
+  border-radius: 16px;
+  width: 85%;
+}
+
+.modal-content button {
+  margin-top: 10px;
+  width: 100%;
+  padding: 10px;
+  background: #ffc400;
+  border: none;
+  border-radius: 10px;
+  font-weight: bold;
+}
+</style>
+</head>
+
+<body>
+
+<header>
+  <div class="money">💵 <span id="money">100</span></div>
+  <div class="level">Рівень <span id="level">1</span></div>
+</header>
+
+<div id="coin"><span>+</span></div>
+
+<div id="stats">
+  Пасив: <span id="passive">0</span>/сек | XP: <span id="xp">0</span>
+</div>
+
+<div id="buildings"></div>
+
+<footer>
+  <button onclick="openBonus()">🎁 Бонус</button>
+  <button onclick="boost()">⚡ Прискорення</button>
+  <button onclick="robot()">🤖 Робот</button>
+</footer>
+
+<!-- BONUS MODAL -->
+<div class="modal" id="bonusModal">
+  <div class="modal-content">
+    <h3>Бонуси</h3>
+    <button onclick="subscribeBonus()">+5000 за підписку</button>
+    <button onclick="activeBonus()">+10000 за актив</button>
+    <button onclick="closeBonus()">Закрити</button>
+  </div>
+</div>
+
+<script>
+const tgLink = "https://t.me/ТВІЙ_КАНАЛ"; // ← ЗАМІНИ
+
+let game = {
   money: 100,
   xp: 0,
-  energy: 100,
   level: 1,
-
+  passive: 0,
+  robot: false,
+  boostedUntil: 0,
   buildings: [
-    {
-      id: "farm",
-      name: "Ферма",
-      owned: 1,
-      baseIncome: 2,
-      baseCost: 100,
-      timer: 10,
-      lastCollect: Date.now()
-    }
-  ],
-
-  getIncome(building) {
-    return building.baseIncome * building.owned;
-  },
-
-  getUpgradeCost(building) {
-    return Math.floor(building.baseCost * Math.pow(1.6, building.owned));
-  },
-
-  collect(buildingId) {
-    const b = this.buildings.find(b => b.id === buildingId);
-    const now = Date.now();
-    const passed = Math.floor((now - b.lastCollect) / 1000);
-
-    if (passed >= b.timer && this.energy > 0) {
-      const cycles = Math.floor(passed / b.timer);
-      const income = cycles * this.getIncome(b);
-
-      this.money += income;
-      this.xp += cycles;
-      this.energy -= cycles;
-
-      b.lastCollect = now;
-    }
-  },
-
-  upgrade(buildingId) {
-    const b = this.buildings.find(b => b.id === buildingId);
-    const cost = this.getUpgradeCost(b);
-
-    if (this.money >= cost) {
-      this.money -= cost;
-      b.owned += 1;
-    }
-  },
-
-  unlockBuilding(building) {
-    this.buildings.push(building);
-  },
-
-  levelUp() {
-    const needXp = this.level * 50;
-    if (this.xp >= needXp) {
-      this.level++;
-      this.energy += 20;
-
-      // відкриття нових будівель
-      if (this.level === 3) {
-        this.unlockBuilding({
-          id: "police",
-          name: "Поліцейська станція",
-          owned: 0,
-          baseIncome: 10,
-          baseCost: 1000,
-          timer: 20,
-          lastCollect: Date.now()
-        });
-      }
-
-      if (this.level === 6) {
-        this.unlockBuilding({
-          id: "factory",
-          name: "Завод",
-          owned: 0,
-          baseIncome: 50,
-          baseCost: 8000,
-          timer: 40,
-          lastCollect: Date.now()
-        });
-      }
-    }
-  }
+    { id: "farm", name: "🌾 Ферма", owned: 1, income: 2, cost: 100 }
+  ]
 };
+
+function render() {
+  money.textContent = Math.floor(game.money);
+  level.textContent = game.level;
+  xp.textContent = game.xp;
+  passive.textContent = game.passive;
+
+  buildings.innerHTML = "";
+  game.buildings.forEach(b => {
+    const div = document.createElement("div");
+    div.className = "building";
+    div.innerHTML = `
+      <b>${b.name}</b><br>
+      Кількість: ${b.owned}<br>
+      Прибуток: ${b.income * b.owned}/сек
+      <button onclick="buy('${b.id}')">Купити (${b.cost})</button>
+    `;
+    buildings.appendChild(div);
+  });
+}
+
+coin.onclick = () => {
+  let mult = Date.now() < game.boostedUntil ? 2 : 1;
+  game.money += 1 * mult;
+  game.xp += 1;
+  levelCheck();
+  render();
+};
+
+function buy(id) {
+  let b = game.buildings.find(x => x.id === id);
+  if (game.money >= b.cost) {
+    game.money -= b.cost;
+    b.owned++;
+    b.cost = Math.floor(b.cost * 1.6);
+    game.passive += b.income;
+    render();
+  }
+}
+
+function levelCheck() {
+  if (game.xp >= game.level * 50) {
+    game.level++;
+    if (game.level === 3) unlock("🚓 Поліція", 10, 1000);
+    if (game.level === 6) unlock("🏭 Завод", 50, 8000);
+    if (game.level === 10) unlock("🏦 Банк", 200, 40000);
+  }
+}
+
+function unlock(name, income, cost) {
+  game.buildings.push({
+    id: name,
+    name,
+    owned: 0,
+    income,
+    cost
+  });
+}
+
+setInterval(() => {
+  game.money += game.passive;
+  if (game.robot) game.money += game.passive;
+  render();
+}, 1000);
+
+function openBonus(){ bonusModal.style.display="flex"; }
+function closeBonus(){ bonusModal.style.display="none"; }
+
+function subscribeBonus(){
+  window.open(tgLink, "_blank");
+  game.money += 5000;
+  closeBonus();
+}
+
+function activeBonus(){
+  game.money += 10000;
+  closeBonus();
+}
+
+function boost(){
+  game.boostedUntil = Date.now() + 30000;
+}
+
+function robot(){
+  game.robot = true;
+}
+
+render();
+</script>
+
+</body>
+</html>
