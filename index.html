@@ -2,157 +2,171 @@
 <html lang="uk">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>TapDay Play</title>
-
 <style>
-body{
-  margin:0;
-  font-family:Arial, sans-serif;
-  background:#000;
-  color:#fff;
-  text-align:center;
+body {
+  margin: 0;
+  background: #0d0d0d;
+  color: white;
+  font-family: Arial, sans-serif;
+  text-align: center;
 }
 
-.top{
-  display:flex;
-  justify-content:space-between;
-  padding:10px 14px;
-  font-size:14px;
+#top {
+  display: flex;
+  justify-content: space-between;
+  padding: 10px;
 }
 
-.green{color:#00ff6a}
-.yellow{color:#ffd000}
-
-.level{
-  font-size:12px;
-  opacity:.8;
-  margin-top:4px;
+#level {
+  font-weight: bold;
 }
 
-#balance{
-  font-size:48px;
-  margin-top:10px;
+#adBtn {
+  background: #ff9800;
+  border: none;
+  padding: 8px 12px;
+  border-radius: 8px;
 }
 
-#label{
-  font-size:14px;
-  opacity:.7;
+#coin {
+  margin-top: 60px;
+  width: 160px;
+  height: 160px;
+  border-radius: 50%;
+  background: radial-gradient(circle, gold, orange);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 26px;
+  font-weight: bold;
+  cursor: pointer;
+  position: relative;
 }
 
-.btn{
-  border:none;
-  border-radius:14px;
-  padding:12px 20px;
-  font-size:16px;
-  margin:10px auto;
-  display:block;
-  cursor:pointer;
+.coin-rain {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  animation: fall 1s linear forwards;
 }
 
-.ad{
-  background:#ffd000;
-  color:#000;
-  font-weight:bold;
+@keyframes fall {
+  to {
+    transform: translateY(200px);
+    opacity: 0;
+  }
 }
 
-#circle{
-  width:300px;
-  height:300px;
-  margin:20px auto;
-  border-radius:50%;
-  background:#1f1f1f;
-  display:flex;
-  align-items:center;
-  justify-content:center;
+#count {
+  margin-top: 20px;
+  font-size: 22px;
 }
 
-#coin{
-  width:100%;
-  height:100%;
-  border-radius:50%;
-  background:radial-gradient(circle at 30% 30%, #ffd700, #b8860b);
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  font-size:42px;
-  cursor:pointer;
-  user-select:none;
+#daily {
+  margin-top: 20px;
+  background: #333;
+  padding: 10px;
+  border-radius: 10px;
 }
 
-#coin:active{
-  transform:scale(0.97);
+#subscribe {
+  margin-top: 15px;
+  background: #0088cc;
+  padding: 10px;
+  border-radius: 10px;
 }
 
-.footer{
-  margin-top:10px;
-  opacity:.6;
-  font-size:12px;
+#withdraw {
+  margin-top: 10px;
+  background: green;
+  padding: 6px 12px;
+  border-radius: 8px;
+  width: fit-content;
+  margin-left: auto;
+  margin-right: auto;
 }
 </style>
 </head>
 
 <body>
 
-<div class="top">
-  <div class="green">Онлайн: <span id="online">0</span></div>
-  <div>
-    <div class="yellow">Бонус сьогодні: <span id="today">0</span></div>
-    <div class="level">Рівень: <span id="level">1</span></div>
-  </div>
+<div id="top">
+  <button id="adBtn">🎥 +50</button>
+  <div id="level">LEVEL 1</div>
 </div>
 
-<button class="btn ad" onclick="watchAd()">▶ Реклама +50</button>
+<div id="coin">TAP</div>
+<div id="count">0 монет</div>
 
-<div id="balance">0</div>
-<div id="label">МОНЕТ</div>
-
-<div id="circle">
-  <div id="coin" onclick="tap()">🪙</div>
+<div id="daily">
+  📁 Денний бонус
 </div>
 
-<div class="footer">TapDay Play</div>
+<div id="subscribe">
+  🔔 Підпишись → +500
+</div>
+
+<div id="withdraw">
+  💳 Вивід
+</div>
 
 <script>
-let balance = 0;
-let todayBonus = 0;
+let coins = 0;
+let level = 1;
 
-// Онлайн (живе число)
-function updateOnline(){
-  document.getElementById("online").innerText =
-    4000 + Math.floor(Math.random() * 600);
-}
-setInterval(updateOnline, 5000);
-updateOnline();
+const coinBtn = document.getElementById("coin");
+const countText = document.getElementById("count");
+const levelText = document.getElementById("level");
 
-// Тап тільки по монеті
-function tap(){
-  balance++;
-  todayBonus++;
-  updateAll();
-  if(navigator.vibrate) navigator.vibrate(15);
-}
+function updateLevel() {
+  if (coins >= 10000000) level = 6;
+  else if (coins >= 1000000) level = 5;
+  else if (coins >= 100000) level = 4;
+  else if (coins >= 10000) level = 3;
+  else if (coins >= 1000) level = 2;
+  else level = 1;
 
-// Реклама
-function watchAd(){
-  balance += 50;
-  todayBonus += 50;
-  updateAll();
+  levelText.textContent = "LEVEL " + level;
 }
 
-// Рівень
-function calcLevel(){
-  return Math.floor(balance / 500) + 1;
-}
+coinBtn.onclick = () => {
+  coins++;
+  countText.textContent = coins + " монет";
+  updateLevel();
 
-// Оновлення всього
-function updateAll(){
-  document.getElementById("balance").innerText = balance;
-  document.getElementById("today").innerText = todayBonus;
-  document.getElementById("level").innerText = calcLevel();
-}
+  if (navigator.vibrate) navigator.vibrate(30);
 
-updateAll();
+  if (coins < 1000000) {
+    const rain = document.createElement("div");
+    rain.textContent = "🪙";
+    rain.className = "coin-rain";
+    coinBtn.appendChild(rain);
+    setTimeout(() => rain.remove(), 1000);
+  }
+};
+
+document.getElementById("adBtn").onclick = () => {
+  coins += 50;
+  countText.textContent = coins + " монет";
+  playSound();
+};
+
+document.getElementById("subscribe").onclick = () => {
+  coins += 500;
+  countText.textContent = coins + " монет";
+  playSound();
+  document.getElementById("subscribe").innerHTML = "⏳ Бонус через 30 днів";
+};
+
+document.getElementById("withdraw").onclick = () => {
+  alert("Вивід буде доступний пізніше");
+};
+
+function playSound() {
+  const audio = new Audio("https://actions.google.com/sounds/v1/cartoon/clang_and_wobble.ogg");
+  audio.play();
+}
 </script>
 
 </body>
