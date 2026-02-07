@@ -1,146 +1,189 @@
 <!DOCTYPE html>
 <html lang="uk">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>TapCity 2026</title>
-
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
 <style>
-html,body{margin:0;padding:0;overflow:hidden;background:#0b1320;color:#fff;font-family:system-ui}
-#top{position:absolute;top:10px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,.6);padding:10px 18px;border-radius:14px;display:flex;gap:16px}
-.stat{font-weight:700}
-#ui{position:absolute;bottom:14px;width:100%;display:flex;justify-content:space-around}
-.btn{background:linear-gradient(135deg,#ffd54f,#ffb300);color:#000;padding:12px 16px;border-radius:16px;font-weight:800}
-#tapCoin{position:absolute;bottom:110px;left:50%;transform:translateX(-50%);width:130px;height:130px;border-radius:50%;
-background:radial-gradient(circle at 30% 30%,#fffde7,#fbc02d);
-box-shadow:0 0 40px rgba(255,215,0,.8);display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:900;color:#5d4037}
-#tapCoin:active{transform:translateX(-50%) scale(.94)}
-.float{position:absolute;color:gold;font-weight:900;pointer-events:none;animation:up 1s ease-out forwards}
-@keyframes up{0%{opacity:1}100%{opacity:0;transform:translateY(-60px)}}
-canvas{width:100%;height:100%}
+:root{
+  --ui:#0f172a; --ui2:#111827; --gold:#facc15; --green:#22c55e;
+}
+html,body{margin:0;height:100%;background:#020617;color:#e5e7eb;font-family:system-ui}
+#uiTop{
+  position:fixed;inset:0 0 auto 0;height:68px;display:flex;gap:10px;align-items:center;
+  padding:10px;background:linear-gradient(180deg,rgba(2,6,23,.95),rgba(2,6,23,.7));
+  z-index:5
+}
+.badge{background:#020617;border:1px solid #1f2937;border-radius:14px;padding:6px 10px}
+#coins{font-weight:700;color:var(--gold)}
+#level{opacity:.9}
+#actions{
+  position:fixed;right:10px;bottom:90px;display:flex;flex-direction:column;gap:10px;z-index:5
+}
+.action{
+  width:64px;height:64px;border-radius:16px;background:#020617;border:1px solid #1f2937;
+  display:grid;place-items:center;cursor:pointer
+}
+.action span{font-size:12px;opacity:.9}
+#tapCoin{
+  position:fixed;left:50%;bottom:18px;transform:translateX(-50%);
+  width:96px;height:96px;border-radius:50%;
+  background:radial-gradient(circle at 30% 30%,#fde68a,#f59e0b 60%,#b45309);
+  box-shadow:0 10px 30px rgba(250,204,21,.45), inset 0 -10px 20px rgba(0,0,0,.35);
+  display:grid;place-items:center;font-weight:800;color:#3b2400;z-index:5
+}
+canvas{display:block}
+#hint{position:fixed;left:50%;top:78px;transform:translateX(-50%);opacity:.85}
 </style>
 </head>
-
 <body>
-<canvas id="map"></canvas>
+<div id="uiTop">
+  <div class="badge">💵 <span id="coins">0</span></div>
+  <div class="badge" id="level">Рівень 1</div>
+  <div class="badge">👑 Активні: <span id="active">12482</span></div>
+</div>
+<div id="hint">Перетягуй карту. Тисни на будівлі.</div>
 
-<div id="top">
-  <div class="stat">💰 <span id="money">0</span></div>
-  <div class="stat">⭐ <span id="level">1</span></div>
-  <div class="stat">📅 День <span id="day">1</span></div>
+<div id="actions">
+  <div class="action" id="x2"><b>2×</b><span>x2</span></div>
+  <div class="action" id="auto">🤖<span>Робот</span></div>
+  <div class="action" id="gift">🎁<span>Бонус</span></div>
 </div>
 
 <div id="tapCoin">TAP</div>
-
-<div id="ui">
-  <div class="btn" onclick="buyFarm()">🌾 Ферма</div>
-  <div class="btn" onclick="buyFactory()">🏭 Завод</div>
-  <div class="btn" onclick="openBonus()">🎁 Бонус</div>
-</div>
-
-<audio id="click">
-<source src="https://cdn.pixabay.com/audio/2022/03/15/audio_5c2c8a7a2c.mp3">
-</audio>
+<canvas id="map"></canvas>
 
 <script>
-const c=document.getElementById("map"),x=c.getContext("2d");
-function r(){c.width=innerWidth;c.height=innerHeight}r();onresize=r;
+const tg = window.Telegram.WebApp; tg.expand();
 
-let money=100,level=1,income=0,day=1,time=0,seasonDay=1;
-const moneyEl=money=document.getElementById("money");
-const levelEl=document.getElementById("level");
-const dayEl=document.getElementById("day");
-const snd=document.getElementById("click");
+// ---- STATE
+let coins=0, level=1, x2=false, auto=false;
+const channelLink="https://t.me/tapday_clicker";
+const map=document.getElementById('map'), ctx=map.getContext('2d');
+let W,H,cam={x:0,y:0,drag:false,px:0,py:0};
+let isNight=false;
 
-const buildings=[],people=[],cars=[];
+// ---- AUDIO (soft)
+const snd = new Audio("data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQAAAAA=");
+snd.volume=.15;
 
-// TAP
-tapCoin.onclick=e=>{
- money+=1+level;
- snd.currentTime=0;snd.volume=.15;snd.play();
- float("+"+(1+level),e.clientX,e.clientY);
- if(money>level*200){level++;money+=100}
+// ---- MAP DATA (fixed regions)
+const regions=[
+  {id:'farm',name:'Farm District',x:200,y:300,w:420,h:260},
+  {id:'ind', name:'Industrial',x:700,y:260,w:420,h:280},
+  {id:'city',name:'City Center',x:420,y:620,w:520,h:300}
+];
+const buildings=[]; // placed buildings
+
+function resize(){
+  W=map.width=innerWidth; H=map.height=innerHeight;
+}
+addEventListener('resize',resize); resize();
+
+// ---- HELPERS
+function drawLand(){
+  // grass
+  ctx.fillStyle="#064e3b"; ctx.fillRect(-2000,-2000,4000,4000);
+  // water
+  ctx.fillStyle="#0ea5e9"; ctx.beginPath();
+  ctx.ellipse(300,120,220,120,0,0,Math.PI*2); ctx.fill();
+}
+function drawRoads(){
+  ctx.strokeStyle="#374151"; ctx.lineWidth=16;
+  ctx.beginPath(); ctx.moveTo(350,430); ctx.lineTo(920,420); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(650,540); ctx.lineTo(650,800); ctx.stroke();
+}
+function drawRegions(){
+  regions.forEach(r=>{
+    ctx.fillStyle="rgba(0,0,0,.12)";
+    ctx.fillRect(r.x,r.y,r.w,r.h);
+    ctx.strokeStyle="#22c55e"; ctx.lineWidth=2; ctx.strokeRect(r.x,r.y,r.w,r.h);
+    ctx.fillStyle="#e5e7eb"; ctx.fillText(r.name,r.x+10,r.y+22);
+  });
+}
+function drawBuildings(){
+  buildings.forEach(b=>{
+    ctx.fillStyle=b.type==='farm'?'#22c55e':'#a855f7';
+    ctx.fillRect(b.x,b.y,40,40);
+    ctx.fillStyle="#020617"; ctx.fillText(b.type, b.x, b.y-4);
+  });
+}
+function drawPeopleCars(){
+  for(let i=0;i<6;i++){
+    ctx.fillStyle="#eab308";
+    ctx.fillRect(360+i*40,440,10,10);
+    ctx.fillStyle="#ef4444";
+    ctx.fillRect(660,560+i*40,18,10);
+  }
+}
+function nightOverlay(){
+  if(!isNight) return;
+  ctx.fillStyle="rgba(2,6,23,.45)";
+  ctx.fillRect(-2000,-2000,4000,4000);
+}
+
+// ---- LOOP
+function loop(){
+  ctx.setTransform(1,0,0,1,0,0);
+  ctx.clearRect(0,0,W,H);
+  ctx.translate(cam.x,cam.y);
+  drawLand(); drawRoads(); drawRegions(); drawBuildings(); drawPeopleCars(); nightOverlay();
+  requestAnimationFrame(loop);
+}
+loop();
+
+// ---- INPUT (drag)
+map.addEventListener('pointerdown',e=>{cam.drag=true;cam.px=e.clientX;cam.py=e.clientY});
+addEventListener('pointerup',()=>cam.drag=false);
+addEventListener('pointermove',e=>{
+  if(!cam.drag) return;
+  cam.x+=e.clientX-cam.px; cam.y+=e.clientY-cam.py;
+  cam.px=e.clientX; cam.py=e.clientY;
+});
+
+// ---- BUILDINGS LOGIC
+function placeBuilding(type,rx,ry){
+  buildings.push({type,x:rx+20,y:ry+40, t:Date.now()});
+}
+function tickIncome(){
+  buildings.forEach(b=>{
+    const rate=b.type==='farm'?1:4;
+    coins+=rate*(x2?2:1);
+  });
+  updateUI();
+}
+setInterval(tickIncome,2000);
+
+// ---- UI
+function updateUI(){
+  document.getElementById('coins').textContent=coins;
+  document.getElementById('level').textContent='Рівень '+level;
+}
+document.getElementById('tapCoin').onclick=()=>{
+  coins+=(x2?2:1); snd.currentTime=0; snd.play(); updateUI();
+};
+document.getElementById('x2').onclick=()=>{x2=true; setTimeout(()=>x2=false,20000)};
+document.getElementById('auto').onclick=()=>{
+  if(auto) return; auto=true;
+  setInterval(()=>{coins+=1*(x2?2:1); updateUI()},700);
+};
+document.getElementById('gift').onclick=()=>{
+  tg.openTelegramLink(channelLink);
+  setTimeout(()=>{coins+=5000; updateUI()},3000);
 };
 
-// BUSINESSES
-function buyFarm(){
- if(money<200)return;
- money-=200;income+=2;
- buildings.push({t:"farm",x:50+Math.random()*200,y:300+Math.random()*150});
-}
-function buyFactory(){
- if(money<800)return;
- money-=800;income+=6;
- buildings.push({t:"factory",x:350+Math.random()*200,y:300+Math.random()*150});
-}
+// ---- PLACE DEFAULT BUILDINGS
+placeBuilding('farm',regions[0].x,regions[0].y);
+placeBuilding('factory',regions[1].x,regions[1].y);
 
-// BONUS
-function openBonus(){
- window.open("https://t.me/tapday_clicker","_blank");
- money+=5000;
-}
+// ---- DAY/NIGHT
+setInterval(()=>{isNight=!isNight},30000);
 
-// FLOAT
-function float(t,xp,yp){
- const d=document.createElement("div");
- d.className="float";d.textContent=t;
- d.style.left=xp+"px";d.style.top=yp+"px";
- document.body.appendChild(d);
- setTimeout(()=>d.remove(),900);
-}
-
-// PEOPLE & CARS
-for(let i=0;i<10;i++)people.push({x:Math.random()*innerWidth,y:Math.random()*innerHeight,v:0.3+Math.random()});
-for(let i=0;i<6;i++)cars.push({x:Math.random()*innerWidth,y:innerHeight*0.65+Math.random()*40,v:1+Math.random()});
-
-// LOOP
+// ---- ACTIVE FAKE
 setInterval(()=>{
- money+=income;
- time++;
- if(time%20==0){day++;seasonDay++;if(seasonDay>7)seasonDay=1}
-},1000);
-
-// DRAW
-function draw(){
- // day/night
- const night=Math.sin(time/50)*0.5+0.5;
- x.fillStyle=`rgba(20,40,20,1)`;x.fillRect(0,0,c.width,c.height);
- x.fillStyle="#1b5e20";x.fillRect(0,c.height*0.55,c.width,c.height);
- x.fillStyle="#1565c0";x.fillRect(0,c.height*0.75,c.width,c.height);
-
- // roads
- x.fillStyle="#555";x.fillRect(0,c.height*0.65,c.width,40);
-
- // buildings
- buildings.forEach(b=>{
-  x.fillStyle=b.t=="farm"?"#8bc34a":"#90a4ae";
-  x.fillRect(b.x,b.y,28,28);
- });
-
- // people
- people.forEach(p=>{
-  p.x+=p.v*(Math.random()>.5?1:-1);
-  p.y+=p.v*(Math.random()>.5?1:-1);
-  x.fillStyle="#ffccbc";x.fillRect(p.x,p.y,4,4);
- });
-
- // cars
- cars.forEach(car=>{
-  car.x+=car.v;if(car.x>c.width)car.x=0;
-  x.fillStyle="#f44336";x.fillRect(car.x,car.y,14,6);
- });
-
- // night overlay
- x.fillStyle=`rgba(0,0,40,${night*0.4})`;
- x.fillRect(0,0,c.width,c.height);
-
- moneyEl.textContent=Math.floor(money);
- levelEl.textContent=level;
- dayEl.textContent=day;
-
- requestAnimationFrame(draw);
-}
-draw();
+  document.getElementById('active').textContent=12000+Math.floor(Math.random()*600);
+},5000);
 </script>
 </body>
 </html>
