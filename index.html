@@ -2,73 +2,56 @@
 <html lang="uk">
 <head>
 <meta charset="UTF-8">
-<title>TapDay Economy</title>
+<title>City Economy 2026</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <style>
 body {
   margin: 0;
-  font-family: Arial, sans-serif;
-  background: radial-gradient(circle at top, #1b1f2a, #05070c);
+  background: #0c1020;
   color: #fff;
-  text-align: center;
+  font-family: system-ui, sans-serif;
 }
 
 header {
   display: flex;
   justify-content: space-between;
   padding: 12px 16px;
+  background: #12172b;
   font-size: 14px;
 }
 
-.money { font-weight: bold; }
-.level { opacity: .8; }
+#money { font-weight: bold; }
+#level { opacity: .8; }
 
-#coin {
-  margin: 30px auto 10px;
-  width: 220px;
-  height: 220px;
-  border-radius: 50%;
-  background: radial-gradient(circle at 30% 30%, #ffe08a, #d49b00);
-  box-shadow: 0 0 40px rgba(255,200,0,.5);
-  display: flex;
-  align-items: center;
-  justify-content: center;
+#map {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+  padding: 15px;
+}
+
+.tile {
+  background: linear-gradient(145deg,#1e2440,#141933);
+  border-radius: 14px;
+  padding: 14px;
+  height: 110px;
+  position: relative;
   cursor: pointer;
-  transition: transform .1s;
-}
-#coin:active { transform: scale(.96); }
-
-#coin span {
-  font-size: 48px;
-  font-weight: bold;
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,.05);
 }
 
-#stats {
-  opacity: .8;
-  margin-bottom: 20px;
+.tile span {
+  position: absolute;
+  bottom: 10px;
+  left: 10px;
+  font-size: 12px;
+  opacity: .85;
 }
 
-#buildings {
-  padding: 10px;
-}
-
-.building {
-  background: rgba(255,255,255,.05);
-  border-radius: 12px;
-  padding: 12px;
-  margin-bottom: 10px;
-  text-align: left;
-}
-
-.building button {
-  float: right;
-  background: #ffc400;
-  border: none;
-  border-radius: 8px;
-  padding: 6px 10px;
-  font-weight: bold;
-  cursor: pointer;
+.tile.locked {
+  opacity: .35;
+  cursor: not-allowed;
 }
 
 footer {
@@ -78,7 +61,7 @@ footer {
   display: flex;
   justify-content: space-around;
   padding: 10px;
-  background: rgba(0,0,0,.6);
+  background: rgba(0,0,0,.7);
 }
 
 footer button {
@@ -86,30 +69,29 @@ footer button {
   border: none;
   color: #fff;
   font-size: 14px;
-  cursor: pointer;
 }
 
 .modal {
   position: fixed;
   inset: 0;
-  background: rgba(0,0,0,.7);
+  background: rgba(0,0,0,.75);
   display: none;
   align-items: center;
   justify-content: center;
 }
 
-.modal-content {
-  background: #121826;
+.modal-box {
+  background: #141933;
   padding: 20px;
   border-radius: 16px;
   width: 85%;
 }
 
-.modal-content button {
-  margin-top: 10px;
+.modal-box button {
   width: 100%;
+  margin-top: 10px;
   padding: 10px;
-  background: #ffc400;
+  background: #f5c400;
   border: none;
   border-radius: 10px;
   font-weight: bold;
@@ -120,133 +102,96 @@ footer button {
 <body>
 
 <header>
-  <div class="money">💵 <span id="money">100</span></div>
-  <div class="level">Рівень <span id="level">1</span></div>
+  <div id="money">💰 500</div>
+  <div id="level">Рівень 1</div>
 </header>
 
-<div id="coin"><span>+</span></div>
-
-<div id="stats">
-  Пасив: <span id="passive">0</span>/сек | XP: <span id="xp">0</span>
-</div>
-
-<div id="buildings"></div>
+<div id="map"></div>
 
 <footer>
   <button onclick="openBonus()">🎁 Бонус</button>
-  <button onclick="boost()">⚡ Прискорення</button>
-  <button onclick="robot()">🤖 Робот</button>
+  <button onclick="boost()">⚡ x2</button>
+  <button onclick="robot()">🤖 Авто</button>
 </footer>
 
-<!-- BONUS MODAL -->
 <div class="modal" id="bonusModal">
-  <div class="modal-content">
+  <div class="modal-box">
     <h3>Бонуси</h3>
-    <button onclick="subscribeBonus()">+5000 за підписку</button>
-    <button onclick="activeBonus()">+10000 за актив</button>
+    <button onclick="subBonus()">+5000 за підписку</button>
     <button onclick="closeBonus()">Закрити</button>
   </div>
 </div>
 
+<audio id="clickSound" src="https://cdn.pixabay.com/audio/2022/03/15/audio_aa3d16d6b6.mp3"></audio>
+<audio id="bgMusic" src="https://cdn.pixabay.com/audio/2022/08/02/audio_884c8fae92.mp3" loop></audio>
+
 <script>
-const tgLink = "https://t.me/ТВІЙ_КАНАЛ"; // ← ЗАМІНИ
+const map = document.getElementById("map");
+const clickSound = document.getElementById("clickSound");
+const bgMusic = document.getElementById("bgMusic");
 
 let game = {
-  money: 100,
-  xp: 0,
+  money: 500,
   level: 1,
-  passive: 0,
-  robot: false,
-  boostedUntil: 0,
-  buildings: [
-    { id: "farm", name: "🌾 Ферма", owned: 1, income: 2, cost: 100 }
+  income: 0,
+  auto: false,
+  boostUntil: 0,
+  tiles: [
+    {name:"🌾 Ферма", cost:200, income:3, built:false},
+    {name:"🏥 Лікарня", cost:600, income:6, built:false},
+    {name:"🚓 Поліція", cost:1200, income:10, built:false},
+    {name:"🏭 Завод", cost:3000, income:25, built:false},
+    {name:"🏦 Банк", cost:8000, income:60, built:false},
+    {name:"🏢 Бізнес-центр", cost:15000, income:120, built:false},
+    {name:"🏗 Мегаполіс", cost:40000, income:300, built:false},
+    {name:"🌐 Держава", cost:100000, income:800, built:false}
   ]
 };
 
 function render() {
-  money.textContent = Math.floor(game.money);
-  level.textContent = game.level;
-  xp.textContent = game.xp;
-  passive.textContent = game.passive;
+  document.getElementById("money").innerText = "💰 " + Math.floor(game.money);
+  document.getElementById("level").innerText = "Рівень " + game.level;
+  map.innerHTML = "";
 
-  buildings.innerHTML = "";
-  game.buildings.forEach(b => {
+  game.tiles.forEach((t,i)=>{
     const div = document.createElement("div");
-    div.className = "building";
-    div.innerHTML = `
-      <b>${b.name}</b><br>
-      Кількість: ${b.owned}<br>
-      Прибуток: ${b.income * b.owned}/сек
-      <button onclick="buy('${b.id}')">Купити (${b.cost})</button>
-    `;
-    buildings.appendChild(div);
+    div.className = "tile" + (!t.built && game.money < t.cost ? " locked" : "");
+    div.innerHTML = `<b>${t.name}</b><br>${t.built ? "Дохід: +" + t.income + "/с" : "Ціна: " + t.cost}<span>${t.built?"Працює":"Не збудовано"}</span>`;
+    div.onclick = ()=>build(i);
+    map.appendChild(div);
   });
 }
 
-coin.onclick = () => {
-  let mult = Date.now() < game.boostedUntil ? 2 : 1;
-  game.money += 1 * mult;
-  game.xp += 1;
-  levelCheck();
+function build(i){
+  const t = game.tiles[i];
+  if(t.built || game.money < t.cost) return;
+  clickSound.play();
+  game.money -= t.cost;
+  t.built = true;
+  game.income += t.income;
+  game.level++;
   render();
-};
-
-function buy(id) {
-  let b = game.buildings.find(x => x.id === id);
-  if (game.money >= b.cost) {
-    game.money -= b.cost;
-    b.owned++;
-    b.cost = Math.floor(b.cost * 1.6);
-    game.passive += b.income;
-    render();
-  }
 }
 
-function levelCheck() {
-  if (game.xp >= game.level * 50) {
-    game.level++;
-    if (game.level === 3) unlock("🚓 Поліція", 10, 1000);
-    if (game.level === 6) unlock("🏭 Завод", 50, 8000);
-    if (game.level === 10) unlock("🏦 Банк", 200, 40000);
-  }
-}
-
-function unlock(name, income, cost) {
-  game.buildings.push({
-    id: name,
-    name,
-    owned: 0,
-    income,
-    cost
-  });
-}
-
-setInterval(() => {
-  game.money += game.passive;
-  if (game.robot) game.money += game.passive;
+setInterval(()=>{
+  let mult = Date.now() < game.boostUntil ? 2 : 1;
+  game.money += game.income * mult;
+  if(game.auto) game.money += game.income;
   render();
-}, 1000);
+},1000);
 
-function openBonus(){ bonusModal.style.display="flex"; }
+function boost(){ game.boostUntil = Date.now()+30000; }
+function robot(){ game.auto = true; }
+
+function openBonus(){
+  bonusModal.style.display="flex";
+  bgMusic.play();
+}
 function closeBonus(){ bonusModal.style.display="none"; }
-
-function subscribeBonus(){
-  window.open(tgLink, "_blank");
+function subBonus(){
+  window.open("https://t.me/ТВІЙ_КАНАЛ","_blank");
   game.money += 5000;
   closeBonus();
-}
-
-function activeBonus(){
-  game.money += 10000;
-  closeBonus();
-}
-
-function boost(){
-  game.boostedUntil = Date.now() + 30000;
-}
-
-function robot(){
-  game.robot = true;
 }
 
 render();
