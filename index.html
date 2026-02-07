@@ -1,167 +1,247 @@
 <!DOCTYPE html>
 <html lang="uk">
 <head>
-<meta charset="UTF-8" />
+<meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>TapDay World</title>
+<title>TapCity 2026</title>
+
 <style>
 html, body {
   margin: 0;
   padding: 0;
-  overflow: hidden;
-  background: #0b1d0f;
-}
-canvas {
-  display: block;
-}
-#ui {
-  position: fixed;
-  top: 10px;
-  left: 10px;
-  background: rgba(0,0,0,0.5);
+  background: #0e1621;
   color: #fff;
-  padding: 10px 14px;
-  border-radius: 12px;
-  font-family: Arial;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont;
+  overflow: hidden;
 }
-button {
-  margin-top: 6px;
+
+#top {
+  position: absolute;
+  top: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(0,0,0,.6);
+  padding: 10px 20px;
+  border-radius: 14px;
+  display: flex;
+  gap: 20px;
+  align-items: center;
+}
+
+.stat {
+  font-weight: 600;
+}
+
+#map {
+  position: absolute;
+  inset: 0;
+}
+
+#ui {
+  position: absolute;
+  bottom: 20px;
   width: 100%;
+  display: flex;
+  justify-content: space-around;
+  pointer-events: none;
+}
+
+.btn {
+  pointer-events: auto;
+  background: linear-gradient(135deg,#ffd54f,#ffb300);
+  color: #000;
+  padding: 14px 18px;
+  border-radius: 18px;
+  font-weight: 700;
+  box-shadow: 0 6px 20px rgba(255,200,0,.4);
+}
+
+#tapCoin {
+  position: absolute;
+  bottom: 120px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 140px;
+  height: 140px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 30% 30%, #fff59d, #fbc02d);
+  box-shadow: 0 0 40px rgba(255,215,0,.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 26px;
+  font-weight: 800;
+  color: #5d4037;
+  user-select: none;
+}
+
+#tapCoin:active {
+  transform: translateX(-50%) scale(.94);
+}
+
+.float {
+  position: absolute;
+  color: gold;
+  font-weight: 800;
+  pointer-events: none;
+  animation: floatUp 1s ease-out forwards;
+}
+
+@keyframes floatUp {
+  0% {opacity:1; transform:translateY(0)}
+  100% {opacity:0; transform:translateY(-60px)}
+}
+
+canvas {
+  width: 100%;
+  height: 100%;
 }
 </style>
 </head>
 
 <body>
 
-<div id="ui">
-  💰 <span id="money">1500</span><br>
-  ⏰ <span id="time">День</span><br>
-  <button onclick="buildBusiness()">Побудувати бізнес</button>
+<canvas id="map"></canvas>
+
+<div id="top">
+  <div class="stat">💰 <span id="money">0</span></div>
+  <div class="stat">⭐ Рівень <span id="level">1</span></div>
 </div>
 
-<canvas id="game"></canvas>
+<div id="tapCoin">TAP</div>
+
+<div id="ui">
+  <div class="btn" onclick="openBonus()">🎁 Бонус</div>
+  <div class="btn" onclick="buyFarm()">🌾 Ферма</div>
+  <div class="btn" onclick="buyFactory()">🏭 Завод</div>
+</div>
+
+<audio id="clickSound">
+  <source src="https://cdn.pixabay.com/audio/2022/03/15/audio_5c2c8a7a2c.mp3">
+</audio>
 
 <script>
-const canvas = document.getElementById("game");
+const canvas = document.getElementById("map");
 const ctx = canvas.getContext("2d");
 
-canvas.width = window.innerWidth;
-canvas.height = window.innerHeight;
+function resize() {
+  canvas.width = innerWidth;
+  canvas.height = innerHeight;
+}
+window.onresize = resize;
+resize();
 
-let camX = 0;
-let camY = 0;
-let zoom = 1;
+// GAME STATE
+let money = 100;
+let level = 1;
+let income = 0;
 
-let money = 1500;
-let isDay = true;
+// UI
+const moneyEl = document.getElementById("money");
+const levelEl = document.getElementById("level");
+const clickSound = document.getElementById("clickSound");
 
-const tiles = [];
-const TILE = 64;
-const MAP = 80;
+function updateUI() {
+  moneyEl.textContent = Math.floor(money);
+  levelEl.textContent = level;
+}
+updateUI();
 
-// === ГЕНЕРАЦІЯ КАРТИ ===
-for (let y = 0; y < MAP; y++) {
-  for (let x = 0; x < MAP; x++) {
-    const n = Math.random();
-    tiles.push({
-      x, y,
-      type: n < 0.18 ? "water" : "grass",
-      business: false
-    });
+// TAP
+const tapCoin = document.getElementById("tapCoin");
+tapCoin.addEventListener("click", e => {
+  money += 1 + level;
+  clickSound.currentTime = 0;
+  clickSound.volume = 0.2;
+  clickSound.play();
+  floatText("+ " + (1 + level), e.clientX, e.clientY);
+  checkLevel();
+  updateUI();
+});
+
+// FLOAT TEXT
+function floatText(text, x, y) {
+  const el = document.createElement("div");
+  el.className = "float";
+  el.textContent = text;
+  el.style.left = x + "px";
+  el.style.top = y + "px";
+  document.body.appendChild(el);
+  setTimeout(() => el.remove(), 1000);
+}
+
+// LEVEL
+function checkLevel() {
+  const need = level * level * 100;
+  if (money >= need) {
+    level++;
+    money += 50;
   }
 }
 
-// === РЕНДЕР ===
-function draw() {
-  ctx.clearRect(0,0,canvas.width,canvas.height);
-
-  ctx.save();
-  ctx.translate(canvas.width/2 + camX, canvas.height/2 + camY);
-  ctx.scale(zoom, zoom);
-
-  tiles.forEach(t => {
-    const px = (t.x - t.y) * TILE;
-    const py = (t.x + t.y) * TILE/2;
-
-    if (t.type === "water") {
-      ctx.fillStyle = "#2b6cb0";
-    } else {
-      ctx.fillStyle = "#3fa34d";
-    }
-
-    ctx.beginPath();
-    ctx.moveTo(px, py);
-    ctx.lineTo(px + TILE, py + TILE/2);
-    ctx.lineTo(px, py + TILE);
-    ctx.lineTo(px - TILE, py + TILE/2);
-    ctx.closePath();
-    ctx.fill();
-
-    if (t.business) {
-      ctx.fillStyle = "#222";
-      ctx.fillRect(px - 10, py + 20, 20, 20);
-    }
-  });
-
-  // ніч
-  if (!isDay) {
-    ctx.fillStyle = "rgba(0,0,40,0.4)";
-    ctx.fillRect(-5000,-5000,10000,10000);
+// BUSINESSES
+function buyFarm() {
+  if (money >= 200) {
+    money -= 200;
+    income += 1;
+    addBuilding("farm");
+    updateUI();
   }
+}
 
-  ctx.restore();
+function buyFactory() {
+  if (money >= 800) {
+    money -= 800;
+    income += 5;
+    addBuilding("factory");
+    updateUI();
+  }
+}
+
+// BONUS
+function openBonus() {
+  // ЗАМІНИ НА СВІЙ КАНАЛ
+  window.open("https://t.me/tapday_clicker", "_blank");
+  money += 5000;
+  updateUI();
+}
+
+// PASSIVE INCOME
+setInterval(() => {
+  money += income;
+  updateUI();
+}, 1000);
+
+// MAP
+const buildings = [];
+
+function addBuilding(type) {
+  buildings.push({
+    type,
+    x: Math.random() * canvas.width,
+    y: Math.random() * canvas.height
+  });
+}
+
+// DRAW MAP
+function draw() {
+  // grass
+  ctx.fillStyle = "#2e7d32";
+  ctx.fillRect(0,0,canvas.width,canvas.height);
+
+  // water
+  ctx.fillStyle = "#1565c0";
+  ctx.fillRect(0, canvas.height*0.7, canvas.width, canvas.height*0.3);
+
+  // buildings
+  buildings.forEach(b => {
+    ctx.fillStyle = b.type === "farm" ? "#aed581" : "#90a4ae";
+    ctx.fillRect(b.x, b.y, 24, 24);
+  });
 
   requestAnimationFrame(draw);
 }
-
 draw();
-
-// === УПРАВЛІННЯ КАРТОЮ ===
-let dragging = false;
-let lastX, lastY;
-
-canvas.onmousedown = e => {
-  dragging = true;
-  lastX = e.clientX;
-  lastY = e.clientY;
-};
-
-canvas.onmouseup = () => dragging = false;
-
-canvas.onmousemove = e => {
-  if (!dragging) return;
-  camX += e.clientX - lastX;
-  camY += e.clientY - lastY;
-  lastX = e.clientX;
-  lastY = e.clientY;
-};
-
-canvas.onwheel = e => {
-  zoom += e.deltaY * -0.001;
-  zoom = Math.min(Math.max(zoom, 0.4), 2);
-};
-
-// === БІЗНЕС ===
-function buildBusiness() {
-  const tile = tiles.find(t => t.type === "grass" && !t.business);
-  if (!tile || money < 200) return;
-  tile.business = true;
-  money -= 200;
-  document.getElementById("money").innerText = money;
-}
-
-// === ДЕНЬ / НІЧ ===
-setInterval(() => {
-  isDay = !isDay;
-  document.getElementById("time").innerText = isDay ? "День" : "Ніч";
-}, 12000);
-
-// === ДОХІД ===
-setInterval(() => {
-  const count = tiles.filter(t => t.business).length;
-  money += count * 5;
-  document.getElementById("money").innerText = money;
-}, 3000);
 </script>
 
 </body>
