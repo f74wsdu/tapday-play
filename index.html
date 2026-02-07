@@ -2,140 +2,124 @@
 <html lang="uk">
 <head>
 <meta charset="UTF-8">
-<title>TapDay City — Isometric</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-
+<title>TapDay City 2026</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
 <style>
-body {
-  margin: 0;
-  background: radial-gradient(circle at top, #1b2340, #070b18);
-  color: #fff;
-  font-family: system-ui, -apple-system, Arial;
-  overflow: hidden;
+html,body{margin:0;overflow:hidden;background:#0b1020;color:#fff;font-family:system-ui}
+#ui{
+position:fixed;top:10px;left:10px;right:10px;
+display:flex;justify-content:space-between;
+z-index:10;font-weight:700
 }
-
-#topbar {
-  position: fixed;
-  top: 0; left: 0; right: 0;
-  padding: 10px 14px;
-  display: flex;
-  justify-content: space-between;
-  background: rgba(0,0,0,.55);
-  z-index: 10;
+#panel{
+position:fixed;bottom:0;left:0;right:0;
+background:rgba(0,0,0,.8);
+padding:14px;text-align:center
 }
-
-#city {
-  position: absolute;
-  top: 60px;
-  left: 50%;
-  transform: translateX(-50%) scale(1);
-  width: 900px;
-  height: 900px;
-}
-
-.tile {
-  position: absolute;
-  width: 160px;
-  height: 80px;
-  transform: skewY(-26deg) rotate(45deg);
-  background: #2a335c;
-  border-radius: 12px;
-  box-shadow: 0 10px 25px rgba(0,0,0,.4);
-}
-
-.building {
-  position: absolute;
-  width: 70px;
-  height: 70px;
-  background: linear-gradient(135deg, #ffd36a, #ff9f1c);
-  border-radius: 12px;
-  transform: rotate(45deg);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 28px;
-  cursor: pointer;
-  box-shadow: 0 8px 18px rgba(0,0,0,.5);
-}
-
-.fog {
-  position: absolute;
-  width: 180px;
-  height: 100px;
-  background: rgba(0,0,0,.55);
-  backdrop-filter: blur(6px);
-  border-radius: 14px;
-}
-
-#panel {
-  position: fixed;
-  bottom: 0; left: 0; right: 0;
-  padding: 14px;
-  background: rgba(0,0,0,.8);
-}
-
-button {
-  width: 100%;
-  margin-top: 10px;
-  padding: 14px;
-  border-radius: 16px;
-  border: none;
-  font-size: 16px;
-  font-weight: 700;
-  background: linear-gradient(135deg, #22c55e, #16a34a);
-  color: #000;
+button{
+padding:12px 16px;border-radius:14px;border:0;
+background:linear-gradient(135deg,#ffd54f,#ffb300);
+font-weight:700
 }
 </style>
 </head>
 
 <body>
 
-<div id="topbar">
-  <div>💰 <span id="money">1500</span></div>
-  <div>Рівень <span id="level">1</span></div>
+<div id="ui">
+<div>💰 <span id="money">1200</span></div>
+<div>🏙 Рівень <span id="lvl">1</span></div>
 </div>
 
-<div id="city">
+<canvas id="game"></canvas>
 
-  <!-- TILE GRID -->
-  <div class="tile" style="top:200px; left:300px"></div>
-  <div class="tile" style="top:260px; left:360px"></div>
-  <div class="tile" style="top:320px; left:420px"></div>
-
-  <!-- BUILDINGS -->
-  <div class="building" style="top:210px; left:330px"
-       onclick="openBuilding('Ферма', 20)">🌾</div>
-
-  <div class="building" style="top:270px; left:390px"
-       onclick="openBuilding('Завод', 80)">🏭</div>
-
-  <div class="building" style="top:330px; left:450px"
-       onclick="openBuilding('Лікарня', 50)">🏥</div>
-
-  <!-- FOG -->
-  <div class="fog" style="top:380px; left:500px"></div>
-
-</div>
-
-<div id="panel">
-  <div id="panelText">Тапни на будівлю на карті</div>
-</div>
+<div id="panel">Торкнись будівлі на карті</div>
 
 <script>
-let money = 1500;
-let level = 1;
+const canvas=document.getElementById("game");
+const ctx=canvas.getContext("2d");
+resize();window.onresize=resize;
 
-function openBuilding(name, income) {
-  document.getElementById("panelText").innerHTML = `
-    <b>${name}</b><br>
-    Дохід: +${income} 💰<br>
-    <button onclick="earn(${income})">Зібрати</button>
-  `;
+let cam={x:0,y:0,zoom:1};
+let money=1200, lvl=1;
+
+const buildings=[
+{x:0,y:0,type:"Ферма",icon:"🌾",income:5},
+{x:2,y:1,type:"Завод",icon:"🏭",income:20},
+{x:-2,y:2,type:"Лікарня",icon:"🏥",income:12},
+{x:3,y:-1,type:"Банк",icon:"🏦",income:35}
+];
+
+function iso(x,y){
+return {
+x:(x-y)*64*cam.zoom+canvas.width/2+cam.x,
+y:(x+y)*32*cam.zoom+canvas.height/2+cam.y
+};
 }
 
-function earn(v) {
-  money += v;
-  document.getElementById("money").textContent = money;
+function draw(){
+ctx.clearRect(0,0,canvas.width,canvas.height);
+
+// map
+for(let x=-10;x<10;x++){
+for(let y=-10;y<10;y++){
+let p=iso(x,y);
+ctx.fillStyle="#1b2450";
+ctx.beginPath();
+ctx.moveTo(p.x,p.y);
+ctx.lineTo(p.x+64*cam.zoom,p.y+32*cam.zoom);
+ctx.lineTo(p.x,p.y+64*cam.zoom);
+ctx.lineTo(p.x-64*cam.zoom,p.y+32*cam.zoom);
+ctx.closePath();
+ctx.fill();
+}
+}
+
+// buildings
+for(let b of buildings){
+let p=iso(b.x,b.y);
+ctx.font=`${32*cam.zoom}px serif`;
+ctx.textAlign="center";
+ctx.fillText(b.icon,p.x,p.y+10);
+}
+requestAnimationFrame(draw);
+}
+draw();
+
+// click
+canvas.onclick=e=>{
+for(let b of buildings){
+let p=iso(b.x,b.y);
+if(Math.abs(e.clientX-p.x)<40 && Math.abs(e.clientY-p.y)<40){
+money+=b.income;
+document.getElementById("money").textContent=money;
+document.getElementById("panel").innerHTML=
+`<b>${b.type}</b><br>+${b.income} 💰`;
+}
+}
+};
+
+// drag
+let drag=false,lx,ly;
+canvas.onpointerdown=e=>{drag=true;lx=e.clientX;ly=e.clientY;}
+canvas.onpointerup=()=>drag=false;
+canvas.onpointermove=e=>{
+if(drag){
+cam.x+=e.clientX-lx;
+cam.y+=e.clientY-ly;
+lx=e.clientX;ly=e.clientY;
+}
+};
+
+// zoom
+canvas.onwheel=e=>{
+cam.zoom+=e.deltaY*-0.001;
+cam.zoom=Math.max(.5,Math.min(1.6,cam.zoom));
+};
+
+function resize(){
+canvas.width=innerWidth;
+canvas.height=innerHeight;
 }
 </script>
 
