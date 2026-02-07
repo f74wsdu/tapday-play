@@ -107,6 +107,7 @@ const DAILY_BONUSES = [0.5,0.75,1,1.5,1.75,2,2.5];
 let balance = parseFloat(localStorage.getItem("balance")) || 0;
 let multiplier = 1;
 
+// ===== BALANCE =====
 function updateBalance() {
   balance = Math.round(balance * 100) / 100;
   document.getElementById("balance").textContent =
@@ -125,12 +126,14 @@ function updateWithdrawInfo() {
 
 updateBalance();
 
+// ===== TAP =====
 coin.onclick = () => {
   balance += 0.01 * multiplier;
   updateBalance();
   navigator.vibrate?.(30);
 };
 
+// ===== MULTIPLIERS =====
 x2.onclick = () => activateMult(2, x2);
 x5.onclick = () => activateMult(5, x5);
 
@@ -143,19 +146,20 @@ function activateMult(x, el) {
   }, 10000);
 }
 
+// ===== WITHDRAW =====
 withdraw.onclick = () => {
   alert(balance < WITHDRAW_MIN
     ? `❌ Мінімум ${WITHDRAW_MIN} $`
     : "⏳ Вивід буде доступний пізніше");
 };
 
-// 🔗 Share
+// ===== SHARE =====
 share.onclick = () => {
   navigator.clipboard.writeText(CHANNEL_LINK);
   alert("🔗 Посилання скопійовано");
 };
 
-// 📢 Subscribe
+// ===== SUBSCRIBE BONUS =====
 if (localStorage.getItem("subBonus")) {
   subscribe.style.display = "none";
 }
@@ -167,7 +171,7 @@ subscribe.onclick = () => {
   updateBalance();
 };
 
-// 📅 Daily bonus
+// ===== DAILY BONUS =====
 daily.onclick = () => {
   const today = new Date().toDateString();
   let last = localStorage.getItem("dailyDate");
@@ -192,7 +196,7 @@ daily.onclick = () => {
   alert(`🎁 Ви отримали ${reward.toFixed(2)} $`);
 };
 
-// ⏳ Bonus 30 days
+// ===== BONUS 30 DAYS =====
 bonus30.onclick = () => {
   let start = localStorage.getItem("startDate");
   if (!start) {
@@ -211,10 +215,25 @@ bonus30.onclick = () => {
   }
 };
 
-// Online simulation
+// ===== ONLINE =====
 setInterval(() => {
   onlineCount.textContent = 3000 + Math.floor(Math.random() * 500) - 250;
 }, 3000);
+
+// ===== BONUS TODAY (ЖИВИЙ) =====
+let bonusTodayValue =
+  parseInt(localStorage.getItem("bonusToday")) || 200;
+
+setInterval(() => {
+  let chance = Math.random();
+  if (chance > 0.95) {
+    bonusTodayValue += 2;
+  } else if (chance > 0.70) {
+    bonusTodayValue += 1;
+  }
+  localStorage.setItem("bonusToday", bonusTodayValue);
+  bonusToday.textContent = bonusTodayValue;
+}, 6000);
 </script>
 
 </body>
