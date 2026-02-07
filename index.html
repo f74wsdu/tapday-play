@@ -1,182 +1,206 @@
 <!DOCTYPE html>
 <html lang="uk">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-<title>TapDay Play — DEMO</title>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+<title>TapDay Play</title>
 
 <style>
-html,body{
-  margin:0;
-  padding:0;
-  background:#050b18;
-  overflow:hidden;
-  font-family:Arial, sans-serif;
+* { margin:0; padding:0; box-sizing:border-box; font-family: system-ui, -apple-system; }
+body {
+  background: radial-gradient(circle at top, #0b1220, #05070d);
   color:#fff;
-  touch-action:manipulation;
+  overflow:hidden;
 }
 
-#top{
-  position:fixed;
-  top:0; left:0; right:0;
-  padding:10px 14px;
+.top {
   display:flex;
   justify-content:space-between;
-  align-items:center;
-  background:linear-gradient(#0b1224,#050b18);
-  z-index:10;
-}
-
-.badge{
-  display:flex;
-  align-items:center;
-  gap:6px;
+  padding:14px 16px;
   font-size:14px;
+  opacity:.85;
 }
 
-#players{opacity:.8;font-size:12px}
-
-#game{
+#coin {
   position:absolute;
-  inset:0;
-  display:flex;
-  justify-content:center;
-  align-items:center;
-}
-
-#coin{
-  width:260px;
-  height:260px;
+  left:50%;
+  top:45%;
+  transform:translate(-50%,-50%);
+  width:240px;
+  height:240px;
   border-radius:50%;
-  background:
-    radial-gradient(circle at 30% 30%, #fff2a8, #ffb700 60%, #b67600);
-  box-shadow:0 0 60px rgba(255,180,0,.7);
+  background: radial-gradient(circle at 30% 30%, #fff2a8, #ffb700);
+  box-shadow: 0 0 60px rgba(255,190,0,.7);
   display:flex;
-  justify-content:center;
   align-items:center;
-  font-size:32px;
-  font-weight:bold;
+  justify-content:center;
+  font-size:64px;
   user-select:none;
 }
 
-#count{
+#coin.super { background:radial-gradient(circle,#b9f7ff,#00d9ff); box-shadow:0 0 80px #00d9ff;}
+#coin.ultra { background:radial-gradient(circle,#ffb9f7,#ff00aa); box-shadow:0 0 90px #ff00aa;}
+
+.counter {
   position:absolute;
-  bottom:110px;
-  font-size:40px;
-  font-weight:bold;
+  top:68%;
+  width:100%;
+  text-align:center;
+  font-size:48px;
+  font-weight:700;
 }
 
-#bottom{
-  position:fixed;
-  bottom:10px;
-  left:0; right:0;
-  display:flex;
-  justify-content:space-around;
-}
-
-.btn{
-  width:64px;
-  height:64px;
-  border-radius:16px;
+.bottom {
+  position:absolute;
+  bottom:24px;
+  width:100%;
   display:flex;
   justify-content:center;
+  gap:16px;
+}
+
+.btn {
+  width:64px;
+  height:64px;
+  border-radius:18px;
+  background:#121a30;
+  display:flex;
   align-items:center;
-  background:#18264d;
-  font-size:12px;
+  justify-content:center;
+  font-size:26px;
 }
 
-.rain{
+.bonus {
   position:absolute;
-  pointer-events:none;
-  animation:fall 1s linear forwards;
-}
-@keyframes fall{
-  to{transform:translateY(400px);opacity:0}
+  top:30%;
+  left:50%;
+  transform:translateX(-50%);
+  font-size:20px;
+  opacity:.8;
 }
 
-.flash{
-  animation:flash .4s ease;
+.coin-fall {
+  position:absolute;
+  font-size:18px;
+  animation: fall 1s linear forwards;
 }
-@keyframes flash{
-  50%{box-shadow:0 0 120px #fff}
+
+@keyframes fall {
+  to { transform: translateY(120px); opacity:0; }
+}
+
+.flash {
+  animation: flash .4s ease;
+}
+
+@keyframes flash {
+  0%{box-shadow:0 0 0 #fff;}
+  50%{box-shadow:0 0 120px #fff;}
+  100%{box-shadow:0 0 60px;}
 }
 </style>
 </head>
 
 <body>
 
-<div id="top">
-  <div class="badge">💰 <span id="money">0</span></div>
-  <div id="players">Активні: 12 482</div>
+<div class="top">
+  <div>💰 <span id="balance">100</span></div>
+  <div>Активні: <span id="active">12482</span></div>
 </div>
 
-<div id="game">
-  <div id="coin">★</div>
-  <div id="count">0</div>
-</div>
+<div class="bonus" id="multiplier">Бонус: 1X</div>
 
-<div id="bottom">
-  <div class="btn">🎁</div>
-  <div class="btn">⚡</div>
-  <div class="btn">🤖</div>
+<div id="coin">🪙</div>
+
+<div class="counter" id="counter">100</div>
+
+<div class="bottom">
+  <div class="btn" id="gift">🎁</div>
+  <div class="btn" id="x2">⚡</div>
+  <div class="btn" id="bot">🤖</div>
 </div>
 
 <script>
-let coins=0;
-let taps=0;
-let level=1;
-let audioCtx=new (window.AudioContext||window.webkitAudioContext)();
+let coins = 100;
+let multi = 1;
+let taps = 0;
+let level = 1;
 
-function sound(freq){
-  let o=audioCtx.createOscillator();
-  let g=audioCtx.createGain();
-  o.connect(g); g.connect(audioCtx.destination);
+const balance = document.getElementById('balance');
+const counter = document.getElementById('counter');
+const coin = document.getElementById('coin');
+const active = document.getElementById('active');
+const multText = document.getElementById('multiplier');
+
+function sound(freq=400){
+  const ctx = new AudioContext();
+  const o = ctx.createOscillator();
+  const g = ctx.createGain();
   o.frequency.value=freq;
+  o.connect(g); g.connect(ctx.destination);
   o.start();
-  g.gain.exponentialRampToValueAtTime(0.0001,audioCtx.currentTime+.2);
-  o.stop(audioCtx.currentTime+.2);
+  g.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.2);
 }
 
-function rain(x,y){
-  let r=document.createElement('div');
-  r.textContent='🪙';
-  r.className='rain';
-  r.style.left=x+'px';
-  r.style.top=y+'px';
-  document.body.appendChild(r);
-  setTimeout(()=>r.remove(),1000);
+function update(){
+  balance.textContent = coins;
+  counter.textContent = coins;
 }
 
-function upgrade(){
-  let c=document.getElementById('coin');
-  c.classList.add('flash');
-  setTimeout(()=>c.classList.remove('flash'),300);
-}
+coin.addEventListener('touchstart', tap);
+coin.addEventListener('mousedown', tap);
 
-document.getElementById('game').addEventListener('pointerdown',e=>{
-  audioCtx.resume();
+function tap(e){
+  e.preventDefault();
+  coins += multi;
   taps++;
-  coins+=1;
-  document.getElementById('money').textContent=coins;
-  document.getElementById('count').textContent=coins;
-  sound(300+Math.random()*200);
-  for(let i=0;i<5;i++) rain(e.clientX,e.clientY);
+  sound(500);
+  update();
+  fallCoin();
+  checkMilestones();
+}
 
-  if([100,1000,10000,100000,1000000].includes(coins)){
+function fallCoin(){
+  const c = document.createElement('div');
+  c.className='coin-fall';
+  c.textContent='🪙';
+  c.style.left = (50 + Math.random()*40-20)+'%';
+  c.style.top = '45%';
+  document.body.appendChild(c);
+  setTimeout(()=>c.remove(),1000);
+}
+
+function checkMilestones(){
+  if(coins>=1000) coin.classList.add('super');
+  if(coins>=10000) coin.classList.add('ultra');
+  if(coins===1000||coins===10000||coins===100000){
+    coin.classList.add('flash');
     sound(800);
-    upgrade();
+    setTimeout(()=>coin.classList.remove('flash'),400);
   }
-});
+}
 
-coins+=100; // стартовий бонус
-document.getElementById('money').textContent=coins;
-document.getElementById('count').textContent=coins;
+document.getElementById('x2').onclick=()=>{
+  multi=2;
+  multText.textContent='Бонус: 2X (30с)';
+  sound(900);
+  setTimeout(()=>{
+    multi=1;
+    multText.textContent='Бонус: 1X';
+  },30000);
+};
+
+document.getElementById('gift').onclick=()=>{
+  coins+=5000;
+  sound(1000);
+  update();
+};
 
 setInterval(()=>{
-  let base=12482;
-  document.getElementById('players').textContent=
-    'Активні: '+(base+Math.floor(Math.random()*400-200));
+  active.textContent = 12000 + Math.floor(Math.random()*800);
 },4000);
+
+update();
 </script>
 
 </body>
