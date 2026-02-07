@@ -13,7 +13,6 @@ body{
     font-family:Arial,sans-serif;
     text-align:center;
 }
-
 .header{
     display:flex;
     justify-content:space-between;
@@ -21,36 +20,29 @@ body{
     background:#111;
     font-size:14px;
 }
-
 .balance{
     font-size:36px;
     font-weight:bold;
     margin:15px 0;
 }
-
 .side-row{
     display:flex;
     justify-content:space-between;
     padding:0 20px;
     align-items:center;
 }
-
 .ad-btn{
     background:#1c1c1c;
     padding:8px 14px;
     border-radius:20px;
 }
-
-.level{
-    font-size:14px;
-}
+.level{font-size:14px;}
 
 .circle-wrap{
     display:flex;
     justify-content:center;
     margin:25px 0;
 }
-
 .circle{
     width:260px;
     height:260px;
@@ -61,14 +53,11 @@ body{
     align-items:center;
     transition:0.4s;
 }
+.circle img{width:90px;}
 
-.circle img{
-    width:90px;
-}
-
-.bright-1{filter:brightness(1.1);}
-.bright-2{filter:brightness(1.25);}
-.bright-3{filter:brightness(1.4);}
+.b1{filter:brightness(1.1);}
+.b2{filter:brightness(1.25);}
+.b3{filter:brightness(1.4);}
 
 .multi{
     display:flex;
@@ -76,7 +65,6 @@ body{
     gap:10px;
     margin-bottom:15px;
 }
-
 .multi button{
     padding:8px 18px;
     border-radius:14px;
@@ -93,25 +81,12 @@ body{
     border-radius:18px;
     font-size:18px;
     font-weight:bold;
-    margin-bottom:8px;
 }
-
 .timer{
+    margin-top:6px;
     font-size:14px;
     opacity:0.8;
 }
-
-.subscribe{
-    background:#ffc400;
-    border:none;
-    padding:14px;
-    width:85%;
-    border-radius:18px;
-    font-size:18px;
-    font-weight:bold;
-    margin-top:10px;
-}
-
 .withdraw{
     background:#1e8e3e;
     border:none;
@@ -122,51 +97,17 @@ body{
     color:#fff;
     margin-top:10px;
 }
-
-.folder{
-    position:fixed;
-    left:15px;
-    top:55%;
-    font-size:30px;
-    cursor:pointer;
-}
-
-.modal{
-    position:fixed;
-    inset:0;
-    background:rgba(0,0,0,0.85);
-    display:none;
-    justify-content:center;
-    align-items:center;
-}
-
-.modal-box{
-    background:#111;
-    padding:20px;
-    border-radius:14px;
-    width:80%;
-}
-
-.modal-box button{
-    margin-top:10px;
-    padding:10px;
-    width:100%;
-    border:none;
-    border-radius:10px;
-    background:#ffc400;
-    font-weight:bold;
-}
 </style>
 </head>
 
 <body>
 
 <div class="header">
-    <div>Онлайн: <span id="online">3945</span></div>
-    <div>Бонусів сьогодні: <span id="bonusToday">4763</span></div>
+    <div>Онлайн: <span id="online">3955</span></div>
+    <div>Бонусів сьогодні: <span id="today">4787</span></div>
 </div>
 
-<div class="balance">Баланс: ₴<span id="balance">1255</span></div>
+<div class="balance">Баланс: ₴<span id="balance">1280</span></div>
 
 <div class="side-row">
     <div class="ad-btn">📺 Реклама +50</div>
@@ -175,7 +116,7 @@ body{
 
 <div class="circle-wrap">
     <div id="circle" class="circle">
-        <img id="icon" src="https://cdn-icons-png.flaticon.com/512/833/833472.png">
+        <img id="icon" src="https://cdn-icons-png.flaticon.com/512/679/679720.png">
     </div>
 </div>
 
@@ -185,109 +126,87 @@ body{
     <button>x5</button>
 </div>
 
-<button id="subscribeBtn" class="subscribe">Підпишись · Отримай 500 гривень бонус</button>
-
-<button id="mainBonus" class="main-btn" style="display:none;">
-    TapDay Play · Бонус +1000
-</button>
+<button id="mainBtn" class="main-btn"></button>
 <div id="timer" class="timer"></div>
 
 <button class="withdraw">💳 Вивід</button>
 
-<div class="folder" onclick="openDaily()">📁</div>
-
-<div id="dailyModal" class="modal">
-    <div class="modal-box">
-        <div id="dailyText"></div>
-        <button onclick="claimDaily()">Забрати</button>
-    </div>
-</div>
-
 <audio id="sound" src="https://assets.mixkit.co/sfx/preview/mixkit-achievement-bell-600.mp3"></audio>
 
 <script>
-let balance=1255;
-let online=3945;
-let bonusToday=4763;
-let dailyDay=localStorage.getItem("dailyDay")||1;
-let lastDaily=localStorage.getItem("lastDaily")||0;
-let subscribed=localStorage.getItem("subscribed");
+let balance = Number(localStorage.getItem("balance")) || 1280;
+let subscribed = localStorage.getItem("subscribed");
+let timerEnd = localStorage.getItem("timerEnd");
 
-setInterval(()=>{online+=Math.floor(Math.random()*3);onlineEl.innerText=online},3000);
-setInterval(()=>{bonusToday+=Math.floor(Math.random()*4);bonusTodayEl.innerText=bonusToday},2500);
+const balanceEl = document.getElementById("balance");
+const btn = document.getElementById("mainBtn");
+const timerEl = document.getElementById("timer");
+const icon = document.getElementById("icon");
+const circle = document.getElementById("circle");
+const sound = document.getElementById("sound");
 
-const onlineEl=document.getElementById("online");
-const bonusTodayEl=document.getElementById("bonusToday");
-const balanceEl=document.getElementById("balance");
-const icon=document.getElementById("icon");
-const circle=document.getElementById("circle");
-const sound=document.getElementById("sound");
+balanceEl.innerText = balance;
 
-function openDaily(){
-    let now=Date.now();
-    if(now-lastDaily<86400000 && lastDaily!=0)return alert("Чекай 24 години");
-    document.getElementById("dailyText").innerText=
-        `День ${dailyDay}: +${dailyDay*25} грн`;
-    document.getElementById("dailyModal").style.display="flex";
+// Онлайн і бонуси сьогодні
+setInterval(()=>online.innerText++,3000);
+setInterval(()=>today.innerText++,2500);
+
+// КНОПКА
+function renderButton(){
+    if(!subscribed){
+        btn.innerText = "Підпишись · Отримай 500 гривень бонус";
+        timerEl.innerText = "";
+        btn.onclick = ()=>{
+            window.open("https://t.me/tapday_clicker","_blank");
+            balance += 500;
+            localStorage.setItem("balance",balance);
+            localStorage.setItem("subscribed",1);
+            timerEnd = Date.now()+2592000000;
+            localStorage.setItem("timerEnd",timerEnd);
+            sound.play();
+            subscribed = 1;
+            update();
+        };
+    }else{
+        btn.innerText = "TapDay Play · Бонус +1000";
+        btn.onclick = ()=>{};
+        startTimer();
+    }
 }
-
-function claimDaily(){
-    balance+=dailyDay*25;
-    balanceEl.innerText=balance;
-    sound.play();
-    lastDaily=Date.now();
-    localStorage.setItem("lastDaily",lastDaily);
-    dailyDay++;
-    if(dailyDay>7)dailyDay=1;
-    localStorage.setItem("dailyDay",dailyDay);
-    document.getElementById("dailyModal").style.display="none";
-    updateCircle();
-}
-
-document.getElementById("subscribeBtn").onclick=()=>{
-    window.open("https://t.me/tapday_clicker","_blank");
-    balance+=500;
-    balanceEl.innerText=balance;
-    sound.play();
-    localStorage.setItem("subscribed",1);
-    document.getElementById("subscribeBtn").style.display="none";
-    document.getElementById("mainBonus").style.display="block";
-    startTimer();
-    updateCircle();
-};
 
 function startTimer(){
-    let end=Date.now()+2592000000;
     setInterval(()=>{
-        let d=end-Date.now();
-        if(d<0)return;
+        let d = timerEnd - Date.now();
+        if(d<=0){timerEl.innerText="";return;}
         let days=Math.floor(d/86400000);
         let h=Math.floor(d%86400000/3600000);
         let m=Math.floor(d%3600000/60000);
         let s=Math.floor(d%60000/1000);
-        timer.innerText=`⏳ ${days}д ${h}г ${m}хв ${s}с`;
+        timerEl.innerText=`⏳ ${days}д ${h}г ${m}хв ${s}с`;
     },1000);
 }
 
+// Еволюція
 function updateCircle(){
     if(balance>=10000){
         icon.src="https://cdn-icons-png.flaticon.com/512/616/616489.png";
-        circle.className="circle bright-3";
+        circle.className="circle b3";
     }else if(balance>=1000){
         icon.src="https://cdn-icons-png.flaticon.com/512/616/616554.png";
-        circle.className="circle bright-2";
+        circle.className="circle b2";
     }else if(balance>=100){
         icon.src="https://cdn-icons-png.flaticon.com/512/616/616430.png";
-        circle.className="circle bright-1";
+        circle.className="circle b1";
     }
 }
 
-if(subscribed){
-    document.getElementById("subscribeBtn").style.display="none";
-    document.getElementById("mainBonus").style.display="block";
-    startTimer();
+function update(){
+    balanceEl.innerText = balance;
+    updateCircle();
+    renderButton();
 }
-updateCircle();
+
+update();
 </script>
 
 </body>
