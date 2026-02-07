@@ -2,188 +2,139 @@
 <html lang="uk">
 <head>
 <meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>TapCity 2026</title>
-<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<title>City Earth</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <style>
-:root{
-  --ui:#0f172a; --ui2:#111827; --gold:#facc15; --green:#22c55e;
+html,body { margin:0; padding:0; overflow:hidden; background:#000; font-family:Arial }
+#ui {
+  position:absolute; top:10px; left:10px; z-index:10;
+  background:rgba(0,0,0,0.55); color:#fff; padding:10px;
+  border-radius:10px; width:220px;
 }
-html,body{margin:0;height:100%;background:#020617;color:#e5e7eb;font-family:system-ui}
-#uiTop{
-  position:fixed;inset:0 0 auto 0;height:68px;display:flex;gap:10px;align-items:center;
-  padding:10px;background:linear-gradient(180deg,rgba(2,6,23,.95),rgba(2,6,23,.7));
-  z-index:5
+button {
+  width:100%; margin-top:6px; padding:8px;
+  background:#1fa34a; border:none; color:#fff;
+  border-radius:6px; font-size:14px;
 }
-.badge{background:#020617;border:1px solid #1f2937;border-radius:14px;padding:6px 10px}
-#coins{font-weight:700;color:var(--gold)}
-#level{opacity:.9}
-#actions{
-  position:fixed;right:10px;bottom:90px;display:flex;flex-direction:column;gap:10px;z-index:5
-}
-.action{
-  width:64px;height:64px;border-radius:16px;background:#020617;border:1px solid #1f2937;
-  display:grid;place-items:center;cursor:pointer
-}
-.action span{font-size:12px;opacity:.9}
-#tapCoin{
-  position:fixed;left:50%;bottom:18px;transform:translateX(-50%);
-  width:96px;height:96px;border-radius:50%;
-  background:radial-gradient(circle at 30% 30%,#fde68a,#f59e0b 60%,#b45309);
-  box-shadow:0 10px 30px rgba(250,204,21,.45), inset 0 -10px 20px rgba(0,0,0,.35);
-  display:grid;place-items:center;font-weight:800;color:#3b2400;z-index:5
-}
-canvas{display:block}
-#hint{position:fixed;left:50%;top:78px;transform:translateX(-50%);opacity:.85}
+#money { font-size:18px; margin-bottom:5px }
 </style>
 </head>
 <body>
-<div id="uiTop">
-  <div class="badge">💵 <span id="coins">0</span></div>
-  <div class="badge" id="level">Рівень 1</div>
-  <div class="badge">👑 Активні: <span id="active">12482</span></div>
-</div>
-<div id="hint">Перетягуй карту. Тисни на будівлі.</div>
 
-<div id="actions">
-  <div class="action" id="x2"><b>2×</b><span>x2</span></div>
-  <div class="action" id="auto">🤖<span>Робот</span></div>
-  <div class="action" id="gift">🎁<span>Бонус</span></div>
+<div id="ui">
+  <div id="money">💰 0</div>
+  <button onclick="buildFarm()">🌾 Ферма (+1/с)</button>
+  <button onclick="buildFactory()">🏭 Завод (+3/с)</button>
+  <button onclick="toggleTime()">🌗 День / Ніч</button>
 </div>
 
-<div id="tapCoin">TAP</div>
-<canvas id="map"></canvas>
+<script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
 
 <script>
-const tg = window.Telegram.WebApp; tg.expand();
+let scene = new THREE.Scene();
+scene.fog = new THREE.Fog(0x88ccee, 40, 120);
 
-// ---- STATE
-let coins=0, level=1, x2=false, auto=false;
-const channelLink="https://t.me/tapday_clicker";
-const map=document.getElementById('map'), ctx=map.getContext('2d');
-let W,H,cam={x:0,y:0,drag:false,px:0,py:0};
-let isNight=false;
+let camera = new THREE.PerspectiveCamera(60, innerWidth/innerHeight, 0.1, 500);
+camera.position.set(0,25,35);
 
-// ---- AUDIO (soft)
-const snd = new Audio("data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQAAAAA=");
-snd.volume=.15;
+let renderer = new THREE.WebGLRenderer({antialias:true});
+renderer.setSize(innerWidth, innerHeight);
+renderer.setClearColor(0x87ceeb);
+document.body.appendChild(renderer.domElement);
 
-// ---- MAP DATA (fixed regions)
-const regions=[
-  {id:'farm',name:'Farm District',x:200,y:300,w:420,h:260},
-  {id:'ind', name:'Industrial',x:700,y:260,w:420,h:280},
-  {id:'city',name:'City Center',x:420,y:620,w:520,h:300}
-];
-const buildings=[]; // placed buildings
+// світло
+let sun = new THREE.DirectionalLight(0xffffff, 1);
+sun.position.set(50,100,20);
+scene.add(sun);
+scene.add(new THREE.AmbientLight(0x888888));
 
-function resize(){
-  W=map.width=innerWidth; H=map.height=innerHeight;
+// земля (трава)
+let ground = new THREE.Mesh(
+  new THREE.PlaneGeometry(200,200,32,32),
+  new THREE.MeshLambertMaterial({color:0x2e8b57})
+);
+ground.rotation.x = -Math.PI/2;
+scene.add(ground);
+
+// озеро
+let water = new THREE.Mesh(
+  new THREE.CircleGeometry(12,32),
+  new THREE.MeshPhongMaterial({color:0x1e90ff})
+);
+water.rotation.x = -Math.PI/2;
+water.position.set(15,0.1,-10);
+scene.add(water);
+
+// дерева
+function tree(x,z){
+  let trunk = new THREE.Mesh(
+    new THREE.CylinderGeometry(0.3,0.4,3),
+    new THREE.MeshLambertMaterial({color:0x8b4513})
+  );
+  trunk.position.set(x,1.5,z);
+  let crown = new THREE.Mesh(
+    new THREE.SphereGeometry(1.5,8,8),
+    new THREE.MeshLambertMaterial({color:0x228b22})
+  );
+  crown.position.set(x,4,z);
+  scene.add(trunk,crown);
 }
-addEventListener('resize',resize); resize();
+for(let i=0;i<25;i++) tree(Math.random()*60-30,Math.random()*60-30);
 
-// ---- HELPERS
-function drawLand(){
-  // grass
-  ctx.fillStyle="#064e3b"; ctx.fillRect(-2000,-2000,4000,4000);
-  // water
-  ctx.fillStyle="#0ea5e9"; ctx.beginPath();
-  ctx.ellipse(300,120,220,120,0,0,Math.PI*2); ctx.fill();
-}
-function drawRoads(){
-  ctx.strokeStyle="#374151"; ctx.lineWidth=16;
-  ctx.beginPath(); ctx.moveTo(350,430); ctx.lineTo(920,420); ctx.stroke();
-  ctx.beginPath(); ctx.moveTo(650,540); ctx.lineTo(650,800); ctx.stroke();
-}
-function drawRegions(){
-  regions.forEach(r=>{
-    ctx.fillStyle="rgba(0,0,0,.12)";
-    ctx.fillRect(r.x,r.y,r.w,r.h);
-    ctx.strokeStyle="#22c55e"; ctx.lineWidth=2; ctx.strokeRect(r.x,r.y,r.w,r.h);
-    ctx.fillStyle="#e5e7eb"; ctx.fillText(r.name,r.x+10,r.y+22);
-  });
-}
-function drawBuildings(){
-  buildings.forEach(b=>{
-    ctx.fillStyle=b.type==='farm'?'#22c55e':'#a855f7';
-    ctx.fillRect(b.x,b.y,40,40);
-    ctx.fillStyle="#020617"; ctx.fillText(b.type, b.x, b.y-4);
-  });
-}
-function drawPeopleCars(){
-  for(let i=0;i<6;i++){
-    ctx.fillStyle="#eab308";
-    ctx.fillRect(360+i*40,440,10,10);
-    ctx.fillStyle="#ef4444";
-    ctx.fillRect(660,560+i*40,18,10);
-  }
-}
-function nightOverlay(){
-  if(!isNight) return;
-  ctx.fillStyle="rgba(2,6,23,.45)";
-  ctx.fillRect(-2000,-2000,4000,4000);
-}
-
-// ---- LOOP
-function loop(){
-  ctx.setTransform(1,0,0,1,0,0);
-  ctx.clearRect(0,0,W,H);
-  ctx.translate(cam.x,cam.y);
-  drawLand(); drawRoads(); drawRegions(); drawBuildings(); drawPeopleCars(); nightOverlay();
-  requestAnimationFrame(loop);
-}
-loop();
-
-// ---- INPUT (drag)
-map.addEventListener('pointerdown',e=>{cam.drag=true;cam.px=e.clientX;cam.py=e.clientY});
-addEventListener('pointerup',()=>cam.drag=false);
-addEventListener('pointermove',e=>{
-  if(!cam.drag) return;
-  cam.x+=e.clientX-cam.px; cam.y+=e.clientY-cam.py;
-  cam.px=e.clientX; cam.py=e.clientY;
-});
-
-// ---- BUILDINGS LOGIC
-function placeBuilding(type,rx,ry){
-  buildings.push({type,x:rx+20,y:ry+40, t:Date.now()});
-}
-function tickIncome(){
-  buildings.forEach(b=>{
-    const rate=b.type==='farm'?1:4;
-    coins+=rate*(x2?2:1);
-  });
-  updateUI();
-}
-setInterval(tickIncome,2000);
-
-// ---- UI
-function updateUI(){
-  document.getElementById('coins').textContent=coins;
-  document.getElementById('level').textContent='Рівень '+level;
-}
-document.getElementById('tapCoin').onclick=()=>{
-  coins+=(x2?2:1); snd.currentTime=0; snd.play(); updateUI();
-};
-document.getElementById('x2').onclick=()=>{x2=true; setTimeout(()=>x2=false,20000)};
-document.getElementById('auto').onclick=()=>{
-  if(auto) return; auto=true;
-  setInterval(()=>{coins+=1*(x2?2:1); updateUI()},700);
-};
-document.getElementById('gift').onclick=()=>{
-  tg.openTelegramLink(channelLink);
-  setTimeout(()=>{coins+=5000; updateUI()},3000);
-};
-
-// ---- PLACE DEFAULT BUILDINGS
-placeBuilding('farm',regions[0].x,regions[0].y);
-placeBuilding('factory',regions[1].x,regions[1].y);
-
-// ---- DAY/NIGHT
-setInterval(()=>{isNight=!isNight},30000);
-
-// ---- ACTIVE FAKE
+// економіка
+let money = 0;
+let income = 0;
 setInterval(()=>{
-  document.getElementById('active').textContent=12000+Math.floor(Math.random()*600);
-},5000);
+  money += income;
+  document.getElementById("money").innerText = "💰 " + money;
+},1000);
+
+// будівлі
+function buildFarm(){
+  let farm = new THREE.Mesh(
+    new THREE.BoxGeometry(4,2,4),
+    new THREE.MeshLambertMaterial({color:0xdeb887})
+  );
+  farm.position.set(Math.random()*20-10,1,Math.random()*20-10);
+  scene.add(farm);
+  income += 1;
+}
+function buildFactory(){
+  let fac = new THREE.Mesh(
+    new THREE.BoxGeometry(5,4,5),
+    new THREE.MeshLambertMaterial({color:0x777777})
+  );
+  fac.position.set(Math.random()*20-10,2,Math.random()*20-10);
+  scene.add(fac);
+  income += 3;
+}
+
+// день / ніч
+let night = false;
+function toggleTime(){
+  night = !night;
+  renderer.setClearColor(night ? 0x050510 : 0x87ceeb);
+  sun.intensity = night ? 0.2 : 1;
+}
+
+// рух камери
+let t=0;
+function animate(){
+  requestAnimationFrame(animate);
+  t+=0.002;
+  camera.position.x = Math.sin(t)*40;
+  camera.position.z = Math.cos(t)*40;
+  camera.lookAt(0,0,0);
+  renderer.render(scene,camera);
+}
+animate();
+
+window.onresize=()=>{
+  camera.aspect=innerWidth/innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(innerWidth,innerHeight);
+};
 </script>
+
 </body>
 </html>
