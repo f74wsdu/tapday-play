@@ -110,6 +110,7 @@ button {
 let balance = parseFloat(localStorage.getItem("balance")) || 0;
 let multiplier = 1;
 
+/* ===== UI ===== */
 function updateBalance() {
   document.getElementById("balance").textContent =
     `💵 Balance: ${balance.toFixed(2)} $`;
@@ -117,14 +118,14 @@ function updateBalance() {
 }
 updateBalance();
 
-/* TAP */
+/* ===== TAP ===== */
 coin.onclick = () => {
   balance += 0.01 * multiplier;
   updateBalance();
   if (navigator.vibrate) navigator.vibrate(30);
 };
 
-/* MULTIPLIERS */
+/* ===== MULTIPLIERS ===== */
 function activateMult(x, el) {
   multiplier = x;
   el.classList.add("active");
@@ -133,24 +134,17 @@ function activateMult(x, el) {
     el.classList.remove("active");
   }, 10000);
 }
-
 x2.onclick = () => activateMult(2, x2);
 x5.onclick = () => activateMult(5, x5);
 
-/* DAILY BONUS */
+/* ===== DAILY BONUS ===== */
 daily.onclick = () => {
   let day = parseInt(localStorage.getItem("dailyDay")) || 1;
   let last = localStorage.getItem("dailyLast");
   let now = Date.now();
 
-  if (last && now - last > 86400000) {
-    day = 1;
-  }
-
-  if (day > 7) {
-    alert("Бонус на сьогодні недоступний");
-    return;
-  }
+  if (last && now - last > 86400000) day = 1;
+  if (day > 7) return alert("📁 Бонус вже отримано");
 
   let reward = day * 0.25;
   balance += reward;
@@ -160,7 +154,7 @@ daily.onclick = () => {
   alert(`📁 День ${day}: +${reward.toFixed(2)} $`);
 };
 
-/* 30 DAYS BONUS */
+/* ===== 30 DAYS BONUS ===== */
 bonus30.onclick = () => {
   let last = localStorage.getItem("bonus30");
   let now = Date.now();
@@ -175,33 +169,48 @@ bonus30.onclick = () => {
   }
 };
 
-/* SUBSCRIBE */
+/* ===== SUBSCRIBE ===== */
 subscribe.onclick = () => {
   if (localStorage.getItem("subBonus")) return;
 
-  window.open("https://t.me/tapday_clicker", "_blank");
   balance += 10;
   localStorage.setItem("subBonus", "1");
   updateBalance();
   subscribe.style.display = "none";
 };
 
-/* AD */
+/* ===== AD ===== */
 adBtn.onclick = () => {
   balance += 1;
   updateBalance();
 };
 
-/* WITHDRAW */
+/* ===== WITHDRAW ===== */
 withdraw.onclick = () => {
-  alert("🔒 Вивід буде доступний пізніше");
+  if (balance < 200) {
+    alert("❌ Мінімальна сума для виводу — 200 $");
+  } else {
+    alert("⏳ Вивід буде доступний пізніше");
+  }
 };
 
-/* FAKE ONLINE */
+/* ===== ONLINE ===== */
 setInterval(() => {
-  onlineCount.textContent = 2800 + Math.floor(Math.random() * 600);
-  bonusToday.textContent = 180 + Math.floor(Math.random() * 60);
+  onlineCount.textContent =
+    3000 + Math.floor(Math.random() * 500) - 250;
 }, 3000);
+
+/* ===== BONUS TODAY (ONLY UP) ===== */
+let bonusTodayValue =
+  parseInt(localStorage.getItem("bonusToday")) || 180;
+
+setInterval(() => {
+  if (Math.random() > 0.6) {
+    bonusTodayValue += 1;
+    localStorage.setItem("bonusToday", bonusTodayValue);
+  }
+  bonusToday.textContent = bonusTodayValue;
+}, 5000);
 </script>
 
 </body>
