@@ -85,12 +85,24 @@ body {
     color: #000;
 }
 
-.channel {
-    margin: 20px auto;
+.channel, .playBonus {
+    margin: 14px auto;
     width: 80%;
     background: #1c1c1c;
     padding: 14px;
     border-radius: 14px;
+    cursor: pointer;
+}
+
+.disabled {
+    opacity: 0.5;
+    pointer-events: none;
+}
+
+.timer {
+    font-size: 13px;
+    margin-top: 6px;
+    opacity: 0.7;
 }
 
 .withdraw {
@@ -129,15 +141,27 @@ body {
     <button onclick="setMulti(5)" id="m5">x5</button>
 </div>
 
-<div class="channel">🎁 Бонус з каналу</div>
+<div class="channel" id="channelBonus">
+🎁 Бонус з каналу +500
+</div>
+
+<div class="playBonus" id="playBonus">
+▶ PLAY бонус +1000
+<div class="timer" id="timer"></div>
+</div>
 
 <div class="withdraw">Вивід</div>
 
 <script>
-let balance = 120;
+let balance = Number(localStorage.getItem('balance')) || 120;
 let multi = 1;
 let online = 4321;
 let bonusToday = 3120;
+
+const CHANNEL_URL = "https://t.me/tapday_clicker";
+const CHANNEL_KEY = "channel_bonus_taken";
+const PLAY_KEY = "play_bonus_time";
+const PLAY_COOLDOWN = 30 * 24 * 60 * 60 * 1000;
 
 function setMulti(x) {
     multi = x;
@@ -148,35 +172,89 @@ function setMulti(x) {
 document.getElementById('tap').onclick = () => {
     balance += multi;
     navigator.vibrate?.(20);
+    save();
     update();
 };
 
+document.getElementById('channelBonus').onclick = () => {
+    if (!localStorage.getItem(CHANNEL_KEY)) {
+        localStorage.setItem("pending_channel", "1");
+        window.open(CHANNEL_URL, "_blank");
+    }
+};
+
+if (localStorage.getItem("pending_channel")) {
+    localStorage.removeItem("pending_channel");
+    if (!localStorage.getItem(CHANNEL_KEY)) {
+        balance += 500;
+        localStorage.setItem(CHANNEL_KEY, "1");
+        save();
+    }
+}
+
+document.getElementById('playBonus').onclick = () => {
+    let now = Date.now();
+    let last = Number(localStorage.getItem(PLAY_KEY)) || 0;
+    if (now - last >= PLAY_COOLDOWN) {
+        balance += 1000;
+        localStorage.setItem(PLAY_KEY, now);
+        save();
+    }
+};
+
+function updateTimer() {
+    let last = Number(localStorage.getItem(PLAY_KEY)) || 0;
+    let diff = PLAY_COOLDOWN - (Date.now() - last);
+    let btn = document.getElementById('playBonus');
+    let t = document.getElementById('timer');
+
+    if (diff <= 0) {
+        btn.classList.remove("disabled");
+        t.innerText = "";
+        return;
+    }
+
+    btn.classList.add("disabled");
+
+    let d = Math.floor(diff / 86400000);
+    let h = Math.floor(diff % 86400000 / 3600000);
+    let m = Math.floor(diff % 3600000 / 60000);
+    let s = Math.floor(diff % 60000 / 1000);
+
+    t.innerText = `${d}д ${h}г ${m}хв ${s}с`;
+}
+
+function save() {
+    localStorage.setItem('balance', balance);
+}
+
 function update() {
     document.getElementById('balance').innerText = balance;
-
     if (balance < 100) {
-        document.getElementById('currency').innerText = '🪙 монет';
-        document.getElementById('goal').innerText = 100;
+        currency.innerText = '🪙 монет';
+        goal.innerText = 100;
     } else if (balance < 1000) {
-        document.getElementById('currency').innerText = '👑 корон';
-        document.getElementById('goal').innerText = 1000;
+        currency.innerText = '👑 корон';
+        goal.innerText = 1000;
     } else {
-        document.getElementById('currency').innerText = '💎 кристалів';
-        document.getElementById('goal').innerText = 5000;
+        currency.innerText = '💎 кристалів';
+        goal.innerText = 5000;
     }
 }
 
 setInterval(() => {
     online += Math.floor(Math.random() * 3);
-    document.getElementById('online').innerText = online;
-}, 3000);
-
-setInterval(() => {
     bonusToday += Math.floor(Math.random() * 5);
-    document.getElementById('bonusToday').innerText = bonusToday;
-}, 2000);
+    onlineSpan.innerText = online;
+    bonusTodaySpan.innerText = bonusToday;
+    updateTimer();
+}, 1000);
+
+const onlineSpan = document.getElementById('online');
+const bonusTodaySpan = document.getElementById('bonusToday');
 
 update();
+updateTimer();
 </script>
 
 </body>
