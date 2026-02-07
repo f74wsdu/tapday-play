@@ -1,164 +1,119 @@
 <!DOCTYPE html>
 <html lang="uk">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>TapDay Premium</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TapDay</title>
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
 
 <style>
-:root{
-  --gold1:#ffe08a;
-  --gold2:#ffb300;
-  --bg1:#0b1230;
-  --bg2:#04070f;
-  --glow:rgba(255,200,0,.9);
-}
-
-*{box-sizing:border-box}
 body{
   margin:0;
-  min-height:100vh;
-  background:
-    radial-gradient(1200px 600px at 50% -10%, #1a2a6c 0%, transparent 60%),
-    linear-gradient(180deg,var(--bg1),var(--bg2));
+  background:radial-gradient(circle at top,#1a2a6c,#050812);
+  font-family:system-ui,Arial;
   color:#fff;
-  font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial;
-  text-align:center;
   overflow:hidden;
+  text-align:center;
   user-select:none;
 }
 
 /* HEADER */
 .header{
-  margin:16px auto 8px;
   width:92%;
   max-width:420px;
-  padding:18px 16px;
-  border-radius:22px;
-  background:
-    linear-gradient(180deg,rgba(0,0,0,.55),rgba(0,0,0,.65)),
-    radial-gradient(200px 80px at 80% 10%, rgba(255,200,0,.25), transparent 60%);
-  box-shadow:0 20px 50px rgba(0,0,0,.55);
-}
-.title{
-  font-size:26px;
-  font-weight:800;
-  letter-spacing:.3px;
+  margin:16px auto;
+  padding:16px;
+  border-radius:20px;
+  background:linear-gradient(180deg,rgba(0,0,0,.6),rgba(0,0,0,.8));
+  box-shadow:0 20px 50px rgba(0,0,0,.6);
 }
 .balance{
   font-size:44px;
   font-weight:900;
-  margin-top:6px;
-  color:#fff;
-  text-shadow:0 0 20px var(--glow);
+  text-shadow:0 0 18px gold;
 }
 .meta{
   display:flex;
   justify-content:space-between;
-  gap:8px;
-  margin-top:10px;
   font-size:14px;
-  opacity:.95;
+  margin-top:8px;
 }
 
-/* TAP AREA */
+/* TAP COIN */
 .stage{
-  position:relative;
-  height:52vh;
+  height:55vh;
   display:flex;
   align-items:center;
   justify-content:center;
 }
-
 .tap{
-  position:relative;
   width:260px;
   height:260px;
   border-radius:50%;
   background:
-    radial-gradient(circle at 30% 25%, #fff6c7 0%, var(--gold1) 35%, var(--gold2) 70%);
-  color:#3b2400;
-  font-size:46px;
-  font-weight:900;
+    radial-gradient(circle at 30% 25%, #fff6c7, #ffcc55 40%, #e6a800 75%);
+  box-shadow:
+    inset 0 -12px 22px rgba(0,0,0,.35),
+    0 0 90px rgba(255,200,0,.9);
   display:flex;
   align-items:center;
   justify-content:center;
-  cursor:pointer;
-  box-shadow:
-    0 0 0 0 rgba(255,200,0,.0),
-    0 0 60px rgba(255,170,0,.8),
-    inset 0 -10px 22px rgba(0,0,0,.25);
+  font-size:40px;
+  font-weight:900;
+  color:#3a2600;
   animation:pulse 2.2s infinite;
   touch-action:manipulation;
 }
-.tap::after{
-  content:"";
-  position:absolute;
-  inset:-14px;
-  border-radius:50%;
-  filter:blur(18px);
-  background:radial-gradient(circle, rgba(255,220,120,.6), transparent 60%);
-  z-index:-1;
-}
-.tap:active{ transform:scale(.94) }
-
+.tap:active{transform:scale(.93)}
 @keyframes pulse{
-  0%{ box-shadow:0 0 40px rgba(255,170,0,.6) }
-  50%{ box-shadow:0 0 90px rgba(255,220,120,1) }
-  100%{ box-shadow:0 0 40px rgba(255,170,0,.6) }
+  0%{box-shadow:0 0 40px rgba(255,180,0,.6)}
+  50%{box-shadow:0 0 110px rgba(255,220,120,1)}
+  100%{box-shadow:0 0 40px rgba(255,180,0,.6)}
 }
 
-/* SIDE ACTIONS */
+/* SIDE BUTTONS */
 .side{
   position:fixed;
   right:12px;
-  top:42%;
+  top:40%;
   display:flex;
   flex-direction:column;
   gap:14px;
 }
-.btn{
-  width:72px;height:72px;
+.side button{
+  width:72px;
+  height:72px;
   border-radius:18px;
-  display:flex;
-  align-items:center;
-  justify-content:center;
+  border:none;
+  font-size:18px;
   font-weight:800;
-  box-shadow:0 10px 26px rgba(0,0,0,.45);
-  background:linear-gradient(145deg,#4da3ff,#1c6bff);
+  box-shadow:0 10px 26px rgba(0,0,0,.5);
 }
-.btn.gold{background:linear-gradient(145deg,#ffe08a,#ffb300); color:#3b2400}
+.blue{background:#2d8cff;color:#fff}
+.gold{background:linear-gradient(145deg,#ffe08a,#ffb300);color:#3b2400}
 
-/* FLOATING COINS */
+/* COINS EFFECT */
 .coin{
   position:absolute;
-  pointer-events:none;
-  font-size:22px;
+  font-size:32px;
   animation:fly 900ms ease-out forwards;
-  text-shadow:0 0 10px rgba(255,220,120,.9);
+  pointer-events:none;
 }
 @keyframes fly{
-  from{ transform:translate(0,0) scale(1); opacity:1 }
-  to{ transform:translate(var(--x), var(--y)) scale(.6); opacity:0 }
+  from{opacity:1;transform:translate(0,0) scale(1)}
+  to{opacity:0;transform:translate(var(--x),var(--y)) scale(.7)}
 }
-
-/* TIMER */
-.timer{
-  animation:tick 1s steps(1) infinite;
-}
-@keyframes tick{ 50%{ opacity:.85 } }
 </style>
 </head>
 
 <body>
+
 <div class="header">
-  <div class="title">TapDay 👑</div>
   <div class="balance" id="coins">0 💰</div>
   <div class="meta">
     <div>🔓 Рівень: <b id="lvl">1</b></div>
-    <div>🎯 Мета: <b>25 000</b></div>
-    <div class="timer">⏳ <b id="time">24:00:00</b></div>
+    <div>🎯 Ціль: <b id="goal">1 000</b></div>
+    <div>⏳ <span id="time">24:00:00</span></div>
   </div>
 </div>
 
@@ -167,86 +122,87 @@ body{
 </div>
 
 <div class="side">
-  <div class="btn" id="x2">⚡x2</div>
-  <div class="btn" id="auto">🤖</div>
-  <div class="btn gold" id="daily">🎁</div>
+  <button class="blue" id="x2">⚡x2</button>
+  <button class="blue" id="auto">🤖</button>
+  <button class="gold" id="bonus">🎁</button>
 </div>
 
 <script>
 const tg = window.Telegram.WebApp; tg.expand();
 
 let coins=0, mult=1, auto=false;
-const coinsEl=document.getElementById('coins');
-const lvlEl=document.getElementById('lvl');
-const tap=document.getElementById('tap');
 
-/* UPDATE */
-function update(){
-  coinsEl.textContent = coins + " 💰";
-  lvlEl.textContent = Math.max(1, Math.floor(coins/5000)+1);
+const levels=[
+  0,1000,3000,7000,15000,30000,60000,120000,250000,500000
+];
+
+function level(){
+  let l=1;
+  for(let i=1;i<levels.length;i++){
+    if(coins>=levels[i]) l=i+1;
+  }
+  return l;
 }
 
-/* MULTI-TAP */
-tap.addEventListener('pointerdown', (e)=>{
-  e.preventDefault();
+function nextGoal(){
+  return levels[level()] ?? levels[levels.length-1];
+}
+
+function update(){
+  coinsEl.textContent=coins+" 💰";
+  lvlEl.textContent=level();
+  goalEl.textContent=nextGoal().toLocaleString();
+}
+
+const coinsEl=document.getElementById("coins");
+const lvlEl=document.getElementById("lvl");
+const goalEl=document.getElementById("goal");
+const tap=document.getElementById("tap");
+
+tap.addEventListener("pointerdown",e=>{
   coins+=mult;
   update();
-  spawnCoins(e.clientX, e.clientY);
+  for(let i=0;i<4;i++)spawn(e.clientX,e.clientY);
 });
 
-/* EFFECTS */
-function spawnCoins(x,y){
-  for(let i=0;i<6;i++){
-    const c=document.createElement('div');
-    c.className='coin';
-    c.textContent='💰';
-    c.style.left=(x||window.innerWidth/2)+'px';
-    c.style.top=(y||window.innerHeight/2)+'px';
-    c.style.setProperty('--x',(Math.random()*160-80)+'px');
-    c.style.setProperty('--y',(-Math.random()*140-40)+'px');
-    document.body.appendChild(c);
-    setTimeout(()=>c.remove(),900);
-  }
+function spawn(x,y){
+  const c=document.createElement("div");
+  c.className="coin";
+  c.textContent="💰";
+  c.style.left=x+"px";
+  c.style.top=y+"px";
+  c.style.setProperty("--x",(Math.random()*200-100)+"px");
+  c.style.setProperty("--y",(-Math.random()*180-60)+"px");
+  document.body.appendChild(c);
+  setTimeout(()=>c.remove(),900);
 }
 
-/* X2 */
 x2.onclick=()=>{
-  if(mult===2) return;
-  if(coins<50) return alert('Недостатньо');
-  coins-=50; mult=2; update();
+  if(mult===2||coins<100) return;
+  coins-=100; mult=2; update();
 };
 
-/* AUTO */
-setInterval(()=>{ if(auto){ coins+=mult; update(); } },800);
 auto.onclick=()=>{
-  if(auto) return;
-  if(coins<100) return alert('Недостатньо');
-  coins-=100; auto=true; update();
+  if(auto||coins<300) return;
+  coins-=300; auto=true; update();
 };
 
-/* DAILY BONUS */
-const today=new Date().toDateString();
-let last=localStorage.getItem('last');
-let streak=+localStorage.getItem('streak')||0;
-if(last!==today){
-  const y=new Date(Date.now()-86400000).toDateString();
-  streak=(last===y)?streak+1:1;
-  localStorage.setItem('streak',streak);
-  localStorage.setItem('last',today);
-}
-daily.onclick=()=>{
-  const reward=500*streak;
-  coins+=reward; update();
-  alert('🎁 Бонус: +'+reward);
+setInterval(()=>{if(auto){coins+=mult;update();}},700);
+
+bonus.onclick=()=>{
+  const reward=level()*1000;
+  coins+=reward;
+  update();
+  alert("🎁 Бонус: +"+reward);
 };
 
 /* TIMER */
 let sec=86400;
 setInterval(()=>{
   sec--;
-  const h=String(Math.floor(sec/3600)).padStart(2,'0');
-  const m=String(Math.floor(sec%3600/60)).padStart(2,'0');
-  const s=String(sec%60).padStart(2,'0');
+  const h=String(Math.floor(sec/3600)).padStart(2,"0");
+  const m=String(Math.floor(sec%3600/60)).padStart(2,"0");
+  const s=String(sec%60).padStart(2,"0");
   time.textContent=`${h}:${m}:${s}`;
 },1000);
 
