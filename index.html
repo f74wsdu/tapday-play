@@ -12,7 +12,7 @@ body{margin:0;background:#0b0b0b;color:#fff;font-family:Arial;text-align:center;
 .row{display:flex;justify-content:space-between;font-size:14px}
 .balance{font-size:44px;font-weight:bold;margin:10px 0}
 .middle{display:flex;justify-content:space-between;align-items:center}
-.ad{background:#222;padding:8px 14px;border-radius:20px}
+.ad{background:#222;padding:8px 14px;border-radius:20px;cursor:pointer}
 .ball{
  width:260px;height:260px;margin:30px auto;border-radius:50%;
  background:radial-gradient(circle,#ffe600,#ffb700);
@@ -43,6 +43,7 @@ body{margin:0;background:#0b0b0b;color:#fff;font-family:Arial;text-align:center;
  margin-top:20px;width:90%;padding:18px;border-radius:20px;
  background:#ffb700;font-size:20px;border:none
 }
+.subText{font-size:12px;opacity:.7;margin-top:6px}
 .withdraw{
  margin:10px auto;width:160px;padding:10px;
  background:#1f8f3a;border-radius:14px;font-size:16px
@@ -57,9 +58,9 @@ body{margin:0;background:#0b0b0b;color:#fff;font-family:Arial;text-align:center;
   <div>Онлайн: <span id="online">3940</span></div>
   <div>Бонусів сьогодні: <span id="bonuses">4744</span></div>
  </div>
- <div class="balance">Баланс: $<span id="balance">264.63</span></div>
+ <div class="balance">Баланс: $<span id="balance">296.64</span></div>
  <div class="middle">
-  <div class="ad">📺 Реклама +500</div>
+  <div class="ad" id="adBtn">📺 Реклама +500</div>
   <div>Рівень: 2</div>
  </div>
 </div>
@@ -83,7 +84,9 @@ body{margin:0;background:#0b0b0b;color:#fff;font-family:Arial;text-align:center;
  <div class="mult" data-m="5">x5</div>
 </div>
 
-<button class="mainBtn" id="mainBtn"></button>
+<button class="mainBtn">TapDay Play</button>
+<div class="subText">Бонус через 30 днів: +3000</div>
+
 <div class="withdraw">💳 Вивід</div>
 
 <audio id="sound">
@@ -91,30 +94,25 @@ body{margin:0;background:#0b0b0b;color:#fff;font-family:Arial;text-align:center;
 </audio>
 
 <script>
-let balance=264.63, mult=1;
+let balance=296.64, mult=1;
 let online=3940, bonuses=4744;
 const bEl=document.getElementById("balance");
+const oEl=document.getElementById("online");
+const bonEl=document.getElementById("bonuses");
 const ball=document.getElementById("ball");
 const sound=document.getElementById("sound");
-const mainBtn=document.getElementById("mainBtn");
 
-let subscribed = localStorage.getItem("subscribed")==="1";
+// онлайн живий
+setInterval(()=>{
+ online+=Math.random()>.5?1:-1;
+ oEl.textContent=online;
+},5000);
 
-mainBtn.textContent = subscribed ? "TapDay Play" : "Підпишись і отримай бонус";
-
-mainBtn.onclick=()=>{
- if(!subscribed){
-  window.open("https://t.me/tapday_clicker","_blank");
-  localStorage.setItem("subscribed","1");
-  navigator.vibrate(80);
-  sound.play();
-  balance+=500;
-  bonuses++;
-  bEl.textContent=balance.toFixed(2);
-  mainBtn.textContent="TapDay Play";
-  subscribed=true;
- }
-};
+// бонуси сьогодні живі
+setInterval(()=>{
+ bonuses++;
+ bonEl.textContent=bonuses;
+},10000);
 
 function icon(){
  if(balance>=1000) return "💎";
@@ -147,6 +145,16 @@ document.querySelectorAll(".mult").forEach(b=>{
  };
 });
 
+// реклама +500
+document.getElementById("adBtn").onclick=()=>{
+ navigator.vibrate(80);
+ sound.play();
+ balance+=500;
+ bonuses++;
+ bEl.textContent=balance.toFixed(2);
+ bonEl.textContent=bonuses;
+};
+
 folder.onclick=()=>{
  days.style.display=days.style.display==="block"?"none":"block";
 };
@@ -162,6 +170,7 @@ document.querySelectorAll(".day").forEach(d=>{
   balance+=+d.dataset.v;
   bonuses++;
   bEl.textContent=balance.toFixed(2);
+  bonEl.textContent=bonuses;
  };
 });
 </script>
