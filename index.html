@@ -1,184 +1,145 @@
 <!DOCTYPE html>
 <html lang="uk">
 <head>
-<meta charset="UTF-8" />
+<meta charset="UTF-8">
 <title>TapDay Play</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <style>
-  body {
-    margin: 0;
-    background: radial-gradient(circle at center, #111 0%, #070b14 70%);
-    font-family: Arial, sans-serif;
-    color: #fff;
-    text-align: center;
-  }
-
-  .top {
-    display: flex;
-    justify-content: space-between;
-    padding: 12px;
-    font-size: 14px;
-  }
-
-  .money {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-  }
-
-  .badge {
-    opacity: 0.85;
-  }
-
-  .coin {
-    width: 240px;
-    height: 240px;
-    margin: 30px auto 20px;
-    border-radius: 50%;
-    box-shadow: 0 0 40px rgba(255, 215, 0, 0.6);
-    background-size: cover;
-    background-position: center;
-    cursor: pointer;
-  }
-
-  .x-buttons {
-    display: flex;
-    justify-content: center;
-    gap: 12px;
-    margin-bottom: 20px;
-  }
-
-  .x-buttons button {
-    padding: 10px 18px;
-    border-radius: 20px;
-    border: none;
-    cursor: pointer;
-    font-weight: bold;
-  }
-
-  .active {
-    background: #22c58b;
-    color: #000;
-  }
-
-  .inactive {
-    background: #eee;
-    color: #000;
-  }
-
-  .panel {
-    background: #0e1626;
-    margin: 0 14px;
-    padding: 14px;
-    border-radius: 16px;
-  }
-
-  .main-btn {
-    margin-top: 10px;
-    width: 100%;
-    padding: 16px;
-    border-radius: 14px;
-    border: none;
-    font-size: 16px;
-    background: #22c58b;
-    font-weight: bold;
-    cursor: pointer;
-  }
-
-  .bottom {
-    display: flex;
-    justify-content: space-between;
-    padding: 12px;
-    font-size: 14px;
-    opacity: 0.85;
-  }
-
-  .link {
-    cursor: pointer;
-  }
+body {
+  margin:0;
+  background:#0b0f1a;
+  color:#fff;
+  font-family:Arial, sans-serif;
+  text-align:center;
+}
+.top {
+  display:flex;
+  justify-content:space-between;
+  padding:10px 15px;
+  font-size:14px;
+}
+.glow {
+  width:260px;
+  height:260px;
+  border-radius:50%;
+  margin:40px auto;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  box-shadow:0 0 40px gold;
+  transition:0.4s;
+}
+.glow img {
+  width:220px;
+  height:220px;
+  border-radius:50%;
+}
+.money {
+  font-size:26px;
+  margin-top:10px;
+}
+.multis button {
+  margin:10px;
+  padding:10px 18px;
+  border-radius:20px;
+  border:none;
+  font-size:16px;
+}
+.active { background:#18c08f; color:#000; }
+.bonus {
+  margin:20px;
+  padding:15px;
+  background:#111827;
+  border-radius:15px;
+}
+.bonus a {
+  display:block;
+  margin-top:10px;
+  padding:15px;
+  background:#18c08f;
+  color:#000;
+  border-radius:12px;
+  text-decoration:none;
+  font-weight:bold;
+}
 </style>
 </head>
 <body>
 
 <div class="top">
-  <div class="money">💵 <span id="balance">147</span> ₴<br><small>Рівень: <span id="level">3</span></small></div>
-  <div class="badge">
-    👥 Онлайн: <span id="online">3842</span><br>
-    🎁 Бонусів сьогодні: <span id="bonuses">3124</span>
+  <div>💵 <span id="money">0</span></div>
+  <div>
+    👥 Онлайн: <span id="online">3840</span><br>
+    🎁 Бонусів сьогодні: <span id="bonuses">3120</span>
   </div>
 </div>
 
-<div id="coin" class="coin"></div>
-
-<div class="x-buttons">
-  <button class="inactive" onclick="setX(1)">x1</button>
-  <button class="active" onclick="setX(3)">x3</button>
-  <button class="inactive" onclick="setX(5)">x5</button>
+<div class="glow" id="coinBox">
+  <img id="coin" src="https://i.imgur.com/0Z8FQYk.png">
 </div>
 
-<div class="panel">
-  🎁 Підпишись на канал
-  <button class="main-btn" onclick="subscribe()">Отримати +10 000</button>
+<div class="money">Баланс: 💵 <span id="balance">0</span></div>
+
+<div class="multis">
+  <button onclick="setMulti(1)" id="m1" class="active">x1</button>
+  <button onclick="setMulti(3)" id="m3">x3</button>
+  <button onclick="setMulti(5)" id="m5">x5</button>
 </div>
 
-<div class="bottom">
-  <div class="link" onclick="openCity()">🏙 Місто</div>
-  <div class="link">💳 Вивід</div>
+<div class="bonus">
+  🎁 Підпишись на канал  
+  <a href="https://t.me/TVIY_KANAL" target="_blank" onclick="getBonus()">Отримати +10 000</a>
 </div>
 
 <script>
-let balance = 147;
-let level = 3;
-let tapX = 3;
+let balance = 0;
+let multi = 1;
+let level = 0;
 
-const channelLink = "https://t.me/TVIY_KANAL"; // 🔴 ВСТАВ СЮДИ СВІЙ ЛІНК
-
-const coinStages = [
-  { min: 0, img: "https://i.imgur.com/8Qf9ZpF.png" },      // бронза
-  { min: 1000, img: "https://i.imgur.com/fH4pYVZ.png" },   // срібло
-  { min: 10000, img: "https://i.imgur.com/4Q7Z7sO.png" },  // золото
-  { min: 100000, img: "https://i.imgur.com/qg9ZpG4.png" }, // діамант
+const levels = [
+  {need:0, img:"https://i.imgur.com/0Z8FQYk.png", glow:"bronze"},
+  {need:1000, img:"https://i.imgur.com/2yZK0Xb.png", glow:"silver"},
+  {need:10000, img:"https://i.imgur.com/yQp8B9G.png", glow:"gold"},
+  {need:100000, img:"https://i.imgur.com/9yM0Q7F.png", glow:"cyan"}
 ];
 
-function updateCoin() {
-  let stage = coinStages[0];
-  for (let s of coinStages) {
-    if (balance >= s.min) stage = s;
-  }
-  document.getElementById("coin").style.backgroundImage = `url(${stage.img})`;
-}
-
-function tap() {
-  balance += tapX;
-  if (balance % 500 === 0) level++;
+document.getElementById("coinBox").onclick = () => {
+  balance += multi;
   document.getElementById("balance").innerText = balance;
-  document.getElementById("level").innerText = level;
-  updateCoin();
+  checkLevel();
+};
+
+function setMulti(x){
+  multi = x;
+  document.querySelectorAll(".multis button").forEach(b=>b.classList.remove("active"));
+  document.getElementById("m"+x).classList.add("active");
 }
 
-function setX(x) {
-  tapX = x;
-  document.querySelectorAll(".x-buttons button").forEach(b => b.className = "inactive");
-  event.target.className = "active";
+function checkLevel(){
+  if(level+1 < levels.length && balance >= levels[level+1].need){
+    level++;
+    document.getElementById("coin").src = levels[level].img;
+    document.getElementById("coinBox").style.boxShadow = `0 0 50px ${levels[level].glow}`;
+    balance += level * 50;
+  }
 }
 
-function subscribe() {
-  window.open(channelLink, "_blank");
+function getBonus(){
+  balance += 10000;
+  document.getElementById("balance").innerText = balance;
 }
 
-function openCity() {
-  alert("Місто: цілі, дохід, апгрейди (тут буде окрема вкладка)");
-}
+setInterval(()=>{
+  let o = document.getElementById("online");
+  let val = parseInt(o.innerText);
+  o.innerText = val + Math.floor(Math.random()*5-2);
+  if(val < 2000) o.innerText = 2000;
+},3000);
 
-// живі лічильники
-setInterval(() => {
-  document.getElementById("online").innerText =
-    3600 + Math.floor(Math.random() * 600);
-  document.getElementById("bonuses").innerText =
-    3000 + Math.floor(Math.random() * 300);
-}, 4000);
-
-document.getElementById("coin").addEventListener("click", tap);
-updateCoin();
+setInterval(()=>{
+  let b = document.getElementById("bonuses");
+  b.innerText = parseInt(b.innerText) + Math.floor(Math.random()*3);
+},5000);
 </script>
 
 </body>
