@@ -2,212 +2,162 @@
 <html lang="uk">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>TapDay Play</title>
-
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <style>
-* { box-sizing: border-box; }
-
 body {
-  margin: 0;
-  background: radial-gradient(circle at top, #0b1020, #000);
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
-  color: #fff;
-  overflow: hidden;
-  touch-action: manipulation;
+  margin:0;
+  background: radial-gradient(circle at top, #111827, #020617);
+  font-family: system-ui, sans-serif;
+  color:#fff;
+  overflow:hidden;
+}
+.top {
+  display:flex;
+  justify-content:space-between;
+  padding:14px;
+  font-size:14px;
+}
+#game {
+  position:relative;
+  height:calc(100vh - 60px);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+.coin {
+  width:220px;
+  height:220px;
+  border-radius:50%;
+  background: radial-gradient(circle at 30% 30%, #ffe08a, #f59e0b);
+  box-shadow: 0 0 40px rgba(255,200,50,.6);
+  transition:.3s;
+}
+.coin.gold { background:radial-gradient(circle at 30% 30%, #fff3b0,#facc15); }
+.coin.platinum { background:radial-gradient(circle at 30% 30%, #e5e7eb,#9ca3af); }
+.coin.legend { background:radial-gradient(circle at 30% 30%, #fde68a,#f59e0b); box-shadow:0 0 70px gold;}
+
+#score {
+  position:absolute;
+  bottom:120px;
+  font-size:32px;
+  font-weight:700;
 }
 
-/* TOP */
-#top {
-  display: flex;
-  justify-content: space-between;
-  padding: 14px 16px;
-  font-size: 14px;
-  opacity: 0.9;
+.btn {
+  position:absolute;
+  width:60px;height:60px;
+  border-radius:16px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:24px;
+  user-select:none;
 }
+.x2 { top:90px; right:16px; background:#2563eb; }
+.bot { bottom:90px; right:16px; background:#0ea5e9; }
+.gift { bottom:90px; left:16px; background:#f59e0b; }
 
-#active { color: #1de9b6; }
-#today { color: #ffca28; }
-
-/* CENTER */
-#center {
-  position: absolute;
-  inset: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-direction: column;
+.particle {
+  position:absolute;
+  font-size:18px;
+  pointer-events:none;
+  animation:fly 0.8s linear forwards;
 }
-
-#coin {
-  width: 180px;
-  height: 180px;
-  border-radius: 50%;
-  background: radial-gradient(circle at 30% 30%, #ffe082, #ffb300);
-  box-shadow:
-    0 0 40px rgba(255, 193, 7, 0.8),
-    inset 0 0 30px rgba(255,255,255,0.4);
-  transition: transform 0.05s;
-}
-
-#coin:active {
-  transform: scale(0.92);
-}
-
-#count {
-  margin-top: 16px;
-  font-size: 30px;
-  font-weight: 600;
-}
-
-/* SIDE BUTTONS */
-.side {
-  position: absolute;
-  right: 14px;
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
-}
-
-.side button {
-  width: 54px;
-  height: 54px;
-  border-radius: 14px;
-  border: none;
-  background: linear-gradient(145deg, #2196f3, #1565c0);
-  color: #fff;
-  font-size: 18px;
-  box-shadow: 0 6px 16px rgba(0,0,0,0.4);
-}
-
-.side button:active {
-  transform: scale(0.9);
-}
-
-#gift {
-  background: linear-gradient(145deg, #ffca28, #ff9800);
-  color: #000;
-}
-
-/* FLASH */
-.flash {
-  position: fixed;
-  top: 45%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  font-size: 26px;
-  color: gold;
-  text-shadow: 0 0 25px gold;
-  animation: pop 1.2s ease-out;
-  pointer-events: none;
-}
-
-@keyframes pop {
-  0% { opacity: 0; transform: scale(0.4) translate(-50%, -50%); }
-  40% { opacity: 1; transform: scale(1.2) translate(-50%, -50%); }
-  100% { opacity: 0; transform: scale(1) translate(-50%, -50%); }
+@keyframes fly {
+  from { transform:translate(0,0) scale(1); opacity:1;}
+  to { transform:translate(var(--x),var(--y)) scale(0); opacity:0;}
 }
 </style>
 </head>
 
 <body>
-
-<!-- TOP -->
-<div id="top">
-  <div>Active: <span id="active">12 482</span></div>
-  <div>Today rewards: <span id="today">3 000</span></div>
+<div class="top">
+  <div>Active: <span id="active">12 3xx</span></div>
+  <div>Today rewards: <span id="today">3 0xx</span></div>
 </div>
 
-<!-- CENTER -->
-<div id="center">
-  <div id="coin"></div>
-  <div id="count">0</div>
+<div id="game">
+  <div id="coin" class="coin"></div>
+  <div id="score">0</div>
+
+  <div class="btn x2">⚡</div>
+  <div class="btn bot">🤖</div>
+  <div class="btn gift">🎁</div>
 </div>
 
-<!-- SIDE BUTTONS -->
-<div class="side" style="top: 35%;">
-  <button id="x2">⚡×2</button>
-  <button id="bot">🤖</button>
-  <button id="gift">🎁</button>
-</div>
+<audio id="tapSound" src="https://assets.mixkit.co/sfx/preview/mixkit-arcade-click-1115.mp3"></audio>
+<audio id="levelSound" src="https://assets.mixkit.co/sfx/preview/mixkit-achievement-bell-600.mp3"></audio>
 
 <script>
-let coins = Number(localStorage.getItem('coins') || 0);
-let taps = Number(localStorage.getItem('taps') || 0);
-let bonusUsed = localStorage.getItem('gift');
+let score = 0;
+let tapValue = 1;
+let autoTap = false;
 
-const count = document.getElementById('count');
-const coin = document.getElementById('coin');
+const coin = document.getElementById("coin");
+const scoreEl = document.getElementById("score");
+const tapSound = document.getElementById("tapSound");
+const levelSound = document.getElementById("levelSound");
 
-function flash(text) {
-  const f = document.createElement('div');
-  f.className = 'flash';
-  f.innerText = text;
-  document.body.appendChild(f);
-  setTimeout(() => f.remove(), 1200);
+function updateCoin() {
+  if (score >= 100000) coin.className = "coin legend";
+  else if (score >= 10000) coin.className = "coin platinum";
+  else if (score >= 1000) coin.className = "coin gold";
 }
 
-function update() {
-  count.innerText = coins.toLocaleString();
-  localStorage.setItem('coins', coins);
-  localStorage.setItem('taps', taps);
+function flash() {
+  coin.style.transform = "scale(1.1)";
+  setTimeout(()=>coin.style.transform="scale(1)",150);
 }
 
-/* WELCOME BONUS */
-if (!localStorage.getItem('welcome')) {
-  coins += 100;
-  flash('+100 WELCOME');
-  localStorage.setItem('welcome', '1');
+function particles(x,y) {
+  for(let i=0;i<8;i++){
+    const p=document.createElement("div");
+    p.className="particle";
+    p.textContent="🪙";
+    p.style.left=x+"px";
+    p.style.top=y+"px";
+    p.style.setProperty("--x",(Math.random()*100-50)+"px");
+    p.style.setProperty("--y",(Math.random()*-120)+"px");
+    document.body.appendChild(p);
+    setTimeout(()=>p.remove(),800);
+  }
 }
 
-/* MULTI TAP */
-coin.addEventListener('touchstart', e => {
-  coins += e.touches.length;
-  taps += e.touches.length;
+coin.addEventListener("pointerdown", e=>{
+  score += tapValue;
+  scoreEl.textContent = score.toLocaleString("uk-UA");
+  tapSound.currentTime=0; tapSound.play();
+  particles(e.clientX,e.clientY);
+  flash();
 
-  if (taps === 10000) flash('+100 TAP BONUS');
-  if (coins === 1000) flash('LEVEL 2');
-  if (coins === 10000) flash('LEVEL 3');
-
-  update();
+  if ([1000,10000,100000].includes(score)) {
+    levelSound.play();
+    updateCoin();
+  }
 });
 
-/* X2 BOOST */
-document.getElementById('x2').onclick = () => {
-  flash('X2 for 10 sec');
-  const end = Date.now() + 10000;
-  const old = coin.ontouchstart;
-  coin.ontouchstart = e => {
-    if (Date.now() < end) coins += e.touches.length * 2;
-    update();
-  };
-  setTimeout(() => coin.ontouchstart = null, 10000);
+document.querySelector(".x2").onclick=()=>{
+  tapValue=2;
+  setTimeout(()=>tapValue=1,10000);
 };
 
-/* GIFT */
-document.getElementById('gift').onclick = () => {
-  if (bonusUsed) return flash('Already claimed');
-  coins += 5000;
-  localStorage.setItem('gift', '1');
-  flash('+5000 BONUS');
-  update();
+document.querySelector(".bot").onclick=()=>{
+  if(autoTap) return;
+  autoTap=true;
+  let i=0;
+  const t=setInterval(()=>{
+    score+=tapValue;
+    scoreEl.textContent=score.toLocaleString("uk-UA");
+    updateCoin();
+    i++;
+    if(i>50){clearInterval(t);autoTap=false;}
+  },200);
 };
 
-/* FAKE ACTIVE */
-setInterval(() => {
-  document.getElementById('active').innerText =
-    (12000 + Math.floor(Math.random() * 800)).toLocaleString();
-}, 15000);
-
-/* TODAY REWARDS */
-setInterval(() => {
-  const h = new Date().getHours();
-  document.getElementById('today').innerText =
-    (3000 + h * 700 + Math.floor(Math.random() * 400)).toLocaleString();
-}, 60000);
-
-update();
+document.querySelector(".gift").onclick=()=>{
+  alert("Завдання: підпишись на канал, щоб отримати бонус 🎁");
+};
 </script>
-
 </body>
 </html>
