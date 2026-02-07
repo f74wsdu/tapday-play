@@ -7,163 +7,150 @@
 <style>
 html,body{
 margin:0;height:100%;
-background:#070b18;
+background:#050812;
 font-family:Arial;color:#fff;
 overflow:hidden
 }
-#top{
+#money{
 position:absolute;top:10px;left:10px;
-font-size:20px;font-weight:bold
+font-size:22px;font-weight:bold
+}
+#timers{
+position:absolute;top:10px;right:10px;
+text-align:right;font-size:12px
+}
+#adBtn{
+background:#111;padding:10px 14px;
+border-radius:12px;margin-bottom:6px;
+cursor:pointer
 }
 #coin{
 position:absolute;top:50%;left:50%;
 transform:translate(-50%,-50%);
-width:180px;height:180px;
+width:200px;height:200px;
 border-radius:50%;
-background:radial-gradient(circle,#ffd700,#caa400);
-display:flex;align-items:center;justify-content:center;
-font-size:28px;font-weight:bold;
-cursor:pointer;
-transition:.15s
+background:url('https://i.imgur.com/Z8QZ6sS.png') center/contain no-repeat;
+cursor:pointer
 }
-#coin:active{
-transform:translate(-50%,-50%) scale(1.12)
-}
-#cornerAd{
-position:absolute;top:10px;right:10px;
-width:70px;height:70px;
-background:#111;border-radius:12px;
-display:flex;align-items:center;justify-content:center;
-font-size:10px;text-align:center
-}
-#bonusBox{
+#bonus{
 position:absolute;bottom:90px;left:50%;
 transform:translateX(-50%);
-background:#0e1730;
-padding:16px 22px;
-border-radius:16px;
-text-align:center
+background:#0d1733;
+padding:18px 24px;
+border-radius:18px;text-align:center
 }
-#bonusBox button{
+#bonus button{
 margin-top:10px;
-padding:10px 16px;
-border:none;border-radius:10px;
-background:#00ffcc;font-weight:bold
-}
-#menu{
-position:absolute;bottom:0;width:100%;
-display:flex;background:#020713
-}
-#menu button{
-flex:1;padding:16px;
-background:none;border:none;
-color:#fff;font-size:16px
-}
-.panel{
-position:absolute;top:0;left:0;
-width:100%;height:100%;
-background:#070b18;
-display:none;padding:20px
-}
-.card{
-background:#0e1730;
-padding:16px;border-radius:16px;
-margin-bottom:16px
-}
-.btn{
 padding:12px 18px;
 border:none;border-radius:12px;
-background:#00ffcc;
-font-weight:bold
+background:#00ffd5;font-weight:bold
+}
+#city{
+position:absolute;bottom:10px;
+width:100%;text-align:center;
+opacity:.8
+}
+.rain{
+position:absolute;
+top:-20px;
+font-size:20px;
+animation:fall 1s linear forwards;
+}
+@keyframes fall{
+to{transform:translateY(110vh);opacity:0}
 }
 </style>
 </head>
 <body>
 
-<div id="top">💵 <span id="money">0</span></div>
+<div id="money">💵 0</div>
 
-<div id="cornerAd" onclick="watchAd()">
-РЕКЛАМА<br>+5000
+<div id="timers">
+<div id="adBtn" onclick="watchAd()">РЕКЛАМА +2000</div>
+<div>🎁 Бонус: <span id="bonusTimer">00:00</span></div>
 </div>
 
-<div id="coin" onclick="tap()">💰</div>
+<div id="coin" onclick="tap()"></div>
 
-<div id="bonusBox">
-🎁 БОНУС  
-<br>Підпишись на канал  
+<div id="bonus">
+🎁 БОНУС<br>Підпишись на канал
 <br>
-<button onclick="subscribeBonus()">Отримати +10 000</button>
+<button onclick="bonus()">Отримати +10 000</button>
 </div>
 
-<div id="city" class="panel">
-<h2>🏙 Місто</h2>
-
-<div class="card">
-⚡ Tap x3 — 500  
-<br><br>
-<button class="btn" onclick="buyTap(500,3)">Купити</button>
-</div>
-
-<div class="card">
-⚡ Tap x5 — 2000  
-<br><br>
-<button class="btn" onclick="buyTap(2000,5)">Купити</button>
-</div>
-
-<div class="card">
-🎥 Реклама — +50 000  
-<br><br>
-<button class="btn" onclick="watchAd()">Дивитись</button>
-</div>
-
-<button class="btn" onclick="closeAll()">Назад</button>
-</div>
-
-<div id="menu">
-<button onclick="openPanel('city')">Місто</button>
+<div id="city">
+🏙 Місто приносить +5 / сек
 </div>
 
 <script>
 let money=0;
 let tapPower=1;
-let subTaken=false;
+let lastBonus=0;
+let audioCtx=new AudioContext();
+
+function sound(freq){
+let o=audioCtx.createOscillator();
+let g=audioCtx.createGain();
+o.frequency.value=freq;
+o.connect(g);g.connect(audioCtx.destination);
+o.start();g.gain.exponentialRampToValueAtTime(0.0001,audioCtx.currentTime+0.15);
+}
 
 function tap(){
 money+=tapPower;
+rain();
+sound(600);
+checkCoin();
 update();
 }
 
-function update(){
-document.getElementById("money").innerText=money.toLocaleString();
+function rain(){
+for(let i=0;i<5;i++){
+let s=document.createElement("div");
+s.className="rain";
+s.innerText="💰";
+s.style.left=Math.random()*100+"%";
+document.body.appendChild(s);
+setTimeout(()=>s.remove(),1000);
 }
-
-function buyTap(cost,power){
-if(money>=cost){
-money-=cost;
-tapPower=power;
-update();
-}
-}
-
-function subscribeBonus(){
-if(subTaken) return;
-window.open("https://t.me/your_channel","_blank");
-money+=10000;
-subTaken=true;
-update();
 }
 
 function watchAd(){
-money+=50000;
+money+=2000;
+sound(300);
 update();
 }
 
-function openPanel(id){
-document.getElementById(id).style.display="block";
+function bonus(){
+if(Date.now()-lastBonus<60000)return;
+window.open("https://t.me/YOUR_CHANNEL","_blank");
+money+=10000;
+lastBonus=Date.now();
+sound(150);
+update();
 }
-function closeAll(){
-document.querySelectorAll(".panel").forEach(p=>p.style.display="none");
+
+function checkCoin(){
+let c=document.getElementById("coin");
+if(money>1000000)c.style.backgroundImage="url('https://i.imgur.com/0G4ZpZT.png')";
+else if(money>100000)c.style.backgroundImage="url('https://i.imgur.com/Y2Zz7cJ.png')";
+else if(money>10000)c.style.backgroundImage="url('https://i.imgur.com/F2yQfHl.png')";
 }
+
+function update(){
+document.getElementById("money").innerText="💵 "+money.toLocaleString();
+}
+
+setInterval(()=>{
+money+=5;
+update();
+},1000);
+
+setInterval(()=>{
+let t=Math.max(0,60-Math.floor((Date.now()-lastBonus)/1000));
+document.getElementById("bonusTimer").innerText=
+String(Math.floor(t/60)).padStart(2,"0")+":"+String(t%60).padStart(2,"0");
+},500);
 </script>
 
 </body>
