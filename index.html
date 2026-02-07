@@ -1,129 +1,167 @@
 <!DOCTYPE html>
 <html lang="uk">
 <head>
-<meta charset="UTF-8">
-<title>TapDay World 2026</title>
-<meta name="viewport" content="width=device-width,initial-scale=1.0,user-scalable=no">
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TapDay World</title>
 <style>
-html,body{margin:0;overflow:hidden;background:#0b1a0b;font-family:system-ui;color:#fff}
-canvas{display:block}
-#ui{
-position:fixed;top:10px;left:10px;right:10px;
-display:flex;gap:10px;z-index:10
+html, body {
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  background: #0b1d0f;
 }
-.panel{
-background:rgba(0,0,0,.55);
-backdrop-filter:blur(8px);
-padding:10px 14px;border-radius:14px
+canvas {
+  display: block;
 }
-button{
-background:#2ecc71;border:0;
-padding:8px 12px;border-radius:10px;
-color:#000;font-weight:600
+#ui {
+  position: fixed;
+  top: 10px;
+  left: 10px;
+  background: rgba(0,0,0,0.5);
+  color: #fff;
+  padding: 10px 14px;
+  border-radius: 12px;
+  font-family: Arial;
+}
+button {
+  margin-top: 6px;
+  width: 100%;
 }
 </style>
 </head>
+
 <body>
 
 <div id="ui">
-<div class="panel">💰 <span id="money">1500</span></div>
-<div class="panel" id="time">🌤 День</div>
-<button onclick="mode='farm'">🌾 Ферма</button>
-<button onclick="mode='factory'">🏭 Завод</button>
-<button onclick="mode='hospital'">🏥 Лікарня</button>
+  💰 <span id="money">1500</span><br>
+  ⏰ <span id="time">День</span><br>
+  <button onclick="buildBusiness()">Побудувати бізнес</button>
 </div>
 
-<canvas id="c"></canvas>
+<canvas id="game"></canvas>
 
 <script>
-const c=document.getElementById("c"),ctx=c.getContext("2d");
-resize();addEventListener("resize",resize);
+const canvas = document.getElementById("game");
+const ctx = canvas.getContext("2d");
 
-let cam={x:0,y:0,z:1};
-let money=1500;
-let mode=null;
-let t=0;
+canvas.width = window.innerWidth;
+canvas.height = window.innerHeight;
 
-// buildings
-const buildings=[];
+let camX = 0;
+let camY = 0;
+let zoom = 1;
 
-// organic terrain
-function noise(x,y){
-return Math.sin(x*0.01)+Math.cos(y*0.01);
+let money = 1500;
+let isDay = true;
+
+const tiles = [];
+const TILE = 64;
+const MAP = 80;
+
+// === ГЕНЕРАЦІЯ КАРТИ ===
+for (let y = 0; y < MAP; y++) {
+  for (let x = 0; x < MAP; x++) {
+    const n = Math.random();
+    tiles.push({
+      x, y,
+      type: n < 0.18 ? "water" : "grass",
+      business: false
+    });
+  }
 }
 
-function draw(){
-ctx.clearRect(0,0,c.width,c.height);
-t+=0.001;
+// === РЕНДЕР ===
+function draw() {
+  ctx.clearRect(0,0,canvas.width,canvas.height);
 
-const day=Math.sin(t)*0.5+0.5;
-document.getElementById("time").textContent=day>0.5?"🌤 День":"🌙 Ніч";
+  ctx.save();
+  ctx.translate(canvas.width/2 + camX, canvas.height/2 + camY);
+  ctx.scale(zoom, zoom);
 
-ctx.save();
-ctx.translate(c.width/2+cam.x,c.height/2+cam.y);
-ctx.scale(cam.z,cam.z);
+  tiles.forEach(t => {
+    const px = (t.x - t.y) * TILE;
+    const py = (t.x + t.y) * TILE/2;
 
-// land
-for(let x=-2000;x<2000;x+=40){
-for(let y=-2000;y<2000;y+=40){
-const n=noise(x,y);
-if(n>1){
-ctx.fillStyle="#1e6bd6"; // water
-}else{
-ctx.fillStyle="#2f8f3f"; // grass
+    if (t.type === "water") {
+      ctx.fillStyle = "#2b6cb0";
+    } else {
+      ctx.fillStyle = "#3fa34d";
+    }
+
+    ctx.beginPath();
+    ctx.moveTo(px, py);
+    ctx.lineTo(px + TILE, py + TILE/2);
+    ctx.lineTo(px, py + TILE);
+    ctx.lineTo(px - TILE, py + TILE/2);
+    ctx.closePath();
+    ctx.fill();
+
+    if (t.business) {
+      ctx.fillStyle = "#222";
+      ctx.fillRect(px - 10, py + 20, 20, 20);
+    }
+  });
+
+  // ніч
+  if (!isDay) {
+    ctx.fillStyle = "rgba(0,0,40,0.4)";
+    ctx.fillRect(-5000,-5000,10000,10000);
+  }
+
+  ctx.restore();
+
+  requestAnimationFrame(draw);
 }
-ctx.fillRect(x,y,40,40);
-}
-}
 
-// buildings
-for(const b of buildings){
-ctx.fillStyle=b.type==="farm"?"#c9b458":
-b.type==="factory"?"#888":
-"#e74c3c";
-ctx.fillRect(b.x-15,b.y-15,30,30);
-}
-
-// fog
-ctx.fillStyle=`rgba(200,200,200,${0.08-day*0.05})`;
-ctx.fillRect(-3000,-3000,6000,6000);
-
-ctx.restore();
-requestAnimationFrame(draw);
-}
 draw();
 
-// place buildings
-c.onclick=e=>{
-if(!mode) return;
-const rect=c.getBoundingClientRect();
-const x=(e.clientX-rect.width/2-cam.x)/cam.z;
-const y=(e.clientY-rect.height/2-cam.y)/cam.z;
-buildings.push({x,y,type:mode});
-money-=100;
-document.getElementById("money").textContent=money;
+// === УПРАВЛІННЯ КАРТОЮ ===
+let dragging = false;
+let lastX, lastY;
+
+canvas.onmousedown = e => {
+  dragging = true;
+  lastX = e.clientX;
+  lastY = e.clientY;
 };
 
-// camera
-let drag=false,px,py;
-c.onpointerdown=e=>{drag=true;px=e.clientX;py=e.clientY}
-c.onpointerup=()=>drag=false;
-c.onpointermove=e=>{
-if(drag){
-cam.x+=e.clientX-px;
-cam.y+=e.clientY-py;
-px=e.clientX;py=e.clientY;
-}
-}
-c.onwheel=e=>{
-cam.z+=e.deltaY*-0.001;
-cam.z=Math.max(.6,Math.min(1.6,cam.z));
+canvas.onmouseup = () => dragging = false;
+
+canvas.onmousemove = e => {
+  if (!dragging) return;
+  camX += e.clientX - lastX;
+  camY += e.clientY - lastY;
+  lastX = e.clientX;
+  lastY = e.clientY;
+};
+
+canvas.onwheel = e => {
+  zoom += e.deltaY * -0.001;
+  zoom = Math.min(Math.max(zoom, 0.4), 2);
+};
+
+// === БІЗНЕС ===
+function buildBusiness() {
+  const tile = tiles.find(t => t.type === "grass" && !t.business);
+  if (!tile || money < 200) return;
+  tile.business = true;
+  money -= 200;
+  document.getElementById("money").innerText = money;
 }
 
-function resize(){
-c.width=innerWidth;
-c.height=innerHeight;
-}
+// === ДЕНЬ / НІЧ ===
+setInterval(() => {
+  isDay = !isDay;
+  document.getElementById("time").innerText = isDay ? "День" : "Ніч";
+}, 12000);
+
+// === ДОХІД ===
+setInterval(() => {
+  const count = tiles.filter(t => t.business).length;
+  money += count * 5;
+  document.getElementById("money").innerText = money;
+}, 3000);
 </script>
 
 </body>
