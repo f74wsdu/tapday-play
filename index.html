@@ -11,14 +11,17 @@ body{margin:0;background:#0b0b0b;color:#fff;font-family:system-ui;text-align:cen
 .yellow{color:#ffd400}
 #balance{font-size:42px;margin-top:20px}
 #label{opacity:.7}
-#circle{width:260px;height:260px;margin:20px auto;border-radius:50%;background:#222;display:flex;align-items:center;justify-content:center}
+#circle{width:260px;height:260px;margin:20px auto;border-radius:50%;background:#222;
+display:flex;align-items:center;justify-content:center}
 #icon{width:120px}
-.btn{margin:10px;padding:14px;border-radius:14px;border:none;font-size:16px}
-.ad{background:#ffd400}
+.btn{margin:8px;padding:14px;border-radius:14px;border:none;font-size:16px;width:80%}
+.ad{background:#ffd400;color:#000}
 .bonus{background:#1c1c1c;color:#fff}
 .play{background:#333;color:#aaa}
-#tap{background:#1fa84f;color:#fff;font-size:20px;padding:16px 40px}
-.timer{opacity:.6;font-size:14px}
+.play.active{background:#1fa84f;color:#fff}
+#tap{background:#1fa84f;color:#fff;font-size:20px;padding:16px 40px;
+border:none;border-radius:18px}
+.timer{opacity:.6;font-size:14px;margin-top:6px}
 </style>
 </head>
 
@@ -36,62 +39,105 @@ body{margin:0;background:#0b0b0b;color:#fff;font-family:system-ui;text-align:cen
   <img id="icon" src="assets/money.png">
 </div>
 
-<button class="btn ad" onclick="watchAd()">▶ Реклама +50</button><br>
-<button class="btn bonus" onclick="channelBonus()">🎁 Бонус з каналу +500</button><br>
-<button class="btn play" id="playBtn" onclick="playBonus()">▶ PLAY бонус +1000</button>
-<div class="timer" id="timer"></div><br>
+<button class="btn ad" onclick="watchAd()">▶ Реклама +50</button>
+
+<button class="btn bonus" id="subBtn" onclick="channelBonus()">
+🎁 Підпишись — отримай 500
+</button>
+
+<button class="btn play" id="playBtn" onclick="playBonus()" disabled>
+▶ PLAY бонус +1000
+</button>
+<div class="timer" id="timer"></div>
 
 <button id="tap" onclick="tap()">TAP</button>
 
 <script>
-let balance=0;
-const CHANNEL_LINK=https://t.me/https://t.me/tapday_clicker;
+let balance = 0;
 
-document.getElementById("online").innerText=4000+Math.floor(Math.random()*500);
-document.getElementById("today").innerText=3000+Math.floor(Math.random()*500);
+// 🔗 ТВОЄ ПОСИЛАННЯ НА КАНАЛ
+const CHANNEL_LINK = "https://t.me/tapday_clicker";
 
+// онлайн / сьогодні
+document.getElementById("online").innerText =
+4000 + Math.floor(Math.random()*600);
+document.getElementById("today").innerText =
+2500 + Math.floor(Math.random()*500);
+
+// tap
 function tap(){
  balance++;
  update();
- if(navigator.vibrate)navigator.vibrate(20);
+ if(navigator.vibrate) navigator.vibrate(20);
 }
 
+// реклама
 function watchAd(){
- balance+=50;
+ balance += 50;
  update();
 }
 
+// бонус за підписку
 function channelBonus(){
  window.open(CHANNEL_LINK,"_blank");
  setTimeout(()=>{
-  balance+=500;
-  update();
+   balance += 500;
+   update();
+   localStorage.setItem("subBonus","1");
+   document.getElementById("subBtn").style.display="none";
+   activatePlayBonus();
  },3000);
 }
 
-let end=localStorage.getItem("playEnd");
-if(!end){
- end=Date.now()+30*24*60*60*1000;
- localStorage.setItem("playEnd",end);
-}
-function playBonus(){
- balance+=1000;
- update();
+// PLAY бонус логіка
+let end = localStorage.getItem("playEnd");
+
+function activatePlayBonus(){
+ if(!end){
+   end = Date.now() + 30*24*60*60*1000;
+   localStorage.setItem("playEnd", end);
+ }
+ document.getElementById("playBtn").disabled = true;
+ tick();
 }
 
+// таймер
 function tick(){
- let diff=end-Date.now();
- if(diff<=0){document.getElementById("timer").innerText="";return;}
- let d=Math.floor(diff/86400000);
- let h=Math.floor(diff/3600000)%24;
- let m=Math.floor(diff/60000)%60;
- let s=Math.floor(diff/1000)%60;
- document.getElementById("timer").innerText=`${d}д ${h}г ${m}хв ${s}с`;
+ if(!end) return;
+ let diff = end - Date.now();
+ if(diff <= 0){
+   document.getElementById("timer").innerText = "Бонус доступний";
+   document.getElementById("playBtn").disabled = false;
+   document.getElementById("playBtn").classList.add("active");
+   return;
+ }
+ let d = Math.floor(diff/86400000);
+ let h = Math.floor(diff/3600000)%24;
+ let m = Math.floor(diff/60000)%60;
+ let s = Math.floor(diff/1000)%60;
+ document.getElementById("timer").innerText =
+ `${d}д ${h}г ${m}хв ${s}с`;
 }
 setInterval(tick,1000);
 
+// отримання +1000
+function playBonus(){
+ if(Date.now() < end) return;
+ balance += 1000;
+ update();
+ localStorage.removeItem("playEnd");
+ document.getElementById("playBtn").disabled = true;
+ document.getElementById("timer").innerText = "";
+}
+
+// відновлення стану
+if(localStorage.getItem("subBonus")){
+ document.getElementById("subBtn").style.display="none";
+ activatePlayBonus();
+}
+
 function update(){
- document.getElementById("balance").innerText=balance;
+ document.getElementById("balance").innerText = balance;
 }
 update();
 </script>
