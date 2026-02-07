@@ -2,102 +2,55 @@
 <html lang="uk">
 <head>
 <meta charset="UTF-8">
-<title>TapDay — City Map</title>
+<title>TapDay — Live Map</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <style>
 body {
   margin: 0;
-  font-family: Arial, sans-serif;
-  background: radial-gradient(circle at top, #111827, #020617);
+  background: #0b1020;
   color: #fff;
+  font-family: Arial, sans-serif;
+  overflow: hidden;
 }
 
-/* TOP BAR */
 #top {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 10;
   display: flex;
   justify-content: space-between;
   padding: 12px 16px;
-  font-size: 16px;
-  background: rgba(0,0,0,0.4);
+  background: rgba(0,0,0,0.6);
 }
 
-.money {
-  color: #ffd36a;
-  font-weight: bold;
+#mapWrap {
+  width: 100vw;
+  height: 100vh;
 }
 
-.level {
-  opacity: 0.8;
-}
-
-/* MAP */
-#map {
-  padding: 16px;
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 14px;
-}
-
-.district {
-  height: 120px;
-  border-radius: 22px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  text-align: center;
-  font-size: 16px;
-  font-weight: bold;
-  cursor: pointer;
-  transition: 0.25s;
-}
-
-.district:hover {
-  transform: scale(1.04);
-}
-
-.unlocked {
-  background: linear-gradient(135deg, #ffd36a, #ff9f1c);
-  color: #000;
-}
-
-.locked {
-  background: #1f2933;
-  color: #6b7280;
-}
-
-/* PANEL */
 #panel {
   position: fixed;
   bottom: 0;
   left: 0;
   right: 0;
-  background: #020617;
-  border-top: 1px solid #1f2937;
+  background: rgba(0,0,0,0.85);
   padding: 16px;
-  min-height: 140px;
+  min-height: 120px;
 }
 
 button {
+  margin-top: 10px;
   width: 100%;
   padding: 14px;
-  margin-top: 10px;
   border: none;
   border-radius: 14px;
   font-size: 16px;
   font-weight: bold;
-  background: linear-gradient(135deg, #22c55e, #16a34a);
+  background: linear-gradient(135deg, #ffd36a, #ff9f1c);
   color: #000;
-  cursor: pointer;
-}
-
-button:active {
-  transform: scale(0.97);
-}
-
-.small {
-  font-size: 14px;
-  opacity: 0.85;
 }
 </style>
 </head>
@@ -105,88 +58,66 @@ button:active {
 <body>
 
 <div id="top">
-  <div class="money">💰 <span id="money">1000</span></div>
-  <div class="level">Рівень <span id="level">1</span></div>
+  <div>💰 <span id="money">1000</span></div>
+  <div>Рівень <span id="level">1</span></div>
 </div>
 
-<div id="map">
-  <div class="district unlocked" data-id="1">🌾<br>Ферма</div>
-  <div class="district locked" data-id="2">🏭<br>Завод<br><span class="small">5000 💰</span></div>
-  <div class="district locked" data-id="3">🏥<br>Лікарня<br><span class="small">15000 💰</span></div>
-  <div class="district locked" data-id="4">🏙<br>Бізнес-центр<br><span class="small">50000 💰</span></div>
+<div id="mapWrap">
+<svg id="map" viewBox="0 0 1000 600" width="100%" height="100%">
+
+  <!-- WATER -->
+  <path d="M0 400 Q200 350 400 420 T1000 450 L1000 600 L0 600 Z"
+        fill="#0ea5e9" opacity="0.5"/>
+
+  <!-- FIELDS -->
+  <rect x="50" y="50" width="350" height="250" rx="40" fill="#22c55e"/>
+  <text x="200" y="180" text-anchor="middle" fill="#000" font-size="24">🌾 ФЕРМА</text>
+
+  <!-- CITY -->
+  <rect x="450" y="80" width="300" height="220" rx="40" fill="#64748b"/>
+  <text x="600" y="190" text-anchor="middle" fill="#fff" font-size="22">🏙 МІСТО</text>
+
+  <!-- FACTORY -->
+  <rect x="800" y="150" width="150" height="180" rx="30" fill="#f97316"/>
+  <text x="875" y="250" text-anchor="middle" fill="#000" font-size="20">🏭</text>
+
+  <!-- HOSPITAL -->
+  <rect x="300" y="330" width="200" height="160" rx="30" fill="#ef4444"/>
+  <text x="400" y="420" text-anchor="middle" fill="#fff" font-size="20">🏥</text>
+
+  <!-- CLICK ZONES -->
+  <rect x="50" y="50" width="350" height="250" fill="transparent"
+        onclick="openPlace('Ферма', 10)"/>
+  <rect x="450" y="80" width="300" height="220" fill="transparent"
+        onclick="openPlace('Місто', 40)"/>
+  <rect x="800" y="150" width="150" height="180" fill="transparent"
+        onclick="openPlace('Завод', 80)"/>
+  <rect x="300" y="330" width="200" height="160" fill="transparent"
+        onclick="openPlace('Лікарня', 60)"/>
+
+</svg>
 </div>
 
 <div id="panel">
-  <div id="panelContent" class="small">Обери район на карті</div>
+  <div id="panelText">Тапни на район на карті</div>
 </div>
 
 <script>
-const game = {
-  money: 1000,
-  level: 1,
-  unlocked: [1]
-};
+let money = 1000;
+let level = 1;
 
-const districts = {
-  1: { name: "Ферма", income: 10, cost: 0 },
-  2: { name: "Завод", income: 50, cost: 5000 },
-  3: { name: "Лікарня", income: 120, cost: 15000 },
-  4: { name: "Бізнес-центр", income: 300, cost: 50000 }
-};
-
-function updateUI() {
-  document.getElementById("money").textContent = game.money;
-  document.getElementById("level").textContent = game.level;
-
-  document.querySelectorAll(".district").forEach(el => {
-    const id = Number(el.dataset.id);
-    if (game.unlocked.includes(id)) {
-      el.classList.remove("locked");
-      el.classList.add("unlocked");
-    }
-  });
-}
-
-document.querySelectorAll(".district").forEach(el => {
-  el.onclick = () => {
-    const id = Number(el.dataset.id);
-    if (game.unlocked.includes(id)) {
-      openDistrict(id);
-    } else {
-      tryUnlock(id);
-    }
-  };
-});
-
-function tryUnlock(id) {
-  const d = districts[id];
-  if (game.money >= d.cost) {
-    game.money -= d.cost;
-    game.unlocked.push(id);
-    game.level++;
-    updateUI();
-    openDistrict(id);
-  } else {
-    document.getElementById("panelContent").innerHTML =
-      `Недостатньо грошей для відкриття <b>${d.name}</b>`;
-  }
-}
-
-function openDistrict(id) {
-  const d = districts[id];
-  document.getElementById("panelContent").innerHTML = `
-    <b>${d.name}</b><br>
-    Дохід: +${d.income} 💰<br>
-    <button onclick="earn(${d.income})">Працювати</button>
+function openPlace(name, income) {
+  document.getElementById("panelText").innerHTML = `
+    <b>${name}</b><br>
+    Дохід: +${income} 💰<br>
+    <button onclick="earn(${income})">Працювати</button>
   `;
 }
 
-function earn(amount) {
-  game.money += amount;
-  updateUI();
+function earn(v) {
+  money += v;
+  document.getElementById("money").textContent = money;
 }
-
-updateUI();
 </script>
 
 </body>
