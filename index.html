@@ -2,211 +2,161 @@
 <html lang="uk">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>TapDay</title>
-<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Tap Coin Game</title>
 
 <style>
-body{
-  margin:0;
-  background:radial-gradient(circle at top,#1a2a6c,#050812);
-  font-family:system-ui,Arial;
-  color:#fff;
-  overflow:hidden;
-  text-align:center;
-  user-select:none;
+body {
+  margin: 0;
+  background: radial-gradient(circle at top, #111, #000);
+  font-family: Arial, sans-serif;
+  color: #fff;
+  overflow: hidden;
+  touch-action: manipulation;
 }
 
-/* HEADER */
-.header{
-  width:92%;
-  max-width:420px;
-  margin:16px auto;
-  padding:16px;
-  border-radius:20px;
-  background:linear-gradient(180deg,rgba(0,0,0,.6),rgba(0,0,0,.8));
-  box-shadow:0 20px 50px rgba(0,0,0,.6);
-}
-.balance{
-  font-size:44px;
-  font-weight:900;
-  text-shadow:0 0 18px gold;
-}
-.meta{
-  display:flex;
-  justify-content:space-between;
-  font-size:14px;
-  margin-top:8px;
+#top {
+  display: flex;
+  justify-content: space-between;
+  padding: 12px;
+  font-size: 14px;
+  opacity: 0.85;
 }
 
-/* TAP COIN */
-.stage{
-  height:55vh;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-}
-.tap{
-  width:260px;
-  height:260px;
-  border-radius:50%;
-  background:
-    radial-gradient(circle at 30% 25%, #fff6c7, #ffcc55 40%, #e6a800 75%);
-  box-shadow:
-    inset 0 -12px 22px rgba(0,0,0,.35),
-    0 0 90px rgba(255,200,0,.9);
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  font-size:40px;
-  font-weight:900;
-  color:#3a2600;
-  animation:pulse 2.2s infinite;
-  touch-action:manipulation;
-}
-.tap:active{transform:scale(.93)}
-@keyframes pulse{
-  0%{box-shadow:0 0 40px rgba(255,180,0,.6)}
-  50%{box-shadow:0 0 110px rgba(255,220,120,1)}
-  100%{box-shadow:0 0 40px rgba(255,180,0,.6)}
+#players { color: #00ffcc; }
+#daily { color: gold; }
+
+#center {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
 }
 
-/* SIDE BUTTONS */
-.side{
-  position:fixed;
-  right:12px;
-  top:40%;
-  display:flex;
-  flex-direction:column;
-  gap:14px;
+#coin {
+  width: 160px;
+  height: 160px;
+  border-radius: 50%;
+  background: radial-gradient(circle, gold, #ff9800);
+  box-shadow: 0 0 40px gold;
+  margin: auto;
+  transition: transform 0.05s;
 }
-.side button{
-  width:72px;
-  height:72px;
-  border-radius:18px;
-  border:none;
-  font-size:18px;
-  font-weight:800;
-  box-shadow:0 10px 26px rgba(0,0,0,.5);
-}
-.blue{background:#2d8cff;color:#fff}
-.gold{background:linear-gradient(145deg,#ffe08a,#ffb300);color:#3b2400}
 
-/* COINS EFFECT */
-.coin{
-  position:absolute;
-  font-size:32px;
-  animation:fly 900ms ease-out forwards;
-  pointer-events:none;
+#coin:active {
+  transform: scale(0.92);
 }
-@keyframes fly{
-  from{opacity:1;transform:translate(0,0) scale(1)}
-  to{opacity:0;transform:translate(var(--x),var(--y)) scale(.7)}
+
+#count {
+  margin-top: 14px;
+  font-size: 28px;
+}
+
+.flash {
+  position: fixed;
+  top: 45%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 26px;
+  color: gold;
+  text-shadow: 0 0 20px gold;
+  animation: pop 1.2s ease-out;
+  pointer-events: none;
+}
+
+@keyframes pop {
+  0% { opacity: 0; transform: scale(0.4); }
+  40% { opacity: 1; transform: scale(1.2); }
+  100% { opacity: 0; transform: scale(1); }
+}
+
+#bottom {
+  position: absolute;
+  bottom: 10px;
+  width: 100%;
+  text-align: center;
+  font-size: 13px;
+  opacity: 0.7;
 }
 </style>
 </head>
 
 <body>
 
-<div class="header">
-  <div class="balance" id="coins">0 💰</div>
-  <div class="meta">
-    <div>🔓 Рівень: <b id="lvl">1</b></div>
-    <div>🎯 Ціль: <b id="goal">1 000</b></div>
-    <div>⏳ <span id="time">24:00:00</span></div>
-  </div>
+<div id="top">
+  <div>Active: <span id="players">12 482</span></div>
+  <div>Today rewards: <span id="daily">3 000</span></div>
 </div>
 
-<div class="stage">
-  <div class="tap" id="tap">TAP</div>
+<div id="center">
+  <div id="coin"></div>
+  <div id="count">0</div>
 </div>
 
-<div class="side">
-  <button class="blue" id="x2">⚡x2</button>
-  <button class="blue" id="auto">🤖</button>
-  <button class="gold" id="bonus">🎁</button>
+<div id="bottom">
+  Demo game · Rewards are in-game coins
 </div>
 
 <script>
-const tg = window.Telegram.WebApp; tg.expand();
+let coins = Number(localStorage.getItem('coins') || 0);
+let taps = Number(localStorage.getItem('taps') || 0);
+const count = document.getElementById('count');
+const coin = document.getElementById('coin');
 
-let coins=0, mult=1, auto=false;
+const tapSound = new Audio();
+tapSound.src = "data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAESsAACJWAAACABAAZGF0YQAAAAA=";
 
-const levels=[
-  0,1000,3000,7000,15000,30000,60000,120000,250000,500000
-];
+function flash(text) {
+  const f = document.createElement('div');
+  f.className = 'flash';
+  f.innerText = text;
+  document.body.appendChild(f);
+  setTimeout(() => f.remove(), 1200);
+}
 
-function level(){
-  let l=1;
-  for(let i=1;i<levels.length;i++){
-    if(coins>=levels[i]) l=i+1;
+function update() {
+  count.innerText = coins.toLocaleString();
+  localStorage.setItem('coins', coins);
+  localStorage.setItem('taps', taps);
+}
+
+if (!localStorage.getItem('welcome')) {
+  coins += 100;
+  flash('+100 WELCOME');
+  localStorage.setItem('welcome', '1');
+}
+
+coin.addEventListener('touchstart', e => {
+  for (let i = 0; i < e.touches.length; i++) {
+    coins++;
+    taps++;
   }
-  return l;
-}
-
-function nextGoal(){
-  return levels[level()] ?? levels[levels.length-1];
-}
-
-function update(){
-  coinsEl.textContent=coins+" 💰";
-  lvlEl.textContent=level();
-  goalEl.textContent=nextGoal().toLocaleString();
-}
-
-const coinsEl=document.getElementById("coins");
-const lvlEl=document.getElementById("lvl");
-const goalEl=document.getElementById("goal");
-const tap=document.getElementById("tap");
-
-tap.addEventListener("pointerdown",e=>{
-  coins+=mult;
+  tapSound.currentTime = 0;
+  tapSound.play();
+  if (taps === 10000) flash('10 000 TAPS BONUS');
   update();
-  for(let i=0;i<4;i++)spawn(e.clientX,e.clientY);
 });
 
-function spawn(x,y){
-  const c=document.createElement("div");
-  c.className="coin";
-  c.textContent="💰";
-  c.style.left=x+"px";
-  c.style.top=y+"px";
-  c.style.setProperty("--x",(Math.random()*200-100)+"px");
-  c.style.setProperty("--y",(-Math.random()*180-60)+"px");
-  document.body.appendChild(c);
-  setTimeout(()=>c.remove(),900);
+function updatePlayers() {
+  const base = 12400;
+  const delta = Math.floor(Math.random() * 600);
+  document.getElementById('players').innerText =
+    (base + delta).toLocaleString();
 }
+setInterval(updatePlayers, 15000);
+updatePlayers();
 
-x2.onclick=()=>{
-  if(mult===2||coins<100) return;
-  coins-=100; mult=2; update();
-};
-
-auto.onclick=()=>{
-  if(auto||coins<300) return;
-  coins-=300; auto=true; update();
-};
-
-setInterval(()=>{if(auto){coins+=mult;update();}},700);
-
-bonus.onclick=()=>{
-  const reward=level()*1000;
-  coins+=reward;
-  update();
-  alert("🎁 Бонус: +"+reward);
-};
-
-/* TIMER */
-let sec=86400;
-setInterval(()=>{
-  sec--;
-  const h=String(Math.floor(sec/3600)).padStart(2,"0");
-  const m=String(Math.floor(sec%3600/60)).padStart(2,"0");
-  const s=String(sec%60).padStart(2,"0");
-  time.textContent=`${h}:${m}:${s}`;
-},1000);
+function updateDaily() {
+  const h = new Date().getHours();
+  const v = 3000 + h * 800 + Math.floor(Math.random() * 400);
+  document.getElementById('daily').innerText = v.toLocaleString();
+}
+setInterval(updateDaily, 60000);
+updateDaily();
 
 update();
 </script>
+
 </body>
 </html>
