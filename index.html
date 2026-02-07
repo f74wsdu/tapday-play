@@ -4,178 +4,279 @@
 <meta charset="UTF-8">
 <title>TapDay Play</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
 <style>
-body {
-  margin: 0;
-  font-family: Arial, sans-serif;
-  background: #0b0b0b;
-  color: #fff;
-  text-align: center;
+*{box-sizing:border-box}
+body{
+  margin:0;
+  background:#0a0a0a;
+  color:#fff;
+  font-family:Arial, sans-serif;
+  overflow:hidden;
 }
 
-.header {
-  padding: 12px;
-  background: #121212;
-  display: flex;
-  justify-content: space-between;
-  font-size: 14px;
+/* TOP */
+.top{
+  position:fixed;
+  top:0;left:0;right:0;
+  display:flex;
+  justify-content:space-between;
+  padding:10px 14px;
+  font-size:13px;
+  z-index:10;
+}
+.online{color:#4cff4c}
+.today{color:#ffd700}
+
+/* LEFT PANEL */
+.left{
+  position:fixed;
+  top:50px;
+  left:0;
+  width:110px;
+  padding:8px;
+}
+.ad{
+  background:#1c1c1c;
+  border-radius:12px;
+  padding:8px;
+  font-size:12px;
+  margin-bottom:10px;
+}
+.ad button{
+  width:100%;
+  background:#f1c40f;
+  border:none;
+  border-radius:10px;
+  padding:6px;
+  font-weight:bold;
+}
+.levelBox{
+  margin-top:10px;
+  font-size:12px;
 }
 
-.balance {
-  font-size: 42px;
-  font-weight: bold;
-  margin: 20px 0;
+/* RIGHT */
+.right{
+  position:fixed;
+  top:60px;
+  right:14px;
+  text-align:right;
+}
+.right .lvl{
+  font-size:14px;
+  opacity:.9;
 }
 
-.small-btn {
-  display: inline-block;
-  padding: 8px 16px;
-  background: #1c1c1c;
-  border-radius: 20px;
-  margin-bottom: 10px;
+/* CENTER */
+.center{
+  margin-top:90px;
+  text-align:center;
+}
+.balance{
+  font-size:36px;
+  font-weight:bold;
+}
+.currency{
+  font-size:16px;
+  opacity:.7;
 }
 
-.level {
-  opacity: 0.8;
-  margin-bottom: 20px;
+/* TAP */
+.tap{
+  width:240px;
+  height:240px;
+  border-radius:50%;
+  margin:20px auto;
+  background:#bfa000;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  transition:filter .2s;
+}
+.tap img{width:100px}
+
+/* MULT */
+.mult{
+  display:flex;
+  justify-content:center;
+  gap:12px;
+}
+.mult button{
+  padding:10px 26px;
+  border:none;
+  border-radius:20px;
+  background:#1c1c1c;
+  color:#fff;
+  font-size:16px;
+}
+.mult .active{
+  background:#ffd700;
+  color:#000;
 }
 
-.tap-circle {
-  width: 240px;
-  height: 240px;
-  background: #f1c40f;
-  border-radius: 50%;
-  margin: 20px auto;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 18px;
-  font-weight: bold;
-  color: #000;
-  user-select: none;
+/* BOTTOM */
+.bottom{
+  position:fixed;
+  bottom:20px;
+  left:0;right:0;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:10px;
+}
+.withdraw{
+  width:80%;
+  background:#1e8e3e;
+  color:#fff;
+  border:none;
+  border-radius:30px;
+  padding:14px;
+  font-size:18px;
 }
 
-.multipliers {
-  display: flex;
-  justify-content: center;
-  gap: 10px;
-  margin: 20px 0;
+/* BONUS */
+.bonusBtn{
+  background:#1c1c1c;
+  padding:8px 16px;
+  border-radius:20px;
+  font-size:13px;
 }
 
-.mult-btn {
-  padding: 10px 18px;
-  border-radius: 20px;
-  background: #1e1e1e;
-  cursor: pointer;
+/* RAIN */
+.rain{
+  position:fixed;
+  top:-50px;
+  animation:fall linear forwards;
 }
-
-.mult-btn.active {
-  background: #f1c40f;
-  color: #000;
-}
-
-.main-btn {
-  width: 80%;
-  padding: 16px;
-  margin: 15px auto;
-  border-radius: 30px;
-  font-size: 18px;
-  font-weight: bold;
-}
-
-.play-btn {
-  background: #f1c40f;
-  color: #000;
-}
-
-.withdraw-btn {
-  background: #1e8f3e;
-  color: #fff;
-}
-
-.modal {
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,0.7);
-  display: none;
-  align-items: center;
-  justify-content: center;
-}
-
-.modal-box {
-  background: #1c2630;
-  padding: 20px;
-  border-radius: 14px;
-  width: 80%;
+@keyframes fall{
+  to{transform:translateY(110vh)}
 }
 </style>
 </head>
 
 <body>
 
-<div class="header">
-  <div>Онлайн: <span id="online">4021</span></div>
-  <div>Бонусів сьогодні: <span id="bonus">5053</span></div>
+<div class="top">
+  <div class="online">Онлайн: <span id="online">4321</span></div>
+  <div class="today">Бонус сьогодні: <span id="today">3120</span></div>
 </div>
 
-<div class="balance">Баланс: ₮<span id="balance">0</span></div>
-
-<div class="small-btn" onclick="addAdBonus()">📺 Реклама +50</div>
-
-<div class="level">Рівень: <span id="level">1</span></div>
-
-<div class="tap-circle" onclick="tap()">Тапай, щоб заробляти</div>
-
-<div class="multipliers">
-  <div class="mult-btn active" onclick="setMult(1)">x1</div>
-  <div class="mult-btn" onclick="setMult(3)">x3</div>
-  <div class="mult-btn" onclick="setMult(5)">x5</div>
-</div>
-
-<div class="main-btn play-btn">TapDay Play</div>
-
-<div class="main-btn withdraw-btn" onclick="openModal()">💳 Вивід</div>
-
-<div class="modal" id="modal">
-  <div class="modal-box">
-    <h3>TapDay Play</h3>
-    <p>Вивід буде доступний пізніше 🚀</p>
-    <div class="main-btn play-btn" onclick="closeModal()">Гаразд</div>
+<div class="left">
+  <div class="ad">
+    Реклама +50
+    <button onclick="ad()">▶</button>
+  </div>
+  <div class="levelBox">
+    Рівень:<br>
+    <span id="lvlText">1</span><br>
+    Ціль:<br>
+    <span id="lvlNeed">100</span>
   </div>
 </div>
 
+<div class="right">
+  <div class="lvl">LVL <span id="lvl">1</span></div>
+</div>
+
+<div class="center">
+  <div class="balance"><span id="coins">0</span></div>
+  <div class="currency">монет</div>
+
+  <div class="tap" id="tap" onclick="tap()">
+    <img id="icon" src="https://cdn-icons-png.flaticon.com/512/2331/2331970.png">
+  </div>
+
+  <div class="mult">
+    <button class="active" onclick="setMult(2,this)">x2</button>
+    <button onclick="setMult(5,this)">x5</button>
+  </div>
+
+  <div class="bonusBtn" onclick="channelBonus()">🎁 Бонус з каналу</div>
+</div>
+
+<div class="bottom">
+  <button class="withdraw" onclick="withdraw()">Вивід</button>
+</div>
+
 <script>
-let balance = 0;
-let mult = 1;
-let level = 1;
+let coins=0, mult=2, level=1;
+let channelTaken=false;
 
-function tap() {
-  balance += mult;
-  document.getElementById('balance').innerText = balance;
+const levels=[100,1000,10000,100000,1000000,10000000,100000000,1000000000];
 
-  if (balance >= level * 1000) {
+const icons={
+ bag:"https://cdn-icons-png.flaticon.com/512/2331/2331970.png",
+ crown:"https://cdn-icons-png.flaticon.com/512/616/616430.png",
+ crystal:"https://cdn-icons-png.flaticon.com/512/929/929426.png",
+ star:"https://cdn-icons-png.flaticon.com/512/616/616490.png",
+ chest:"https://cdn-icons-png.flaticon.com/512/616/616554.png",
+ lion:"https://cdn-icons-png.flaticon.com/512/616/616408.png"
+};
+
+function tap(){
+  coins+=mult;
+  document.getElementById("coins").innerText=coins;
+  if(navigator.vibrate) navigator.vibrate(15);
+  checkStage();
+}
+
+function setMult(v,b){
+  mult=v;
+  document.querySelectorAll(".mult button").forEach(x=>x.classList.remove("active"));
+  b.classList.add("active");
+}
+
+function checkStage(){
+  let icon=icons.bag;
+  let rainIcon=icons.bag;
+
+  if(coins>=100 && coins<1000){icon=icons.crown; rainIcon=icons.crown}
+  if(coins>=1000 && coins<10000){icon=icons.crystal; rainIcon=icons.crystal}
+  if(coins>=10000 && coins<100000){icon=icons.star; rainIcon=icons.star}
+  if(coins>=100000 && coins<1000000){icon=icons.chest; rainIcon=icons.chest}
+  if(coins>=1000000){icon=icons.lion}
+
+  document.getElementById("icon").src=icon;
+
+  if(coins<1000000) makeRain(rainIcon);
+
+  if(coins>=levels[level-1]){
     level++;
-    document.getElementById('level').innerText = level;
+    document.getElementById("lvl").innerText=level;
+    document.getElementById("lvlText").innerText=level;
+    document.getElementById("lvlNeed").innerText=levels[level-1]||"∞";
   }
 }
 
-function setMult(value) {
-  mult = value;
-  document.querySelectorAll('.mult-btn').forEach(btn => btn.classList.remove('active'));
-  event.target.classList.add('active');
+function makeRain(src){
+  for(let i=0;i<mult;i++){
+    let r=document.createElement("img");
+    r.src=src;
+    r.className="rain";
+    r.style.left=Math.random()*100+"vw";
+    r.style.width="24px";
+    r.style.animationDuration=(2+Math.random()*2)+"s";
+    document.body.appendChild(r);
+    setTimeout(()=>r.remove(),4000);
+  }
 }
 
-function addAdBonus() {
-  balance += 50;
-  document.getElementById('balance').innerText = balance;
+function ad(){
+  coins+=50;
+  document.getElementById("coins").innerText=coins;
 }
 
-function openModal() {
-  document.getElementById('modal').style.display = 'flex';
+function channelBonus(){
+  if(channelTaken) return;
+  window.open("https://t.me/tapday_clicker","_blank");
+  coins+=500;
+  channelTaken=true;
+  alert("Бонус 500 монет зараховано");
 }
 
-function closeModal() {
-  document.getElementById('modal').style.display = 'none';
+function withdraw(){
+  alert("Вивід буде доступний пізніше");
 }
 </script>
 
