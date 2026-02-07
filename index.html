@@ -2,101 +2,97 @@
 <html lang="uk">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>TapDay Play</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <style>
-body{
-  margin:0;
-  background:#0b0b0b;
-  color:#fff;
-  font-family:Arial,sans-serif;
-  text-align:center;
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background: radial-gradient(circle at top, #111 0%, #000 70%);
+    color: #fff;
+    text-align: center;
 }
-.header{
-  display:flex;
-  justify-content:space-between;
-  padding:12px;
-  background:#111;
-  font-size:14px;
+
+.header {
+    display: flex;
+    justify-content: space-between;
+    padding: 10px 15px;
+    font-size: 14px;
+    background: #0e0e0e;
 }
-.balance{
-  font-size:36px;
-  font-weight:bold;
-  margin:15px 0;
+
+.balance {
+    font-size: 42px;
+    font-weight: bold;
+    margin: 20px 0;
 }
-.row{
-  display:flex;
-  justify-content:space-between;
-  padding:0 20px;
-  align-items:center;
+
+.top-buttons {
+    display: flex;
+    justify-content: space-between;
+    padding: 0 20px;
 }
-.badge{
-  background:#1c1c1c;
-  padding:8px 14px;
-  border-radius:20px;
+
+.small-btn {
+    background: #222;
+    border-radius: 20px;
+    padding: 8px 14px;
+    font-size: 14px;
 }
-.circle{
-  width:260px;
-  height:260px;
-  border-radius:50%;
-  margin:25px auto;
-  background:radial-gradient(circle,#ffd500,#ffb700);
-  display:flex;
-  justify-content:center;
-  align-items:center;
-  transition:.3s;
+
+.circle {
+    width: 260px;
+    height: 260px;
+    background: #ffcc00;
+    border-radius: 50%;
+    margin: 30px auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
 }
-.circle img{width:90px;}
-.multi{
-  display:flex;
-  justify-content:center;
-  gap:10px;
+
+.circle img {
+    width: 120px;
 }
-.multi button{
-  background:#2b2b2b;
-  border:none;
-  color:#fff;
-  padding:8px 18px;
-  border-radius:14px;
+
+.multis {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
 }
-.main-btn{
-  width:85%;
-  margin:15px auto 5px;
-  padding:14px;
-  font-size:18px;
-  border-radius:18px;
-  border:none;
-  font-weight:bold;
-  background:#ffc400;
+
+.multi {
+    background: #222;
+    padding: 8px 18px;
+    border-radius: 20px;
 }
-.gold{background:linear-gradient(90deg,#ffd700,#ffae00);}
-.timer{font-size:14px;opacity:.8;}
-.withdraw{
-  background:#1e8e3e;
-  color:#fff;
-  border:none;
-  width:85%;
-  padding:14px;
-  font-size:18px;
-  border-radius:18px;
-  margin-top:10px;
+
+.main-btn {
+    margin: 20px;
+    padding: 16px;
+    border-radius: 30px;
+    background: #ffcc00;
+    color: #000;
+    font-size: 20px;
+    font-weight: bold;
+    cursor: pointer;
 }
-.folder{
-  position:absolute;
-  left:15px;
-  top:55%;
-  font-size:30px;
-  cursor:pointer;
+
+.withdraw {
+    margin: 10px 20px 30px;
+    padding: 16px;
+    border-radius: 30px;
+    background: #1f8f3a;
+    font-size: 20px;
+    cursor: pointer;
 }
-.rain{
-  position:fixed;
-  top:-40px;
-  font-size:24px;
-  animation:fall 1.2s linear forwards;
-}
-@keyframes fall{
-  to{transform:translateY(120vh);opacity:0;}
+
+.timer {
+    margin-top: 10px;
+    font-size: 14px;
+    color: #aaa;
 }
 </style>
 </head>
@@ -104,124 +100,83 @@ body{
 <body>
 
 <div class="header">
-  <div>Онлайн: <span id="online">3960</span></div>
-  <div>Бонусів сьогодні: <span id="today">4790</span></div>
+    <div>Онлайн: <span id="online">3963</span></div>
+    <div>Бонусів сьогодні: <span id="dailyBonus">4796</span></div>
 </div>
 
-<div class="balance">Баланс: ₴<span id="balance">0</span></div>
-
-<div class="row">
-  <div class="badge">📺 Реклама +50</div>
-  <div>Рівень: 2</div>
+<div class="balance">
+    Баланс: ₴<span id="balance">1280</span>
 </div>
 
-<div class="folder" onclick="dailyBonus()">📁</div>
-
-<div class="circle" id="circle">
-  <img id="icon" src="https://cdn-icons-png.flaticon.com/512/679/679720.png">
+<div class="top-buttons">
+    <div class="small-btn" onclick="adBonus()">📺 Реклама +50</div>
+    <div class="small-btn">Рівень: 2</div>
 </div>
 
-<div class="multi">
-  <button>x1</button>
-  <button>x3</button>
-  <button>x5</button>
+<div class="circle" onclick="tap()">
+    <img src="https://cdn-icons-png.flaticon.com/512/679/679720.png">
 </div>
 
-<button id="mainBtn" class="main-btn">TapDay Play</button>
-<button id="subBtn" class="main-btn" style="display:none"></button>
-<div id="timer" class="timer"></div>
+<div class="multis">
+    <div class="multi">x1</div>
+    <div class="multi">x3</div>
+    <div class="multi">x5</div>
+</div>
 
-<button class="withdraw">💳 Вивід</button>
+<div class="main-btn" onclick="tap()">TapDay Play</div>
+
+<div class="withdraw" onclick="withdraw()">💳 Вивід</div>
+
+<div class="timer">
+    Щоденний бонус через: <span id="timer">24:00:00</span>
+</div>
 
 <script>
-let balance = Number(localStorage.balance)||1280;
-let taps = Number(localStorage.taps)||0;
-let subscribed = localStorage.subscribed;
-let bonusTimer = Number(localStorage.bonusTimer)||0;
+let balance = 1280;
+let dailyBonus = 4796;
 
-balanceEl.innerText = balance;
-
-setInterval(()=>online.innerText++,3000);
-setInterval(()=>today.innerText++,2000);
-
-mainBtn.onclick=()=>{
-  navigator.vibrate(40);
-  taps++;
-  balance++;
-  localStorage.taps=taps;
-  localStorage.balance=balance;
-  balanceEl.innerText=balance;
-  rain();
-  updateIcon();
-};
-
-function rain(){
-  let e=document.createElement("div");
-  e.className="rain";
-  e.innerText =
-    taps<100?"🪙":
-    taps<1000?"👑":
-    taps<10000?"💎":
-    taps<100000?"⭐":
-    taps<1000000?"📦":"🦁";
-  e.style.left=Math.random()*100+"vw";
-  document.body.appendChild(e);
-  setTimeout(()=>e.remove(),1200);
+function tap() {
+    balance += 5;
+    dailyBonus += 5;
+    update();
 }
 
-function updateIcon(){
-  if(taps>=1000000){icon.src="https://cdn-icons-png.flaticon.com/512/616/616489.png";mainBtn.classList.add("gold");}
-  else if(taps>=100000){icon.src="https://cdn-icons-png.flaticon.com/512/679/679922.png";}
-  else if(taps>=10000){icon.src="https://cdn-icons-png.flaticon.com/512/616/616490.png";}
-  else if(taps>=1000){icon.src="https://cdn-icons-png.flaticon.com/512/616/616554.png";}
-  else if(taps>=100){icon.src="https://cdn-icons-png.flaticon.com/512/616/616430.png";}
+function adBonus() {
+    balance += 50;
+    update();
 }
 
-function dailyBonus(){
-  let last=Number(localStorage.lastDaily)||0;
-  let day=Number(localStorage.day)||0;
-  if(Date.now()-last<86400000)return alert("Ще рано");
-  let reward=[25,50,75,100,150,200,300][day]||0;
-  balance+=reward;
-  localStorage.balance=balance;
-  localStorage.lastDaily=Date.now();
-  localStorage.day=day+1;
-  balanceEl.innerText=balance;
+function withdraw() {
+    alert("Вивід буде доступний пізніше 🚀");
 }
 
-if(!subscribed){
-  subBtn.style.display="block";
-  subBtn.innerText="Підпишись · Отримай 500 грн бонус";
-  subBtn.onclick=()=>{
-    window.open("https://t.me/tapday_clicker","_blank");
-    subscribed=true;
-    localStorage.subscribed=1;
-    balance+=500;
-    localStorage.balance=balance;
-    balanceEl.innerText=balance;
-    startTimer();
-  };
+function update() {
+    document.getElementById("balance").innerText = balance;
+    document.getElementById("dailyBonus").innerText = dailyBonus;
 }
 
-function startTimer(){
-  subBtn.innerText="TapDay Play · Бонус +1000";
-  bonusTimer=Date.now()+2592000000;
-  localStorage.bonusTimer=bonusTimer;
-  updateTimer();
-}
+// Онлайн (фейковий, але живий)
+setInterval(() => {
+    let online = 3900 + Math.floor(Math.random() * 200);
+    document.getElementById("online").innerText = online;
+}, 3000);
 
-function updateTimer(){
-  if(!bonusTimer)return;
-  let d=bonusTimer-Date.now();
-  if(d<=0)return timer.innerText="Готово!";
-  let days=Math.floor(d/86400000);
-  let h=Math.floor(d%86400000/3600000);
-  let m=Math.floor(d%3600000/60000);
-  timer.innerText=`${days}д ${h}г ${m}хв`;
-}
-setInterval(updateTimer,1000);
-updateTimer();
-updateIcon();
+// Таймер 24 години
+let seconds = 86400;
+setInterval(() => {
+    seconds--;
+    let h = String(Math.floor(seconds / 3600)).padStart(2, '0');
+    let m = String(Math.floor((seconds % 3600) / 60)).padStart(2, '0');
+    let s = String(seconds % 60).padStart(2, '0');
+    document.getElementById("timer").innerText = `${h}:${m}:${s}`;
+
+    if (seconds <= 0) {
+        balance += 1000;
+        seconds = 86400;
+        update();
+        alert("🎉 Щоденний бонус +1000 ₴!");
+    }
+}, 1000);
 </script>
 
 </body>
