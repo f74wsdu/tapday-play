@@ -1,182 +1,109 @@
 <!DOCTYPE html>
 <html lang="uk">
 <head>
-<meta charset="UTF-8">
-<title>City Empire 2026</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"/>
+<title>TapCoin 2026</title>
 <style>
-body{margin:0;background:#0b1020;color:#fff;font-family:system-ui}
-#top{display:flex;justify-content:space-around;padding:10px;background:#020617}
-.stat{font-weight:700}
-#game{position:relative}
-canvas{display:block;margin:auto}
-#panel{
-  position:fixed;bottom:0;width:100%;
-  background:#020617;padding:8px;
-  display:flex;gap:8px;overflow-x:auto
+:root{
+ --bg:#070b1a; --panel:#0b122a; --gold1:#ffd76a; --gold2:#f2a900;
+ --txt:#e6e9ff; --glow:0 0 40px rgba(255,210,90,.6);
 }
-button{
-  background:#2563eb;border:0;color:#fff;
-  padding:10px 14px;border-radius:12px;
-  font-weight:700;white-space:nowrap
+*{box-sizing:border-box} html,body{margin:0;background:radial-gradient(1200px 800px at 50% -10%,#10194a,#050816 60%,#030612);color:var(--txt);font-family:system-ui}
+#top{position:fixed;inset:0 0 auto 0;height:56px;display:flex;align-items:center;justify-content:space-between;padding:0 14px;background:linear-gradient(#0a1130,#070b1a);border-bottom:1px solid #11194a}
+.stat{font-weight:800;letter-spacing:.3px}
+#wrap{height:100svh;display:grid;grid-template-rows:56px 1fr 96px}
+#stage{position:relative;overflow:hidden;touch-action:manipulation}
+#coin{
+ position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);
+ width:min(68vmin,320px);aspect-ratio:1;border-radius:50%;
+ background:
+ radial-gradient(35% 35% at 30% 30%,#fff6,transparent 40%),
+ radial-gradient(70% 70% at 70% 70%,#0006,transparent 55%),
+ radial-gradient(circle at 50% 50%,var(--gold1),var(--gold2) 60%,#b67a00 100%);
+ box-shadow:var(--glow), inset 0 0 40px rgba(255,255,255,.25);
+ transition:transform .06s ease;
 }
-.card{
-  position:fixed;top:20%;left:50%;
-  transform:translateX(-50%);
-  background:#020617;border-radius:16px;
-  padding:16px;display:none;width:280px
-}
-.card h3{margin:0 0 10px}
-.card button{width:100%;margin-top:8px}
+#coin:active{transform:translate(-50%,-50%) scale(.985)}
+#ring{position:absolute;inset:-12%;border-radius:50%;filter:blur(8px);
+ background:conic-gradient(from 0deg,#fff0,#ffd76a55,#fff0);animation:spin 6s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+#count{position:absolute;left:50%;top:calc(50% + min(38vmin,160px));transform:translateX(-50%);
+ font-size:42px;font-weight:900;text-shadow:0 8px 30px #000}
+.p{position:absolute;pointer-events:none;font-weight:800;animation:pop .9s ease-out forwards}
+@keyframes pop{from{opacity:1;transform:translate(-50%,-50%) scale(.9)}
+ to{opacity:0;transform:translate(-50%,-90%) scale(1.2)}}
+#panel{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;padding:12px;background:linear-gradient(#070b1a,#060a18);border-top:1px solid #11194a}
+.btn{border-radius:14px;background:linear-gradient(#1a2a7a,#0f1b4a);border:1px solid #1c2b7a;color:#fff;font-weight:800}
+.small{font-size:12px;opacity:.85}
 </style>
 </head>
 <body>
+<div id="wrap">
+ <div id="top">
+  <div class="stat">💵 <span id="money">0</span></div>
+  <div class="stat">⚡ x<span id="mult">1</span></div>
+ </div>
 
-<div id="top">
-  <div class="stat">💰 <span id="money">1000</span></div>
-  <div class="stat">💵/хв <span id="income">20</span></div>
-  <div class="stat">👥 <span id="pop">20</span></div>
-</div>
+ <div id="stage">
+  <div id="coin"><div id="ring"></div></div>
+  <div id="count">0</div>
+ </div>
 
-<div id="game">
-<canvas id="map" width="420" height="520"></canvas>
-</div>
-
-<div id="panel">
-  <button onclick="select('farm')">🌾 Ферма</button>
-  <button onclick="select('house')">🏠 Будинок</button>
-  <button onclick="select('factory')">🏭 Завод</button>
-  <button onclick="select('hospital')">🏥 Лікарня</button>
-</div>
-
-<div id="card" class="card">
-  <h3 id="cardTitle"></h3>
-  <div id="cardInfo"></div>
-  <button onclick="upgrade()">⬆ Покращити</button>
-  <button onclick="closeCard()">❌ Закрити</button>
+ <div id="panel">
+  <button class="btn" id="boost">⚡ x2<br><span class="small">10 сек</span></button>
+  <button class="btn" id="sound">🔊 Звук</button>
+  <button class="btn" id="reset">♻ Скинути</button>
+ </div>
 </div>
 
 <script>
-const c=document.getElementById("map"),ctx=c.getContext("2d")
-let money=1000,income=20,pop=20
-const size=36,GRID=8
-let selected=null,opened=null
+let money=0,mult=1,snd=true,boostT=0;
+const $=id=>document.getElementById(id);
+const stage=$('stage'),coin=$('coin'),count=$('count');
+const moneyEl=$('money'),multEl=$('mult');
 
-const types={
- farm:{cost:200,inc:6,color:"#22c55e"},
- house:{cost:300,pop:10,color:"#38bdf8"},
- factory:{cost:600,inc:20,color:"#64748b"},
- hospital:{cost:500,pop:15,color:"#e11d48"}
+const AudioCtx=window.AudioContext||window.webkitAudioContext;
+const ctx=new AudioCtx();
+function clickSound(){
+ if(!snd) return;
+ const o=ctx.createOscillator(), g=ctx.createGain();
+ o.type='triangle'; o.frequency.value=520+Math.random()*80;
+ g.gain.value=.06; o.connect(g); g.connect(ctx.destination);
+ o.start(); o.stop(ctx.currentTime+.06);
 }
 
-const buildings=[]
-
-function iso(x,y){
- return{
-  x:210+(x-y)*size,
-  y:80+(x+y)*size/2
- }
+function add(n,x,y){
+ money+=n; moneyEl.textContent=Math.floor(money);
+ const p=document.createElement('div');
+ p.className='p'; p.textContent='+'+n;
+ p.style.left=x+'px'; p.style.top=y+'px';
+ stage.appendChild(p); setTimeout(()=>p.remove(),900);
 }
 
-function tile(x,y,color){
- const p=iso(x,y)
- ctx.beginPath()
- ctx.moveTo(p.x,p.y)
- ctx.lineTo(p.x+size,p.y+size/2)
- ctx.lineTo(p.x,p.y+size)
- ctx.lineTo(p.x-size,p.y+size/2)
- ctx.closePath()
- ctx.fillStyle=color
- ctx.fill()
+function tap(e){
+ ctx.resume();
+ const pts=e.touches? [...e.touches]:[e];
+ pts.forEach(t=>{
+  const x=t.clientX,y=t.clientY;
+  const val=1*mult; add(val,x,y); clickSound();
+ });
+ count.textContent=Math.floor(money);
 }
 
-function render(){
- ctx.clearRect(0,0,c.width,c.height)
- for(let x=0;x<GRID;x++)
-  for(let y=0;y<GRID;y++)
-   tile(x,y,"#1e293b")
+coin.addEventListener('touchstart',tap,{passive:true});
+coin.addEventListener('mousedown',tap);
 
- buildings.forEach(b=>{
-  tile(b.x,b.y,b.color)
- })
-}
-
-c.onclick=e=>{
- const rect=c.getBoundingClientRect()
- const mx=e.clientX-rect.left
- const my=e.clientY-rect.top
- buildings.forEach(b=>{
-  const p=iso(b.x,b.y)
-  if(Math.abs(mx-p.x)<size && Math.abs(my-p.y)<size){
-   openCard(b)
-  }
- })
-}
-
-function select(t){selected=t}
-
-function place(){
- if(!selected)return
- const t=types[selected]
- if(money<t.cost)return
- money-=t.cost
-
- const b={
-  type:selected,
-  lvl:1,
-  x:Math.floor(Math.random()*GRID),
-  y:Math.floor(Math.random()*GRID),
-  color:t.color
- }
- buildings.push(b)
-
- if(t.inc)income+=t.inc
- if(t.pop)pop+=t.pop
-
- update();render()
-}
-
-function openCard(b){
- opened=b
- document.getElementById("card").style.display="block"
- document.getElementById("cardTitle").innerText=b.type.toUpperCase()+" lvl "+b.lvl
- document.getElementById("cardInfo").innerText=
-  "Доход/населення росте з рівнем"
-}
-
-function upgrade(){
- if(!opened)return
- const cost=opened.lvl*300
- if(money<cost)return
- money-=cost
- opened.lvl++
-
- if(types[opened.type].inc)income+=types[opened.type].inc
- if(types[opened.type].pop)pop+=types[opened.type].pop
-
- update();render()
- openCard(opened)
-}
-
-function closeCard(){
- opened=null
- document.getElementById("card").style.display="none"
-}
-
-function update(){
- document.getElementById("money").innerText=Math.floor(money)
- document.getElementById("income").innerText=income
- document.getElementById("pop").innerText=pop
-}
+$('boost').onclick=()=>{
+ mult=2; multEl.textContent=2; boostT=Date.now()+10000;
+};
+$('sound').onclick=()=>snd=!snd;
+$('reset').onclick=()=>{money=0;count.textContent=0;moneyEl.textContent=0};
 
 setInterval(()=>{
- money+=income/60
- update()
-},1000)
+ if(boostT && Date.now()>boostT){mult=1;multEl.textContent=1;boostT=0;}
+},100);
 
-setInterval(place,3000)
-
-render();update()
 </script>
 </body>
 </html>
