@@ -2,194 +2,192 @@
 <html lang="uk">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>City Idle 2026</title>
+<title>TapDay — City Map</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
 <style>
-:root{
- --bg:#0b1220;--panel:#111a2e;--card:#16213e;--accent:#ffb703;--muted:#8aa0ff;
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background: radial-gradient(circle at top, #111827, #020617);
+  color: #fff;
 }
-*{box-sizing:border-box}
-body{margin:0;font-family:Inter,system-ui;background:var(--bg);color:#fff}
-#top{display:flex;justify-content:space-between;align-items:center;padding:10px 14px;background:var(--panel);position:sticky;top:0;z-index:10}
-#money{font-weight:800}
-#map{height:calc(100vh - 180px);overflow:auto;padding:14px}
-.row{display:flex;gap:12px}
-.district{min-width:260px;background:var(--card);border-radius:16px;padding:12px}
-.district.locked{opacity:.4}
-h2{margin:0 0 8px}
-.biz{background:#1f2b4f;border-radius:12px;padding:10px;margin-top:8px;display:flex;justify-content:space-between;align-items:center}
-.biz button{background:var(--accent);border:none;border-radius:10px;padding:6px 10px;font-weight:700;cursor:pointer}
-.biz small{opacity:.7}
-#tap{position:fixed;bottom:86px;left:50%;transform:translateX(-50%);width:96px;height:96px;border-radius:50%;
-background:radial-gradient(circle,#ffd36a,#ff9f1a);display:flex;align-items:center;justify-content:center;font-size:26px;
-box-shadow:0 0 30px rgba(255,190,60,.6)}
-#bottom{position:fixed;bottom:0;width:100%;background:var(--panel);display:flex;justify-content:space-around;padding:8px 0}
-.btn{text-align:center;font-size:12px;cursor:pointer}
-.btn b{display:block}
-#side{position:fixed;right:10px;top:64px;display:flex;flex-direction:column;gap:8px}
-.pill{background:#1f2b4f;border-radius:999px;padding:6px 10px;font-size:12px}
-.toast{position:fixed;left:50%;bottom:200px;transform:translateX(-50%);background:#000a;padding:10px 14px;border-radius:12px}
+
+/* TOP BAR */
+#top {
+  display: flex;
+  justify-content: space-between;
+  padding: 12px 16px;
+  font-size: 16px;
+  background: rgba(0,0,0,0.4);
+}
+
+.money {
+  color: #ffd36a;
+  font-weight: bold;
+}
+
+.level {
+  opacity: 0.8;
+}
+
+/* MAP */
+#map {
+  padding: 16px;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 14px;
+}
+
+.district {
+  height: 120px;
+  border-radius: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  font-size: 16px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: 0.25s;
+}
+
+.district:hover {
+  transform: scale(1.04);
+}
+
+.unlocked {
+  background: linear-gradient(135deg, #ffd36a, #ff9f1c);
+  color: #000;
+}
+
+.locked {
+  background: #1f2933;
+  color: #6b7280;
+}
+
+/* PANEL */
+#panel {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: #020617;
+  border-top: 1px solid #1f2937;
+  padding: 16px;
+  min-height: 140px;
+}
+
+button {
+  width: 100%;
+  padding: 14px;
+  margin-top: 10px;
+  border: none;
+  border-radius: 14px;
+  font-size: 16px;
+  font-weight: bold;
+  background: linear-gradient(135deg, #22c55e, #16a34a);
+  color: #000;
+  cursor: pointer;
+}
+
+button:active {
+  transform: scale(0.97);
+}
+
+.small {
+  font-size: 14px;
+  opacity: 0.85;
+}
 </style>
 </head>
+
 <body>
 
 <div id="top">
-  <div>💵 <span id="money">0</span></div>
-  <div>⭐ Рівень <span id="lvl">1</span></div>
+  <div class="money">💰 <span id="money">1000</span></div>
+  <div class="level">Рівень <span id="level">1</span></div>
 </div>
 
 <div id="map">
-  <div class="row">
-    <div class="district" id="d_farm">
-      <h2>🌾 Село</h2>
-      <div class="biz">
-        <div>Ферма Lv.<span id="farmLv">0</span><br><small>+<span id="farmInc">1</span>/с</small></div>
-        <button onclick="buyFarm()">Купити</button>
-      </div>
-      <div class="biz">
-        <div>Апгрейд<br><small>x1.5 дохід</small></div>
-        <button onclick="upFarm()">↑</button>
-      </div>
-    </div>
-
-    <div class="district locked" id="d_city">
-      <h2>🏙 Місто</h2>
-      <div class="biz">
-        <div>Магазин Lv.<span id="shopLv">0</span><br><small>+<span id="shopInc">4</span>/с</small></div>
-        <button onclick="buyShop()">Купити</button>
-      </div>
-      <div class="biz">
-        <div>Апгрейд</div>
-        <button onclick="upShop()">↑</button>
-      </div>
-    </div>
-
-    <div class="district locked" id="d_ind">
-      <h2>🏭 Індустрія</h2>
-      <div class="biz">
-        <div>Завод Lv.<span id="facLv">0</span><br><small>+<span id="facInc">12</span>/с</small></div>
-        <button onclick="buyFac()">Купити</button>
-      </div>
-      <div class="biz">
-        <div>Апгрейд</div>
-        <button onclick="upFac()">↑</button>
-      </div>
-    </div>
-  </div>
+  <div class="district unlocked" data-id="1">🌾<br>Ферма</div>
+  <div class="district locked" data-id="2">🏭<br>Завод<br><span class="small">5000 💰</span></div>
+  <div class="district locked" data-id="3">🏥<br>Лікарня<br><span class="small">15000 💰</span></div>
+  <div class="district locked" data-id="4">🏙<br>Бізнес-центр<br><span class="small">50000 💰</span></div>
 </div>
 
-<div id="tap">🪙</div>
-
-<div id="side">
-  <div class="pill">🎯 Квест: <span id="quest">Зароби 500</span></div>
-  <div class="pill">🏆 Досягнення: <span id="ach">—</span></div>
-</div>
-
-<div id="bottom">
-  <div class="btn" onclick="boost()">⚡<b>2x (10хв)</b></div>
-  <div class="btn" onclick="subscribe()">💎<b>Підписка</b></div>
-  <div class="btn" onclick="toggleSound()">🔊<b>Звук</b></div>
+<div id="panel">
+  <div id="panelContent" class="small">Обери район на карті</div>
 </div>
 
 <script>
-/* ===== STATE ===== */
-let S=JSON.parse(localStorage.getItem('city26')||'{}');
-let money=S.money||200, lvl=S.lvl||1, sound=S.sound??true;
-let inc=S.inc||0;
-let farm={lv:S.farmLv||0, inc:S.farmInc||1};
-let shop={lv:S.shopLv||0, inc:S.shopInc||4};
-let fac ={lv:S.facLv ||0, inc:S.facInc ||12};
-let boostUntil=S.boostUntil||0;
-let quest=S.quest||{t:'earn',goal:500,done:false};
-let ach=S.ach||{};
-const sndClick=new Audio('https://assets.mixkit.co/sfx/preview/mixkit-arcade-coin-216.wav');
-const sndBuy=new Audio('https://assets.mixkit.co/sfx/preview/mixkit-game-click-1114.wav');
+const game = {
+  money: 1000,
+  level: 1,
+  unlocked: [1]
+};
 
-/* ===== HELPERS ===== */
-function play(a){if(!sound)return;a.volume=.2;a.currentTime=0;a.play();}
-function save(){
- localStorage.setItem('city26',JSON.stringify({
-  money,lvl,inc,sound,boostUntil,quest,ach,
-  farmLv:farm.lv,farmInc:farm.inc,
-  shopLv:shop.lv,shopInc:shop.inc,
-  facLv:fac.lv,facInc:fac.inc
- }));
-}
-function ui(){
- document.getElementById('money').textContent=Math.floor(money);
- document.getElementById('lvl').textContent=lvl;
- document.getElementById('farmLv').textContent=farm.lv;
- document.getElementById('farmInc').textContent=farm.inc;
- document.getElementById('shopLv').textContent=shop.lv;
- document.getElementById('shopInc').textContent=shop.inc;
- document.getElementById('facLv').textContent=fac.lv;
- document.getElementById('facInc').textContent=fac.inc;
- document.getElementById('quest').textContent=quest.done?'Виконано':`Зароби ${quest.goal}`;
- if(lvl>=3) document.getElementById('d_city').classList.remove('locked');
- if(lvl>=6) document.getElementById('d_ind').classList.remove('locked');
+const districts = {
+  1: { name: "Ферма", income: 10, cost: 0 },
+  2: { name: "Завод", income: 50, cost: 5000 },
+  3: { name: "Лікарня", income: 120, cost: 15000 },
+  4: { name: "Бізнес-центр", income: 300, cost: 50000 }
+};
+
+function updateUI() {
+  document.getElementById("money").textContent = game.money;
+  document.getElementById("level").textContent = game.level;
+
+  document.querySelectorAll(".district").forEach(el => {
+    const id = Number(el.dataset.id);
+    if (game.unlocked.includes(id)) {
+      el.classList.remove("locked");
+      el.classList.add("unlocked");
+    }
+  });
 }
 
-/* ===== ECONOMY ===== */
-function recalc(){
- inc = farm.lv*farm.inc + shop.lv*shop.inc + fac.lv*fac.inc;
-}
-setInterval(()=>{
- let mult=Date.now()<boostUntil?2:1;
- money+=inc*mult;
- progress();
- ui(); save();
-},1000);
-
-/* ===== TAP ===== */
-document.getElementById('tap').addEventListener('pointerdown',()=>{
- money+= (Date.now()<boostUntil?2:1);
- play(sndClick);
- progress();
- ui(); save();
+document.querySelectorAll(".district").forEach(el => {
+  el.onclick = () => {
+    const id = Number(el.dataset.id);
+    if (game.unlocked.includes(id)) {
+      openDistrict(id);
+    } else {
+      tryUnlock(id);
+    }
+  };
 });
 
-/* ===== BUY / UP ===== */
-function buyFarm(){ if(money<50) return; money-=50; farm.lv++; play(sndBuy); recalc(); ui(); save(); }
-function upFarm(){ if(money<100||farm.lv<1) return; money-=100; farm.inc=Math.ceil(farm.inc*1.5); play(sndBuy); recalc(); ui(); save(); }
-
-function buyShop(){ if(money<300||lvl<3) return; money-=300; shop.lv++; play(sndBuy); recalc(); ui(); save(); }
-function upShop(){ if(money<600||shop.lv<1) return; money-=600; shop.inc=Math.ceil(shop.inc*1.5); play(sndBuy); recalc(); ui(); save(); }
-
-function buyFac(){ if(money<1200||lvl<6) return; money-=1200; fac.lv++; play(sndBuy); recalc(); ui(); save(); }
-function upFac(){ if(money<2400||fac.lv<1) return; money-=2400; fac.inc=Math.ceil(fac.inc*1.5); play(sndBuy); recalc(); ui(); save(); }
-
-/* ===== PROGRESSION ===== */
-function progress(){
- if(!quest.done && money>=quest.goal){
-  quest.done=true; money+=200; toast('🎯 Квест виконано +200');
- }
- let newLvl = Math.floor(Math.log10(Math.max(10,money)));
- if(newLvl>lvl){ lvl=newLvl; toast('⭐ Рівень '+lvl); }
- if(money>=1000 && !ach.k1){ ach.k1=1; toast('🏆 1K!'); }
- if(money>=10000 && !ach.k10){ ach.k10=1; toast('🏆 10K!'); }
-}
-function toast(t){
- let d=document.createElement('div'); d.className='toast'; d.textContent=t;
- document.body.appendChild(d); setTimeout(()=>d.remove(),1400);
+function tryUnlock(id) {
+  const d = districts[id];
+  if (game.money >= d.cost) {
+    game.money -= d.cost;
+    game.unlocked.push(id);
+    game.level++;
+    updateUI();
+    openDistrict(id);
+  } else {
+    document.getElementById("panelContent").innerHTML =
+      `Недостатньо грошей для відкриття <b>${d.name}</b>`;
+  }
 }
 
-/* ===== MONETIZATION (SAFE) ===== */
-function boost(){
- boostUntil=Date.now()+10*60*1000;
- toast('⚡ 2x на 10 хв');
- save();
-}
-function subscribe(){
- // Без обману: добровільна підписка/буст
- window.open('https://t.me/','_blank');
- toast('💎 Дякуємо за підтримку!');
+function openDistrict(id) {
+  const d = districts[id];
+  document.getElementById("panelContent").innerHTML = `
+    <b>${d.name}</b><br>
+    Дохід: +${d.income} 💰<br>
+    <button onclick="earn(${d.income})">Працювати</button>
+  `;
 }
 
-/* ===== SOUND ===== */
-function toggleSound(){ sound=!sound; save(); }
+function earn(amount) {
+  game.money += amount;
+  updateUI();
+}
 
-/* INIT */
-recalc(); ui(); save();
+updateUI();
 </script>
+
 </body>
 </html>
