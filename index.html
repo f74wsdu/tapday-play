@@ -12,18 +12,21 @@ body {
   font-family: Arial, sans-serif;
   text-align: center;
 }
+
 #top {
   display: flex;
   justify-content: space-between;
   align-items: center;
   padding: 10px;
 }
+
 #online {
   font-size: 12px;
   color: #00ff7f;
 }
+
 #coin {
-  margin: 70px auto 15px;
+  margin: 60px auto 10px;
   width: 180px;
   height: 180px;
   border-radius: 50%;
@@ -35,23 +38,31 @@ body {
   font-weight: bold;
   cursor: pointer;
 }
-#balance {
-  font-size: 22px;
-  margin-bottom: 10px;
-}
-#coins {
-  font-size: 16px;
-  color: #ffd700;
-  margin-bottom: 15px;
+
+#balance, #coins {
+  font-size: 18px;
+  margin-bottom: 6px;
 }
 
 .block {
-  margin: 10px auto;
+  margin: 8px auto;
   width: 90%;
   padding: 12px;
   border-radius: 12px;
   background: #333;
   cursor: pointer;
+}
+
+#withdraw {
+  background: green;
+  width: fit-content;
+  padding: 10px 25px;
+}
+
+#leftToWithdraw {
+  margin-top: 6px;
+  font-size: 14px;
+  color: #ffcc00;
 }
 
 .mult {
@@ -62,36 +73,42 @@ body {
   border-radius: 12px;
   cursor: pointer;
 }
+
 #x2 { left: 10px; }
 #x5 { right: 10px; }
 .mult.active { background: #ff9800; }
 
-/* ===== POPUP ===== */
-.popup {
+/* ===== SHOP MODAL ===== */
+#shopModal {
   position: fixed;
-  top: 0; left: 0;
-  width: 100%; height: 100%;
+  inset: 0;
   background: rgba(0,0,0,0.85);
   display: none;
   align-items: center;
   justify-content: center;
+  z-index: 10;
 }
-.popupContent {
+
+#shopBox {
   background: #1e1e1e;
   width: 90%;
-  max-width: 400px;
+  max-width: 350px;
   padding: 20px;
   border-radius: 16px;
 }
-.offer {
+
+.shopItem {
   background: #333;
-  padding: 12px;
+  padding: 10px;
   border-radius: 10px;
-  margin: 10px 0;
+  margin: 8px 0;
+  cursor: pointer;
 }
-.close {
-  margin-top: 15px;
+
+.closeBtn {
+  margin-top: 10px;
   color: #ff5555;
+  cursor: pointer;
 }
 </style>
 </head>
@@ -99,6 +116,7 @@ body {
 <body>
 
 <div id="top">
+  <button id="adBtn">🎥 +Coins</button>
   <div id="online">
     🟢 Online: <span id="onlineCount">3000</span><br>
     🎁 Bonus today: <span id="bonusToday">200</span>
@@ -110,48 +128,55 @@ body {
 
 <div id="coin">TAP</div>
 
-<div id="balance">💰 Balance: 0.00</div>
+<div id="balance">💰 Balance: 0.00 $</div>
 <div id="coins">🪙 Coins: 0</div>
 
-<div id="getCoins" class="block">🪙 Отримати coins</div>
-<div id="shop" class="block">🛒 Магазин</div>
 <div id="daily" class="block">📅 Денний бонус</div>
+<div id="bonus30" class="block">⏳ Бонус через 30 днів</div>
+<div id="subscribe" class="block">📢 Бонус 10$ за підписку</div>
 
-<!-- ===== POPUP ===== -->
-<div id="coinsPopup" class="popup">
-  <div class="popupContent">
-    <h3>🪙 Отримати coins</h3>
+<div id="shop" class="block">🛒 Coin Shop</div>
 
-    <div class="offer">📲 Встанови додаток <b>+300 coins</b></div>
-    <div class="offer">📝 Зареєструйся <b>+500 coins</b></div>
-    <div class="offer">🎮 Досягни рівня <b>+1500 coins</b></div>
+<div id="withdraw" class="block">💳 Вивід</div>
+<div id="leftToWithdraw"></div>
 
-    <div class="close" onclick="closePopup()">✖ Закрити</div>
-  </div>
-</div>
+<div id="share" class="block">🔗 Поділитися грою</div>
 
-<div id="shopPopup" class="popup">
-  <div class="popupContent">
-    <h3>🛒 Магазин</h3>
+<!-- SHOP MODAL -->
+<div id="shopModal">
+  <div id="shopBox">
+    <h3>🛒 Coin Shop</h3>
 
-    <div class="offer" onclick="buyBoost(200)">⚡ x2 на 30 сек — <b>200 coins</b></div>
-    <div class="offer" onclick="buyBoost(500)">🚀 x5 на 30 сек — <b>500 coins</b></div>
+    <div class="shopItem" onclick="buyBoost(2,50)">⚡ x2 Tap (10 хв) — 50 coins</div>
+    <div class="shopItem" onclick="buyBoost(5,120)">🔥 x5 Tap (10 хв) — 120 coins</div>
+    <div class="shopItem" onclick="buyCoins()">🎁 Отримати coins (офер)</div>
 
-    <div class="close" onclick="closeShop()">✖ Закрити</div>
+    <div class="closeBtn" onclick="closeShop()">Закрити</div>
   </div>
 </div>
 
 <script>
+const CHANNEL_LINK = "https://t.me/tapday_clicker";
+const WITHDRAW_MIN = 300;
+const DAILY_BONUSES = [0.5,0.75,1,1.5,1.75,2,2.5];
+
 let balance = parseFloat(localStorage.getItem("balance")) || 0;
 let coins = parseInt(localStorage.getItem("coins")) || 0;
 let multiplier = 1;
 
-// ===== UPDATE =====
+// ===== UPDATE UI =====
 function updateUI() {
-  document.getElementById("balance").textContent = `💰 Balance: ${balance.toFixed(2)}`;
-  document.getElementById("coins").textContent = `🪙 Coins: ${coins}`;
+  document.getElementById("balance").textContent =
+    `💰 Balance: ${balance.toFixed(2)} $`;
+  document.getElementById("coins").textContent =
+    `🪙 Coins: ${coins}`;
   localStorage.setItem("balance", balance);
   localStorage.setItem("coins", coins);
+
+  const left = WITHDRAW_MIN - balance;
+  leftToWithdraw.textContent =
+    left > 0 ? `До виводу залишилось: ${left.toFixed(2)} $`
+             : "✅ Вивід доступний";
 }
 updateUI();
 
@@ -159,60 +184,85 @@ updateUI();
 coin.onclick = () => {
   balance += 0.01 * multiplier;
   updateUI();
+  navigator.vibrate?.(30);
 };
 
 // ===== MULT =====
-x2.onclick = () => activateMult(2, x2);
-x5.onclick = () => activateMult(5, x5);
-
-function activateMult(x, el) {
+function activateMult(x) {
   multiplier = x;
-  el.classList.add("active");
-  setTimeout(() => {
-    multiplier = 1;
-    el.classList.remove("active");
-  }, 10000);
+  setTimeout(() => multiplier = 1, 600000);
 }
+x2.onclick = () => activateMult(2);
+x5.onclick = () => activateMult(5);
 
-// ===== POPUPS =====
-getCoins.onclick = () => {
-  document.getElementById("coinsPopup").style.display = "flex";
-};
-shop.onclick = () => {
-  document.getElementById("shopPopup").style.display = "flex";
-};
-function closePopup() {
-  document.getElementById("coinsPopup").style.display = "none";
-}
-function closeShop() {
-  document.getElementById("shopPopup").style.display = "none";
-}
+// ===== SHOP =====
+shop.onclick = () => shopModal.style.display = "flex";
+function closeShop(){ shopModal.style.display="none"; }
 
-// ===== SHOP BUY =====
-function buyBoost(price) {
-  if (coins < price) {
+function buyBoost(x, cost){
+  if(coins < cost){
     alert("❌ Недостатньо coins");
     return;
   }
-  coins -= price;
-  multiplier = price === 200 ? 2 : 5;
+  coins -= cost;
+  activateMult(x);
   updateUI();
-  closeShop();
-  setTimeout(() => multiplier = 1, 30000);
+  alert(`✅ Активовано x${x}`);
 }
 
-// ===== ONLINE =====
-setInterval(() => {
-  onlineCount.textContent = 3000 + Math.floor(Math.random() * 500) - 250;
-}, 3000);
+function buyCoins(){
+  coins += 30;
+  updateUI();
+  alert("🎁 Ви отримали coins");
+}
 
-// ===== BONUS TODAY =====
-let bonusTodayValue = parseInt(localStorage.getItem("bonusToday")) || 200;
-setInterval(() => {
-  if (Math.random() > 0.8) bonusTodayValue++;
+// ===== DAILY BONUS =====
+daily.onclick = () => {
+  const today = new Date().toDateString();
+  if(localStorage.getItem("dailyDate") === today){
+    alert("❌ Вже отримано");
+    return;
+  }
+  let day = parseInt(localStorage.getItem("dailyDay")) || 0;
+  let reward = DAILY_BONUSES[day] || 0;
+  balance += reward;
+  localStorage.setItem("dailyDay", day+1);
+  localStorage.setItem("dailyDate", today);
+  updateUI();
+  alert(`🎁 +${reward.toFixed(2)} $`);
+};
+
+// ===== SUBSCRIBE =====
+if(localStorage.getItem("subBonus")) subscribe.style.display="none";
+subscribe.onclick = () => {
+  window.open(CHANNEL_LINK,"_blank");
+  balance += 10;
+  localStorage.setItem("subBonus","1");
+  subscribe.style.display="none";
+  updateUI();
+};
+
+// ===== SHARE =====
+share.onclick = () => {
+  navigator.clipboard.writeText(CHANNEL_LINK);
+  coins += 20;
+  updateUI();
+  alert("🔗 Посилання скопійовано +20 coins");
+};
+
+// ===== ONLINE + BONUS TODAY =====
+setInterval(()=>{
+  onlineCount.textContent = 3000 + Math.floor(Math.random()*500)-250;
+},3000);
+
+let bonusTodayValue = parseInt(localStorage.getItem("bonusToday"))||200;
+setInterval(()=>{
+  if(Math.random()>0.7){
+    bonusTodayValue++;
+    localStorage.setItem("bonusToday",bonusTodayValue);
+  }
   bonusToday.textContent = bonusTodayValue;
-  localStorage.setItem("bonusToday", bonusTodayValue);
-}, 6000);
+},6000);
 </script>
 
 </body>
