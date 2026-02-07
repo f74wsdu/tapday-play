@@ -1,157 +1,174 @@
 <!DOCTYPE html>
 <html lang="uk">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<meta charset="UTF-8">
 <title>TapDay Play</title>
-
 <style>
-body {
-  margin: 0;
-  background: #0d0d0d;
-  color: #fff;
-  font-family: Arial, sans-serif;
-  text-align: center;
+*{box-sizing:border-box;font-family:Arial}
+body{
+  margin:0;background:#0d0d0d;color:#fff;
+  display:flex;justify-content:center;align-items:center;height:100vh;
+}
+.app{width:360px;height:640px;position:relative}
+
+.top{
+  display:flex;justify-content:space-between;
+  padding:10px;font-size:14px;color:#ccc
 }
 
-/* TOP BAR */
-.top {
-  display: flex;
-  justify-content: space-between;
-  padding: 12px 16px;
-  font-size: 14px;
-  color: #bbb;
+.balance{
+  text-align:center;font-size:28px;margin-top:10px
+}
+.balance span{color:#3cff00}
+
+.circle-wrap{
+  display:flex;justify-content:center;align-items:center;
+  height:320px;position:relative
 }
 
-/* BALANCE */
-.balance {
-  margin-top: 10px;
-  font-size: 28px;
-}
-.balance span {
-  color: #4cff4c;
+.circle{
+  width:260px;height:260px;border-radius:50%;
+  background:radial-gradient(circle,#ffd000,#ffae00);
+  display:flex;justify-content:center;align-items:center;
+  font-size:40px;cursor:pointer;position:relative;
 }
 
-/* COIN */
-.coin-wrap {
-  margin: 30px auto;
-}
-.coin {
-  width: 240px;
-  height: 240px;
-  border-radius: 50%;
-  background: radial-gradient(circle, #ffd94d, #ffb300);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 40px;
-  cursor: pointer;
-  transition: transform 0.05s, filter 0.2s;
-}
-.coin:active {
-  transform: scale(0.95);
-}
-.bright {
-  filter: brightness(1.25);
+.circle.glow{
+  box-shadow:0 0 40px 15px gold;
 }
 
-/* MULTI */
-.multi {
-  display: flex;
-  justify-content: center;
-  gap: 12px;
+.rain{
+  position:absolute;color:gold;font-size:14px;
+  animation:fall 1s linear forwards;
 }
-.multi button {
-  background: #1c1c1c;
-  color: #fff;
-  border: 1px solid #333;
-  padding: 10px 18px;
-  border-radius: 8px;
-  font-size: 16px;
-}
-.multi button.active {
-  background: #ffb300;
-  color: #000;
+@keyframes fall{
+  from{opacity:1;transform:translateY(0)}
+  to{opacity:0;transform:translateY(120px)}
 }
 
-/* BONUS */
-.bonus {
-  margin-top: 20px;
+.controls{
+  display:flex;justify-content:center;gap:10px
 }
-.bonus button {
-  background: #ff9800;
-  color: #000;
-  font-size: 18px;
-  padding: 14px 28px;
-  border: none;
-  border-radius: 10px;
+.btn{
+  padding:10px 16px;border-radius:8px;
+  background:#222;color:#fff;border:none
+}
+.btn.active{background:#ffb400}
+
+.bonus{
+  margin:20px auto;
+  width:200px;text-align:center;
+  background:#ff9800;padding:12px;border-radius:10px;
+  color:#000;font-weight:bold;cursor:pointer
+}
+
+.left{
+  position:absolute;left:-10px;top:200px
+}
+.ad{
+  background:#222;padding:8px;border-radius:8px;
+  margin-bottom:10px;font-size:12px;cursor:pointer
+}
+
+.withdraw{
+  position:absolute;bottom:10px;left:50%;
+  transform:translateX(-50%);
+  background:#0f8a3a;padding:10px 30px;
+  border-radius:10px;color:#fff;opacity:.6
+}
+
+.level{
+  position:absolute;top:90px;right:10px;font-size:12px;color:#aaa
 }
 </style>
 </head>
 
 <body>
+<div class="app">
 
 <div class="top">
-  <div>Онлайн: <b id="online">3782</b></div>
-  <div>Бонусів сьогодні: <b id="bonuses">4872</b></div>
+  <div>Онлайн: <span id="online">3782</span></div>
+  <div>Бонусів сьогодні: <span id="bonuses">4872</span></div>
 </div>
 
-<div class="balance">
-  Баланс: <span id="balance">0</span> $
+<div class="balance">Баланс: <span id="money">4</span> $</div>
+
+<div class="level">Рівень: <span id="level">1</span></div>
+
+<div class="circle-wrap">
+  <div class="circle" id="circle">💵</div>
 </div>
 
-<div class="coin-wrap">
-  <div class="coin" id="coin">💵</div>
+<div class="controls">
+  <button class="btn active" onclick="setMulti(1)">x1</button>
+  <button class="btn" onclick="setMulti(3)">x3</button>
+  <button class="btn" onclick="setMulti(5)">x5</button>
 </div>
 
-<div class="multi">
-  <button onclick="setMulti(1)" id="m1" class="active">x1</button>
-  <button onclick="setMulti(3)" id="m3">x3</button>
-  <button onclick="setMulti(5)" id="m5">x5</button>
+<div class="bonus" id="bonus">🎁 Бонус</div>
+
+<div class="left">
+  <div class="ad" onclick="addMoney(500)">📺 Реклама +500</div>
+  <div class="ad">📁 День 1 – 25</div>
+  <div class="ad">📁 День 2 – 50</div>
+  <div class="ad">📁 День 3 – 100</div>
+  <div class="ad">📁 День 4 – 200</div>
+  <div class="ad">📁 День 5 – 400</div>
 </div>
 
-<div class="bonus">
-  <button onclick="bonus()">🎁 Бонус</button>
+<div class="withdraw">💳 Вивід</div>
+
 </div>
 
 <script>
-let balance = 0;
-let multi = 1;
+let money=4, taps=0, multi=1;
 
-const coin = document.getElementById("coin");
-const balanceEl = document.getElementById("balance");
-
-function setMulti(x) {
-  multi = x;
-  document.querySelectorAll(".multi button").forEach(b => b.classList.remove("active"));
-  document.getElementById("m"+x).classList.add("active");
+function setMulti(m){
+  multi=m;
+  document.querySelectorAll('.btn').forEach(b=>b.classList.remove('active'));
+  event.target.classList.add('active');
 }
 
-coin.onclick = () => {
-  balance += multi;
-  balanceEl.innerText = balance;
-
-  coin.classList.add("bright");
-  setTimeout(() => coin.classList.remove("bright"), 80);
-
-  updateCoin();
-};
-
-function updateCoin() {
-  if (balance >= 10000000) coin.innerText = "💎";
-  else if (balance >= 1000000) coin.innerText = "🏦";
-  else if (balance >= 100000) coin.innerText = "💰";
-  else if (balance >= 10000) coin.innerText = "💵";
-  else if (balance >= 1000) coin.innerText = "💴";
-  else if (balance >= 100) coin.innerText = "🪙";
+circle.onclick=()=>{
+  taps+=multi;
+  money+=0.01*multi;
+  moneyEl.innerText=money.toFixed(2);
+  rain();
+  checkLevels();
 }
 
-function bonus() {
-  balance += 50;
-  balanceEl.innerText = balance;
-  window.open("https://t.me/tapday_clicker", "_blank");
+function rain(){
+  for(let i=0;i<3;i++){
+    let r=document.createElement('div');
+    r.className='rain';
+    r.innerText='💵';
+    r.style.left=(120+Math.random()*40)+'px';
+    r.style.top='120px';
+    circle.appendChild(r);
+    setTimeout(()=>r.remove(),1000);
+  }
 }
+
+function checkLevels(){
+  if(taps>10000){circle.classList.add('glow');circle.innerText='🦁'}
+  if(taps>100000) level.innerText=3;
+  if(taps>1000000) level.innerText=4;
+}
+
+setInterval(()=>{
+  online.innerText=3700+Math.floor(Math.random()*200);
+  bonuses.innerText++;
+},3000);
+
+bonus.onclick=()=>{
+  window.open('https://t.me/tapday_clicker','_blank');
+  bonus.style.display='none';
+}
+
+function addMoney(v){money+=v;moneyEl.innerText=money.toFixed(2)}
+
+const moneyEl=document.getElementById('money');
+const level=document.getElementById('level');
 </script>
-
 </body>
 </html>
