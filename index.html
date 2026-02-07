@@ -28,16 +28,20 @@ body {
     margin: 10px 0;
 }
 
+.top-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 15px;
+}
+
 .ad-btn {
-    display: inline-block;
     background: #1c1c1c;
     padding: 8px 14px;
     border-radius: 20px;
-    margin-bottom: 10px;
 }
 
 .level {
-    margin-bottom: 10px;
     font-size: 14px;
 }
 
@@ -48,8 +52,8 @@ body {
 }
 
 .circle {
-    width: 260px;
-    height: 260px;
+    width: 270px;
+    height: 270px;
     background: radial-gradient(circle, #ffd500, #ffb700);
     border-radius: 50%;
     display: flex;
@@ -59,6 +63,14 @@ body {
 
 .circle img {
     width: 90px;
+}
+
+.folder {
+    position: absolute;
+    left: 20px;
+    top: 360px;
+    font-size: 26px;
+    cursor: pointer;
 }
 
 .multi {
@@ -76,20 +88,20 @@ body {
     color: #fff;
 }
 
-.main-btn {
+.multi button.active {
+    background: #ffc400;
+    color: #000;
+}
+
+.play-btn {
     background: #ffc400;
     border: none;
     padding: 14px;
-    width: 80%;
+    width: 85%;
     border-radius: 16px;
-    font-size: 18px;
+    font-size: 16px;
     font-weight: bold;
-}
-
-.bonus-30 {
-    margin-top: 6px;
-    font-size: 14px;
-    color: #aaa;
+    margin-bottom: 10px;
 }
 
 .withdraw {
@@ -100,7 +112,6 @@ body {
     border-radius: 14px;
     font-size: 16px;
     color: #fff;
-    margin-top: 10px;
 }
 </style>
 </head>
@@ -108,36 +119,43 @@ body {
 <body>
 
 <div class="header">
-    <div>Онлайн: <span id="online">3946</span></div>
-    <div>Бонусів сьогодні: <span id="bonusToday">4769</span></div>
+    <div>Онлайн: <span id="online">3940</span></div>
+    <div>Бонусів сьогодні: <span id="bonusToday">4744</span></div>
 </div>
 
-<div class="balance">Баланс: ₴<span id="balance">496.64</span></div>
+<div class="balance">Баланс: $<span id="balance">296.64</span></div>
 
-<div class="ad-btn" onclick="watchAd()">📺 Реклама +50 грн</div>
-<div class="level">Рівень: 2</div>
+<div class="top-row">
+    <div class="ad-btn" onclick="watchAd()">📺 Реклама +500</div>
+    <div class="level">Рівень: 2</div>
+</div>
+
+<div class="folder" onclick="dailyBonus()">📁</div>
 
 <div class="circle-wrap">
-    <div class="circle">
-        <img src="https://cdn-icons-png.flaticon.com/512/616/616430.png">
+    <div class="circle" onclick="tap()">
+        <img src="https://cdn-icons-png.flaticon.com/512/3523/3523063.png">
     </div>
 </div>
 
 <div class="multi">
-    <button>x1</button>
-    <button>x3</button>
-    <button>x5</button>
+    <button class="active" onclick="setMulti(1)">x1</button>
+    <button onclick="setMulti(3)">x3</button>
+    <button onclick="setMulti(5)">x5</button>
 </div>
 
-<button class="main-btn">TapDay Play</button>
-<div class="bonus-30">Бонус через 30 днів: +1000</div>
+<button class="play-btn">
+    TapDay Play · Бонус через 30 днів +1000
+</button>
 
 <button class="withdraw">💳 Вивід</button>
 
 <script>
-let online = 3946;
-let bonusToday = 4769;
-let balance = 496.64;
+let online = 3940;
+let bonusToday = 4744;
+let balance = 296.64;
+let multi = 1;
+let lastDaily = localStorage.getItem("daily") || 0;
 
 setInterval(() => {
     online += Math.floor(Math.random() * 2);
@@ -145,13 +163,36 @@ setInterval(() => {
 }, 3000);
 
 setInterval(() => {
-    bonusToday += Math.floor(Math.random() * 4);
+    bonusToday += Math.floor(Math.random() * 3);
     document.getElementById("bonusToday").innerText = bonusToday;
 }, 2500);
+
+function tap() {
+    balance += 1 * multi;
+    document.getElementById("balance").innerText = balance.toFixed(2);
+}
+
+function setMulti(x) {
+    multi = x;
+    document.querySelectorAll(".multi button").forEach(b => b.classList.remove("active"));
+    event.target.classList.add("active");
+}
 
 function watchAd() {
     balance += 50;
     document.getElementById("balance").innerText = balance.toFixed(2);
+}
+
+function dailyBonus() {
+    let now = Date.now();
+    if (now - lastDaily >= 86400000) {
+        balance += 25;
+        lastDaily = now;
+        localStorage.setItem("daily", now);
+        alert("🎁 Отримано +25");
+    } else {
+        alert("⏳ Бонус буде доступний через 24 години");
+    }
 }
 </script>
 
