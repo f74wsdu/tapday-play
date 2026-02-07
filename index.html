@@ -3,51 +3,60 @@
 <head>
 <meta charset="UTF-8">
 <title>TapDay Play</title>
+
 <style>
 body {
   margin: 0;
-  background: #0d0d0d;
-  color: white;
+  background: #0b0b0b;
+  color: #fff;
   font-family: Arial, sans-serif;
   text-align: center;
 }
 
+/* TOP BAR */
 #top {
   display: flex;
   justify-content: space-between;
+  align-items: center;
   padding: 10px;
 }
 
-#level {
-  font-weight: bold;
+#online {
+  font-size: 12px;
+  color: #00ff7f;
 }
 
-#adBtn {
-  background: #ff9800;
-  border: none;
-  padding: 8px 12px;
-  border-radius: 8px;
+/* MULTIPLIERS */
+.mult {
+  position: fixed;
+  top: 50%;
+  padding: 10px;
+  background: #222;
+  border-radius: 10px;
 }
 
+#x2 { left: 10px; }
+#x5 { right: 10px; }
+
+/* TAP BUTTON */
 #coin {
-  margin-top: 60px;
-  width: 160px;
-  height: 160px;
+  margin: 80px auto 20px;
+  width: 180px;
+  height: 180px;
   border-radius: 50%;
-  background: radial-gradient(circle, gold, orange);
+  background: radial-gradient(circle, #ffd700, #ff9800);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 26px;
+  font-size: 32px;
   font-weight: bold;
   cursor: pointer;
+  transition: filter 0.3s;
   position: relative;
 }
 
 .coin-rain {
   position: absolute;
-  top: 50%;
-  left: 50%;
   animation: fall 1s linear forwards;
 }
 
@@ -58,82 +67,63 @@ body {
   }
 }
 
-#count {
-  margin-top: 20px;
+/* BALANCE */
+#balance {
   font-size: 22px;
+  margin-bottom: 20px;
 }
 
-#daily {
-  margin-top: 20px;
-  background: #333;
-  padding: 10px;
-  border-radius: 10px;
+/* BUTTONS */
+.block {
+  margin: 10px auto;
+  width: 90%;
+  padding: 12px;
+  border-radius: 12px;
 }
 
-#subscribe {
-  margin-top: 15px;
-  background: #0088cc;
-  padding: 10px;
-  border-radius: 10px;
-}
+#daily { background: #333; }
+#timer { background: #0b84d6; }
+#withdraw { background: green; width: fit-content; padding: 8px 20px; }
 
-#withdraw {
-  margin-top: 10px;
-  background: green;
-  padding: 6px 12px;
-  border-radius: 8px;
-  width: fit-content;
-  margin-left: auto;
-  margin-right: auto;
-}
 </style>
 </head>
 
 <body>
 
 <div id="top">
-  <button id="adBtn">🎥 +50</button>
-  <div id="level">LEVEL 1</div>
+  <button>🎥 +50</button>
+
+  <div id="online">
+    🟢 Online: <span id="onlineCount">3421</span><br>
+    🎁 Bonus today: <span id="bonusToday">187</span>
+  </div>
+
+  <div id="level">LEVEL 2</div>
 </div>
+
+<div id="x2" class="mult">X2</div>
+<div id="x5" class="mult">X5</div>
 
 <div id="coin">TAP</div>
-<div id="count">0 монет</div>
 
-<div id="daily">
-  📁 Денний бонус
-</div>
+<div id="balance">💵 Balance: 0 $</div>
 
-<div id="subscribe">
-  🔔 Підпишись → +500
-</div>
-
-<div id="withdraw">
-  💳 Вивід
-</div>
+<div id="daily" class="block">📁 Денний бонус</div>
+<div id="timer" class="block">⏳ Бонус через 30 днів</div>
+<div id="withdraw">💳 Вивід</div>
 
 <script>
 let coins = 0;
 let level = 1;
 
+const balance = document.getElementById("balance");
 const coinBtn = document.getElementById("coin");
-const countText = document.getElementById("count");
 const levelText = document.getElementById("level");
 
-function updateLevel() {
-  if (coins >= 10000000) level = 6;
-  else if (coins >= 1000000) level = 5;
-  else if (coins >= 100000) level = 4;
-  else if (coins >= 10000) level = 3;
-  else if (coins >= 1000) level = 2;
-  else level = 1;
-
-  levelText.textContent = "LEVEL " + level;
-}
-
+/* TAP */
 coinBtn.onclick = () => {
   coins++;
-  countText.textContent = coins + " монет";
-  updateLevel();
+  balance.textContent = `💵 Balance: ${coins} $`;
 
   if (navigator.vibrate) navigator.vibrate(30);
 
@@ -141,32 +131,45 @@ coinBtn.onclick = () => {
     const rain = document.createElement("div");
     rain.textContent = "🪙";
     rain.className = "coin-rain";
+    rain.style.left = "50%";
     coinBtn.appendChild(rain);
     setTimeout(() => rain.remove(), 1000);
   }
+
+  updateVisual();
 };
 
-document.getElementById("adBtn").onclick = () => {
-  coins += 50;
-  countText.textContent = coins + " монет";
-  playSound();
-};
+/* VISUAL PROGRESSION */
+function updateVisual() {
+  if (coins >= 1000000) {
+    coinBtn.style.filter = "brightness(1.8)";
+    coinBtn.textContent = "🦁";
+  } else if (coins >= 100000) {
+    coinBtn.style.filter = "brightness(1.6)";
+    coinBtn.textContent = "🧰";
+  } else if (coins >= 10000) {
+    coinBtn.style.filter = "brightness(1.4)";
+    coinBtn.textContent = "⭐";
+  } else if (coins >= 1000) {
+    coinBtn.style.filter = "brightness(1.2)";
+    coinBtn.textContent = "💎";
+  } else {
+    coinBtn.textContent = "TAP";
+  }
 
-document.getElementById("subscribe").onclick = () => {
-  coins += 500;
-  countText.textContent = coins + " монет";
-  playSound();
-  document.getElementById("subscribe").innerHTML = "⏳ Бонус через 30 днів";
-};
+  level = coins >= 1000000 ? 5 :
+          coins >= 100000 ? 4 :
+          coins >= 10000 ? 3 :
+          coins >= 1000 ? 2 : 1;
 
-document.getElementById("withdraw").onclick = () => {
-  alert("Вивід буде доступний пізніше");
-};
-
-function playSound() {
-  const audio = new Audio("https://actions.google.com/sounds/v1/cartoon/clang_and_wobble.ogg");
-  audio.play();
+  levelText.textContent = "LEVEL " + level;
 }
+
+/* FAKE ONLINE */
+setInterval(() => {
+  document.getElementById("onlineCount").textContent =
+    3000 + Math.floor(Math.random() * 500);
+}, 3000);
 </script>
 
 </body>
