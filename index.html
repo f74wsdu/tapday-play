@@ -2,202 +2,194 @@
 <html lang="uk">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width,initial-scale=1">
 <title>City Idle 2026</title>
-
 <style>
-body{
-  margin:0;
-  font-family:Inter,system-ui;
-  background:#0b1220;
-  color:#fff;
+:root{
+ --bg:#0b1220;--panel:#111a2e;--card:#16213e;--accent:#ffb703;--muted:#8aa0ff;
 }
-
-#top{
-  display:flex;
-  justify-content:space-between;
-  padding:12px 16px;
-  background:#111a2e;
-}
-
-#money{font-weight:700}
-#season{opacity:.8}
-
-#map{
-  padding:16px;
-}
-
-.district{
-  background:#16213e;
-  border-radius:16px;
-  padding:14px;
-  margin-bottom:14px;
-}
-
-.district h2{
-  margin:0 0 8px;
-}
-
-.business{
-  display:flex;
-  justify-content:space-between;
-  background:#1f2b4f;
-  padding:10px;
-  border-radius:10px;
-  margin-top:8px;
-  cursor:pointer;
-}
-
-.business.locked{
-  opacity:.4;
-  cursor:not-allowed;
-}
-
-#tapZone{
-  position:fixed;
-  bottom:90px;
-  left:50%;
-  transform:translateX(-50%);
-  width:110px;
-  height:110px;
-  border-radius:50%;
-  background:radial-gradient(circle,#ffd36a,#ff9f1a);
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  font-size:26px;
-  box-shadow:0 0 30px rgba(255,190,60,.7);
-}
-
-#bottom{
-  position:fixed;
-  bottom:0;
-  width:100%;
-  background:#111a2e;
-  display:flex;
-  justify-content:space-around;
-  padding:8px 0;
-}
-
-.btn{text-align:center;font-size:13px}
-.btn strong{display:block}
+*{box-sizing:border-box}
+body{margin:0;font-family:Inter,system-ui;background:var(--bg);color:#fff}
+#top{display:flex;justify-content:space-between;align-items:center;padding:10px 14px;background:var(--panel);position:sticky;top:0;z-index:10}
+#money{font-weight:800}
+#map{height:calc(100vh - 180px);overflow:auto;padding:14px}
+.row{display:flex;gap:12px}
+.district{min-width:260px;background:var(--card);border-radius:16px;padding:12px}
+.district.locked{opacity:.4}
+h2{margin:0 0 8px}
+.biz{background:#1f2b4f;border-radius:12px;padding:10px;margin-top:8px;display:flex;justify-content:space-between;align-items:center}
+.biz button{background:var(--accent);border:none;border-radius:10px;padding:6px 10px;font-weight:700;cursor:pointer}
+.biz small{opacity:.7}
+#tap{position:fixed;bottom:86px;left:50%;transform:translateX(-50%);width:96px;height:96px;border-radius:50%;
+background:radial-gradient(circle,#ffd36a,#ff9f1a);display:flex;align-items:center;justify-content:center;font-size:26px;
+box-shadow:0 0 30px rgba(255,190,60,.6)}
+#bottom{position:fixed;bottom:0;width:100%;background:var(--panel);display:flex;justify-content:space-around;padding:8px 0}
+.btn{text-align:center;font-size:12px;cursor:pointer}
+.btn b{display:block}
+#side{position:fixed;right:10px;top:64px;display:flex;flex-direction:column;gap:8px}
+.pill{background:#1f2b4f;border-radius:999px;padding:6px 10px;font-size:12px}
+.toast{position:fixed;left:50%;bottom:200px;transform:translateX(-50%);background:#000a;padding:10px 14px;border-radius:12px}
 </style>
 </head>
-
 <body>
 
 <div id="top">
-  <div>💵 <span id="money">200</span></div>
-  <div id="season">Сезон 1 · День <span id="day">1</span>/7</div>
+  <div>💵 <span id="money">0</span></div>
+  <div>⭐ Рівень <span id="lvl">1</span></div>
 </div>
 
 <div id="map">
+  <div class="row">
+    <div class="district" id="d_farm">
+      <h2>🌾 Село</h2>
+      <div class="biz">
+        <div>Ферма Lv.<span id="farmLv">0</span><br><small>+<span id="farmInc">1</span>/с</small></div>
+        <button onclick="buyFarm()">Купити</button>
+      </div>
+      <div class="biz">
+        <div>Апгрейд<br><small>x1.5 дохід</small></div>
+        <button onclick="upFarm()">↑</button>
+      </div>
+    </div>
 
-<div class="district">
-  <h2>🌾 Сільський район</h2>
+    <div class="district locked" id="d_city">
+      <h2>🏙 Місто</h2>
+      <div class="biz">
+        <div>Магазин Lv.<span id="shopLv">0</span><br><small>+<span id="shopInc">4</span>/с</small></div>
+        <button onclick="buyShop()">Купити</button>
+      </div>
+      <div class="biz">
+        <div>Апгрейд</div>
+        <button onclick="upShop()">↑</button>
+      </div>
+    </div>
 
-  <div class="business" onclick="buy('farm')">
-    <span>Ферма</span>
-    <span>50 💵</span>
+    <div class="district locked" id="d_ind">
+      <h2>🏭 Індустрія</h2>
+      <div class="biz">
+        <div>Завод Lv.<span id="facLv">0</span><br><small>+<span id="facInc">12</span>/с</small></div>
+        <button onclick="buyFac()">Купити</button>
+      </div>
+      <div class="biz">
+        <div>Апгрейд</div>
+        <button onclick="upFac()">↑</button>
+      </div>
+    </div>
   </div>
-
-  <div class="business locked" id="factoryBtn">
-    <span>Завод (потрібна ферма)</span>
-    <span>300 💵</span>
-  </div>
 </div>
 
-<div class="district locked" id="cityDistrict">
-  <h2>🏙 Місто (рівень 3)</h2>
-</div>
+<div id="tap">🪙</div>
 
+<div id="side">
+  <div class="pill">🎯 Квест: <span id="quest">Зароби 500</span></div>
+  <div class="pill">🏆 Досягнення: <span id="ach">—</span></div>
 </div>
-
-<div id="tapZone">🪙</div>
 
 <div id="bottom">
-  <div class="btn" onclick="boost()">⚡<strong>2x</strong></div>
-  <div class="btn" onclick="bonus()">🎁<strong>Бонус</strong></div>
-  <div class="btn" onclick="sound()">🔊<strong>Звук</strong></div>
+  <div class="btn" onclick="boost()">⚡<b>2x (10хв)</b></div>
+  <div class="btn" onclick="subscribe()">💎<b>Підписка</b></div>
+  <div class="btn" onclick="toggleSound()">🔊<b>Звук</b></div>
 </div>
 
 <script>
-let money=200;
-let income=0;
-let level=1;
-let day=1;
-let boostOn=false;
-let soundOn=true;
+/* ===== STATE ===== */
+let S=JSON.parse(localStorage.getItem('city26')||'{}');
+let money=S.money||200, lvl=S.lvl||1, sound=S.sound??true;
+let inc=S.inc||0;
+let farm={lv:S.farmLv||0, inc:S.farmInc||1};
+let shop={lv:S.shopLv||0, inc:S.shopInc||4};
+let fac ={lv:S.facLv ||0, inc:S.facInc ||12};
+let boostUntil=S.boostUntil||0;
+let quest=S.quest||{t:'earn',goal:500,done:false};
+let ach=S.ach||{};
+const sndClick=new Audio('https://assets.mixkit.co/sfx/preview/mixkit-arcade-coin-216.wav');
+const sndBuy=new Audio('https://assets.mixkit.co/sfx/preview/mixkit-game-click-1114.wav');
 
-let hasFarm=false;
-let hasFactory=false;
-
-const clickSound=new Audio("https://assets.mixkit.co/sfx/preview/mixkit-arcade-coin-216.wav");
-const buySound=new Audio("https://assets.mixkit.co/sfx/preview/mixkit-game-click-1114.wav");
-
-function play(s){
- if(!soundOn) return;
- s.volume=0.25;
- s.currentTime=0;
- s.play();
+/* ===== HELPERS ===== */
+function play(a){if(!sound)return;a.volume=.2;a.currentTime=0;a.play();}
+function save(){
+ localStorage.setItem('city26',JSON.stringify({
+  money,lvl,inc,sound,boostUntil,quest,ach,
+  farmLv:farm.lv,farmInc:farm.inc,
+  shopLv:shop.lv,shopInc:shop.inc,
+  facLv:fac.lv,facInc:fac.inc
+ }));
+}
+function ui(){
+ document.getElementById('money').textContent=Math.floor(money);
+ document.getElementById('lvl').textContent=lvl;
+ document.getElementById('farmLv').textContent=farm.lv;
+ document.getElementById('farmInc').textContent=farm.inc;
+ document.getElementById('shopLv').textContent=shop.lv;
+ document.getElementById('shopInc').textContent=shop.inc;
+ document.getElementById('facLv').textContent=fac.lv;
+ document.getElementById('facInc').textContent=fac.inc;
+ document.getElementById('quest').textContent=quest.done?'Виконано':`Зароби ${quest.goal}`;
+ if(lvl>=3) document.getElementById('d_city').classList.remove('locked');
+ if(lvl>=6) document.getElementById('d_ind').classList.remove('locked');
 }
 
-function update(){
- document.getElementById("money").innerText=Math.floor(money);
- document.getElementById("day").innerText=day;
+/* ===== ECONOMY ===== */
+function recalc(){
+ inc = farm.lv*farm.inc + shop.lv*shop.inc + fac.lv*fac.inc;
 }
-
-function buy(type){
- if(type==="farm" && money>=50){
-   money-=50;
-   income+=1;
-   hasFarm=true;
-   document.getElementById("factoryBtn").classList.remove("locked");
-   play(buySound);
- }
- if(type==="factory"){}
- update();
-}
-
-document.getElementById("factoryBtn").onclick=()=>{
- if(!hasFarm||money<300)return;
- money-=300;
- income+=5;
- hasFactory=true;
- play(buySound);
- update();
-};
-
 setInterval(()=>{
- money+=income*(boostOn?2:1);
- update();
+ let mult=Date.now()<boostUntil?2:1;
+ money+=inc*mult;
+ progress();
+ ui(); save();
 },1000);
 
-document.getElementById("tapZone").addEventListener("pointerdown",()=>{
- money+=boostOn?2:1;
- play(clickSound);
- update();
+/* ===== TAP ===== */
+document.getElementById('tap').addEventListener('pointerdown',()=>{
+ money+= (Date.now()<boostUntil?2:1);
+ play(sndClick);
+ progress();
+ ui(); save();
 });
 
+/* ===== BUY / UP ===== */
+function buyFarm(){ if(money<50) return; money-=50; farm.lv++; play(sndBuy); recalc(); ui(); save(); }
+function upFarm(){ if(money<100||farm.lv<1) return; money-=100; farm.inc=Math.ceil(farm.inc*1.5); play(sndBuy); recalc(); ui(); save(); }
+
+function buyShop(){ if(money<300||lvl<3) return; money-=300; shop.lv++; play(sndBuy); recalc(); ui(); save(); }
+function upShop(){ if(money<600||shop.lv<1) return; money-=600; shop.inc=Math.ceil(shop.inc*1.5); play(sndBuy); recalc(); ui(); save(); }
+
+function buyFac(){ if(money<1200||lvl<6) return; money-=1200; fac.lv++; play(sndBuy); recalc(); ui(); save(); }
+function upFac(){ if(money<2400||fac.lv<1) return; money-=2400; fac.inc=Math.ceil(fac.inc*1.5); play(sndBuy); recalc(); ui(); save(); }
+
+/* ===== PROGRESSION ===== */
+function progress(){
+ if(!quest.done && money>=quest.goal){
+  quest.done=true; money+=200; toast('🎯 Квест виконано +200');
+ }
+ let newLvl = Math.floor(Math.log10(Math.max(10,money)));
+ if(newLvl>lvl){ lvl=newLvl; toast('⭐ Рівень '+lvl); }
+ if(money>=1000 && !ach.k1){ ach.k1=1; toast('🏆 1K!'); }
+ if(money>=10000 && !ach.k10){ ach.k10=1; toast('🏆 10K!'); }
+}
+function toast(t){
+ let d=document.createElement('div'); d.className='toast'; d.textContent=t;
+ document.body.appendChild(d); setTimeout(()=>d.remove(),1400);
+}
+
+/* ===== MONETIZATION (SAFE) ===== */
 function boost(){
- if(boostOn)return;
- boostOn=true;
- setTimeout(()=>boostOn=false,10000);
+ boostUntil=Date.now()+10*60*1000;
+ toast('⚡ 2x на 10 хв');
+ save();
+}
+function subscribe(){
+ // Без обману: добровільна підписка/буст
+ window.open('https://t.me/','_blank');
+ toast('💎 Дякуємо за підтримку!');
 }
 
-function bonus(){
- window.open("https://t.me/","_blank");
- money+=5000;
- update();
-}
+/* ===== SOUND ===== */
+function toggleSound(){ sound=!sound; save(); }
 
-function sound(){soundOn=!soundOn}
-
-setInterval(()=>{
- day++;
- if(day>7) day=1;
-},60000);
+/* INIT */
+recalc(); ui(); save();
 </script>
-
 </body>
 </html>
