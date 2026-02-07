@@ -2,155 +2,143 @@
 <html lang="uk">
 <head>
 <meta charset="UTF-8">
-<title>TapDay Play</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<title>TapDay Play</title>
+
 <style>
-html,body{
-margin:0;height:100%;
-background:#050812;
-font-family:Arial;color:#fff;
-overflow:hidden
-}
-#money{
-position:absolute;top:10px;left:10px;
-font-size:22px;font-weight:bold
-}
-#timers{
-position:absolute;top:10px;right:10px;
-text-align:right;font-size:12px
-}
-#adBtn{
-background:#111;padding:10px 14px;
-border-radius:12px;margin-bottom:6px;
-cursor:pointer
-}
+html,body{margin:0;height:100%;background:#050812;color:#fff;font-family:Arial;overflow:hidden}
+#money{position:absolute;top:10px;left:10px;font-size:22px}
+#level{position:absolute;top:40px;left:10px;font-size:14px;opacity:.8}
+#ad{position:absolute;top:10px;right:10px;background:#222;padding:10px 14px;border-radius:14px}
 #coin{
 position:absolute;top:50%;left:50%;
 transform:translate(-50%,-50%);
-width:200px;height:200px;
-border-radius:50%;
-background:url('https://i.imgur.com/Z8QZ6sS.png') center/contain no-repeat;
-cursor:pointer
+width:220px;height:220px;border-radius:50%;
+background:radial-gradient(circle,#ffd700,#b8860b);
 }
-#bonus{
-position:absolute;bottom:90px;left:50%;
-transform:translateX(-50%);
-background:#0d1733;
-padding:18px 24px;
-border-radius:18px;text-align:center
-}
-#bonus button{
-margin-top:10px;
-padding:12px 18px;
-border:none;border-radius:12px;
-background:#00ffd5;font-weight:bold
-}
+.rain{position:absolute;top:-20px;font-size:20px;animation:fall 1s linear forwards}
+@keyframes fall{to{transform:translateY(110vh);opacity:0}}
+
 #city{
-position:absolute;bottom:10px;
-width:100%;text-align:center;
-opacity:.8
+position:absolute;bottom:10px;left:10px;
+background:#111;padding:10px;border-radius:12px;font-size:12px
 }
-.rain{
-position:absolute;
-top:-20px;
-font-size:20px;
-animation:fall 1s linear forwards;
+
+#bonusBox{
+position:absolute;bottom:80px;left:50%;
+transform:translateX(-50%);
+background:#0d1733;padding:20px;border-radius:18px;text-align:center
 }
-@keyframes fall{
-to{transform:translateY(110vh);opacity:0}
+
+#daily{
+position:absolute;bottom:10px;right:10px;
+background:#112;padding:10px;border-radius:12px;font-size:12px
+}
+
+#soon{
+position:absolute;top:80px;right:10px;font-size:12px;opacity:.6
 }
 </style>
 </head>
 <body>
 
 <div id="money">💵 0</div>
+<div id="level">Рівень: 1</div>
 
-<div id="timers">
-<div id="adBtn" onclick="watchAd()">РЕКЛАМА +2000</div>
-<div>🎁 Бонус: <span id="bonusTimer">00:00</span></div>
-</div>
+<div id="ad" onclick="fakeAd()">РЕКЛАМА +2000</div>
 
-<div id="coin" onclick="tap()"></div>
+<div id="coin"></div>
 
-<div id="bonus">
-🎁 БОНУС<br>Підпишись на канал
-<br>
-<button onclick="bonus()">Отримати +10 000</button>
+<div id="bonusBox" id="bonus">
+🎁 БОНУС<br>
+<button onclick="getBonus()">Отримати +10 000</button>
 </div>
 
 <div id="city">
-🏙 Місто приносить +5 / сек
+🏙 Місто<br>
++5 / сек<br>
+Таймер: <span id="cityTimer">00:00</span>
 </div>
 
-<script>
-let money=0;
-let tapPower=1;
-let lastBonus=0;
-let audioCtx=new AudioContext();
+<div id="daily">
+🎁 Щоденний бонус<br>
+<span id="dailyTimer">24:00:00</span>
+</div>
 
-function sound(freq){
-let o=audioCtx.createOscillator();
-let g=audioCtx.createGain();
-o.frequency.value=freq;
-o.connect(g);g.connect(audioCtx.destination);
-o.start();g.gain.exponentialRampToValueAtTime(0.0001,audioCtx.currentTime+0.15);
-}
+<div id="soon">💳 Вивід: скоро</div>
+
+<script>
+let money=0,level=1,tapPower=1;
+let lastBonus=0,lastDaily=0;
+let cityTime=60;
+
+const coin=document.getElementById("coin");
+
+coin.addEventListener("touchstart",e=>{
+for(let i=0;i<e.touches.length;i++)tap();
+});
+coin.onclick=tap;
 
 function tap(){
 money+=tapPower;
 rain();
-sound(600);
-checkCoin();
+check();
 update();
 }
 
 function rain(){
-for(let i=0;i<5;i++){
-let s=document.createElement("div");
-s.className="rain";
-s.innerText="💰";
-s.style.left=Math.random()*100+"%";
-document.body.appendChild(s);
-setTimeout(()=>s.remove(),1000);
+for(let i=0;i<8;i++){
+let r=document.createElement("div");
+r.className="rain";
+r.innerText="🪙";
+r.style.left=Math.random()*100+"%";
+document.body.appendChild(r);
+setTimeout(()=>r.remove(),1000);
 }
 }
 
-function watchAd(){
-money+=2000;
-sound(300);
-update();
-}
-
-function bonus(){
-if(Date.now()-lastBonus<60000)return;
-window.open("https://t.me/YOUR_CHANNEL","_blank");
-money+=10000;
-lastBonus=Date.now();
-sound(150);
-update();
-}
-
-function checkCoin(){
-let c=document.getElementById("coin");
-if(money>1000000)c.style.backgroundImage="url('https://i.imgur.com/0G4ZpZT.png')";
-else if(money>100000)c.style.backgroundImage="url('https://i.imgur.com/Y2Zz7cJ.png')";
-else if(money>10000)c.style.backgroundImage="url('https://i.imgur.com/F2yQfHl.png')";
+function check(){
+level=Math.floor(money/10000)+1;
+if(money>100000)coin.style.background="radial-gradient(circle,#00ffd5,#008b8b)";
+if(money>1000000)coin.style.background="radial-gradient(circle,#ff00ff,#800080)";
 }
 
 function update(){
-document.getElementById("money").innerText="💵 "+money.toLocaleString();
+moneyEl.innerText="💵 "+money.toLocaleString();
+levelEl.innerText="Рівень: "+level;
+}
+
+moneyEl=document.getElementById("money");
+levelEl=document.getElementById("level");
+
+function getBonus(){
+if(lastBonus)return;
+window.open("https://t.me/YOUR_CHANNEL","_blank");
+money+=10000;
+document.getElementById("bonusBox").remove();
+lastBonus=1;
+update();
+}
+
+function fakeAd(){
+money+=2000;
+update();
 }
 
 setInterval(()=>{
 money+=5;
+cityTime--;
+if(cityTime<=0)cityTime=60;
+document.getElementById("cityTimer").innerText="00:"+String(cityTime).padStart(2,"0");
 update();
 },1000);
 
 setInterval(()=>{
-let t=Math.max(0,60-Math.floor((Date.now()-lastBonus)/1000));
-document.getElementById("bonusTimer").innerText=
-String(Math.floor(t/60)).padStart(2,"0")+":"+String(t%60).padStart(2,"0");
-},500);
+let t=86400-Math.floor((Date.now()-lastDaily)/1000);
+if(t<=0){money+=5000;lastDaily=Date.now()}
+document.getElementById("dailyTimer").innerText=
+new Date(t*1000).toISOString().substr(11,8);
+},1000);
 </script>
 
 </body>
