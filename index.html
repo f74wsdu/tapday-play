@@ -2,142 +2,157 @@
 <html lang="uk">
 <head>
 <meta charset="UTF-8">
-<title>TapDay Play</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TapDay Play</title>
+
 <style>
 body{
   margin:0;
-  background:#0b0b0b;
+  font-family:Arial, sans-serif;
+  background:#000;
   color:#fff;
-  font-family:system-ui;
-  text-align:center
+  text-align:center;
 }
+
 .top{
   display:flex;
   justify-content:space-between;
   padding:10px 14px;
-  font-size:14px
+  font-size:14px;
 }
-.green{color:#2aff6a}
-.yellow{color:#ffd400}
+
+.green{color:#00ff6a}
+.yellow{color:#ffd000}
+
+.level{
+  font-size:12px;
+  opacity:.8;
+  margin-top:4px;
+}
 
 #balance{
-  font-size:42px;
-  margin-top:20px
+  font-size:48px;
+  margin-top:10px;
 }
-#label{opacity:.7}
+
+#label{
+  font-size:14px;
+  opacity:.7;
+}
+
+.btn{
+  border:none;
+  border-radius:14px;
+  padding:12px 20px;
+  font-size:16px;
+  margin:10px auto;
+  display:block;
+  cursor:pointer;
+}
+
+.ad{
+  background:#ffd000;
+  color:#000;
+  font-weight:bold;
+}
 
 #circle{
-  width:260px;
-  height:260px;
+  width:300px;
+  height:300px;
   margin:20px auto;
   border-radius:50%;
-  background:#222;
+  background:#1f1f1f;
   display:flex;
   align-items:center;
   justify-content:center;
 }
 
 #coin{
-  width:220px;
-  height:220px;
+  width:100%;
+  height:100%;
   border-radius:50%;
-  background:url("assets/money.png") center/contain no-repeat;
+  background:radial-gradient(circle at 30% 30%, #ffd700, #b8860b);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:42px;
   cursor:pointer;
+  user-select:none;
 }
 
-.btn{
-  margin:10px;
-  padding:14px;
-  border-radius:14px;
-  border:none;
-  font-size:16px
+#coin:active{
+  transform:scale(0.97);
 }
-.ad{background:#ffd400}
-.bonus{background:#1c1c1c;color:#fff}
-.play{background:#333;color:#aaa}
-.timer{opacity:.6;font-size:14px}
+
+.footer{
+  margin-top:10px;
+  opacity:.6;
+  font-size:12px;
+}
 </style>
 </head>
 
 <body>
 
 <div class="top">
-  <div class="green">Онлайн: <span id="online"></span></div>
-  <div class="yellow">Бонус сьогодні: <span id="today"></span></div>
+  <div class="green">Онлайн: <span id="online">0</span></div>
+  <div>
+    <div class="yellow">Бонус сьогодні: <span id="today">0</span></div>
+    <div class="level">Рівень: <span id="level">1</span></div>
+  </div>
 </div>
+
+<button class="btn ad" onclick="watchAd()">▶ Реклама +50</button>
 
 <div id="balance">0</div>
-<div id="label">монет</div>
+<div id="label">МОНЕТ</div>
 
-<!-- ТАП ТЕПЕР ТУТ -->
 <div id="circle">
-  <div id="coin" onclick="tap()"></div>
+  <div id="coin" onclick="tap()">🪙</div>
 </div>
 
-<button class="btn ad" onclick="watchAd()">▶ Реклама +50</button><br>
-<button class="btn bonus" onclick="channelBonus()">🎁 Бонус з каналу +500</button><br>
-<button class="btn play" onclick="playBonus()">▶ PLAY бонус +1000</button>
-<div class="timer" id="timer"></div>
+<div class="footer">TapDay Play</div>
 
 <script>
 let balance = 0;
-const CHANNEL_LINK = "https://t.me/tapday_clicker";
+let todayBonus = 0;
 
-document.getElementById("online").innerText =
-  4000 + Math.floor(Math.random() * 500);
-document.getElementById("today").innerText =
-  3000 + Math.floor(Math.random() * 500);
+// Онлайн (живе число)
+function updateOnline(){
+  document.getElementById("online").innerText =
+    4000 + Math.floor(Math.random() * 600);
+}
+setInterval(updateOnline, 5000);
+updateOnline();
 
+// Тап тільки по монеті
 function tap(){
   balance++;
-  update();
-  if(navigator.vibrate) navigator.vibrate(20);
+  todayBonus++;
+  updateAll();
+  if(navigator.vibrate) navigator.vibrate(15);
 }
 
+// Реклама
 function watchAd(){
   balance += 50;
-  update();
+  todayBonus += 50;
+  updateAll();
 }
 
-function channelBonus(){
-  window.open(CHANNEL_LINK,"_blank");
-  setTimeout(()=>{
-    balance += 500;
-    update();
-  },3000);
+// Рівень
+function calcLevel(){
+  return Math.floor(balance / 500) + 1;
 }
 
-let end = localStorage.getItem("playEnd");
-if(!end){
-  end = Date.now() + 30*24*60*60*1000;
-  localStorage.setItem("playEnd", end);
-}
-
-function playBonus(){
-  balance += 1000;
-  update();
-}
-
-function tick(){
-  let diff = end - Date.now();
-  if(diff <= 0){
-    document.getElementById("timer").innerText="";
-    return;
-  }
-  let d = Math.floor(diff/86400000);
-  let h = Math.floor(diff/3600000)%24;
-  let m = Math.floor(diff/60000)%60;
-  let s = Math.floor(diff/1000)%60;
-  document.getElementById("timer").innerText =
-    `${d}д ${h}г ${m}хв ${s}с`;
-}
-setInterval(tick,1000);
-
-function update(){
+// Оновлення всього
+function updateAll(){
   document.getElementById("balance").innerText = balance;
+  document.getElementById("today").innerText = todayBonus;
+  document.getElementById("level").innerText = calcLevel();
 }
-update();
+
+updateAll();
 </script>
 
 </body>
