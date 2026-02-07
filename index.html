@@ -3,91 +3,92 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>TapDay Play</title>
+<title>TapDay Clicker</title>
 
 <style>
 body {
   margin: 0;
-  font-family: Arial, sans-serif;
-  background: radial-gradient(circle at center, #111 0%, #050505 70%);
+  background: #0e0e11;
   color: #fff;
+  font-family: Arial, sans-serif;
   text-align: center;
 }
 
 .top {
   display: flex;
   justify-content: space-between;
-  padding: 12px 16px;
+  padding: 10px 16px;
   font-size: 14px;
+  opacity: 0.9;
 }
 
-.center {
-  margin-top: 40px;
+.money {
+  font-size: 28px;
+  font-weight: bold;
+  margin-top: 10px;
+}
+
+.multiplier {
+  margin: 10px;
+}
+.multiplier button {
+  margin: 0 5px;
+  padding: 6px 12px;
+  border-radius: 6px;
+  border: none;
+  background: #2a2a35;
+  color: #fff;
+}
+
+.coin-area {
+  margin-top: 30px;
 }
 
 .coin {
   width: 220px;
   height: 220px;
   border-radius: 50%;
-  background: radial-gradient(circle, gold, #b8860b);
-  box-shadow: 0 0 40px gold;
-  margin: auto;
+  background: radial-gradient(circle at top, gold, #b8860b);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 28px;
-  font-weight: bold;
-  user-select: none;
+  font-size: 60px;
+  box-shadow: 0 0 40px rgba(255,215,0,0.5);
   cursor: pointer;
+  transition: transform 0.1s;
 }
 
-.level {
-  margin-top: 12px;
-  font-size: 16px;
-  opacity: 0.8;
+.coin:active {
+  transform: scale(0.95);
+  box-shadow: 0 0 60px rgba(255,215,0,0.9);
 }
 
-.tap-buttons {
-  display: flex;
-  justify-content: center;
-  gap: 12px;
-  margin: 20px 0;
+.bonus {
+  margin-top: 25px;
 }
-
-.tap-buttons button {
+.bonus button {
   padding: 10px 18px;
-  border-radius: 20px;
+  background: #ffcc00;
   border: none;
-  font-size: 16px;
-  cursor: pointer;
+  border-radius: 8px;
+  font-weight: bold;
 }
 
-.active {
-  background: #16c784;
-  color: #000;
+.stats {
+  margin-top: 15px;
+  font-size: 14px;
+  opacity: 0.85;
 }
 
-button:not(.active) {
-  background: #eee;
-  color: #000;
+.fall {
+  position: absolute;
+  color: gold;
+  font-size: 14px;
+  animation: fall 1s linear forwards;
 }
-
-.panel {
-  background: #0f172a;
-  margin: 16px;
-  padding: 14px;
-  border-radius: 14px;
-}
-
-.big-btn {
-  background: #16c784;
-  color: #000;
-  font-size: 18px;
-  padding: 14px;
-  border-radius: 14px;
-  border: none;
-  width: 100%;
-  cursor: pointer;
+@keyframes fall {
+  from { transform: translateY(0); opacity: 1; }
+  to { transform: translateY(120px); opacity: 0; }
 }
 </style>
 </head>
@@ -95,83 +96,101 @@ button:not(.active) {
 <body>
 
 <div class="top">
-  <div>💵 Баланс: <span id="balance">0</span></div>
-  <div>
-    👥 Онлайн: 3846<br>
-    🎁 Бонусів сьогодні: 3123
-  </div>
+  <div>👥 Онлайн: <span id="online">3124</span></div>
+  <div>🎁 Бонусів сьогодні: <span id="bonuses">2041</span></div>
 </div>
 
-<div class="center">
-  <div class="coin" id="coin">🦁</div>
-  <div class="level">Рівень: <span id="level">1</span></div>
+<div class="money">
+  💵 <span id="money">0</span>
 </div>
 
-<div class="tap-buttons">
-  <button class="active" onclick="setTap(1)">x1</button>
-  <button onclick="setTap(3)">x3</button>
-  <button onclick="setTap(5)">x5</button>
+<div class="multiplier">
+  <button onclick="setMulti(1)">x1</button>
+  <button onclick="setMulti(3)">x3</button>
+  <button onclick="setMulti(5)">x5</button>
 </div>
 
-<div class="panel">
-  🎁 Підпишись на канал<br><br>
-  <button class="big-btn" onclick="subscribeBonus()">Отримати +10 000 ₴</button>
+<div class="coin-area">
+  <div class="coin" onclick="tap()">🦁</div>
 </div>
 
-<div class="panel">
-  📆 Щоденний бонус<br>
-  <small>Сьогодні: +50 ₴</small><br><br>
-  <button class="big-btn" onclick="dailyBonus()">Забрати</button>
+<div class="bonus">
+  <button id="bonusBtn" onclick="getBonus()">🎁 Забрати бонус</button>
+  <div id="timer"></div>
 </div>
 
-<div class="panel">
-  💳 Вивід на картку<br>
-  <small>Мінімум: 10 000 ₴</small>
+<div class="stats">
+  Рівень: <span id="level">1</span>
 </div>
 
 <script>
-let balance = 0;
+let money = 0;
+let multi = 1;
 let level = 1;
-let tap = 1;
+let bonusReady = true;
+let nextBonus = 0;
 
-const coinStages = [
-  "🦁",
-  "🪙",
-  "💰",
-  "💵",
-  "💎"
-];
+function format(n){
+  if(n>=1e7) return "10M+";
+  if(n>=1e6) return "1M+";
+  if(n>=1e5) return "100K+";
+  if(n>=1e4) return "10K+";
+  if(n>=1e3) return "1K+";
+  return n;
+}
 
-function updateUI() {
-  document.getElementById("balance").innerText = balance.toLocaleString();
+function setMulti(m){ multi = m; }
+
+function tap(){
+  let add = 1 * multi;
+  money += add;
+  document.getElementById("money").innerText = format(money);
+
+  if(money % 100 == 0) level++;
   document.getElementById("level").innerText = level;
-  document.getElementById("coin").innerText = coinStages[Math.min(level-1, coinStages.length-1)];
+
+  drop();
 }
 
-document.getElementById("coin").onclick = () => {
-  balance += tap;
-  if (balance >= level * 10000) level++;
-  updateUI();
-};
-
-function setTap(x) {
-  tap = x;
-  document.querySelectorAll(".tap-buttons button").forEach(b => b.classList.remove("active"));
-  event.target.classList.add("active");
+function drop(){
+  let d = document.createElement("div");
+  d.className = "fall";
+  d.style.left = (window.innerWidth/2 + Math.random()*50-25)+"px";
+  d.style.top = "300px";
+  d.innerText = "+💵";
+  document.body.appendChild(d);
+  setTimeout(()=>d.remove(),1000);
 }
 
-function subscribeBonus() {
-  window.open("https://t.me/tapday_clicker", "_blank");
-  balance += 10000;
-  updateUI();
+function getBonus(){
+  if(!bonusReady) return;
+  money += 50;
+  bonusReady = false;
+  nextBonus = Date.now() + 4*60*60*1000;
+  document.getElementById("money").innerText = format(money);
 }
 
-function dailyBonus() {
-  balance += 50;
-  updateUI();
-}
+setInterval(()=>{
+  let o = document.getElementById("online");
+  o.innerText = parseInt(o.innerText) + (Math.random()>0.5?1:-1);
 
-updateUI();
+  let b = document.getElementById("bonuses");
+  b.innerText = parseInt(b.innerText) + Math.floor(Math.random()*3);
+},3000);
+
+setInterval(()=>{
+  if(!bonusReady){
+    let diff = nextBonus - Date.now();
+    if(diff<=0){
+      bonusReady = true;
+      document.getElementById("timer").innerText = "";
+    } else {
+      let h = Math.floor(diff/3600000);
+      let m = Math.floor((diff%3600000)/60000);
+      document.getElementById("timer").innerText = `⏳ ${h}г ${m}хв`;
+    }
+  }
+},1000);
 </script>
 
 </body>
