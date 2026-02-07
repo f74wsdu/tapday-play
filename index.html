@@ -2,41 +2,42 @@
 <html lang="uk">
 <head>
 <meta charset="UTF-8">
-<title>City Live – Districts & Quests</title>
+<title>City Live – Time & Seasons</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <style>
 html,body{margin:0;overflow:hidden;background:#000;font-family:Arial}
 #ui{
 position:absolute;top:10px;left:10px;z-index:10;
 background:rgba(0,0,0,.65);color:#fff;
-padding:10px;border-radius:10px;width:240px
+padding:12px;border-radius:12px;width:260px
 }
 button{
 width:100%;margin-top:6px;padding:8px;
 background:#1fa34a;border:none;color:#fff;
 border-radius:6px;font-size:14px
 }
-#quests{
-margin-top:10px;font-size:13px
-}
-.quest-done{color:#7CFC00}
+.small{font-size:12px;opacity:.85}
+.premium{background:#f5b400;color:#000}
 </style>
 </head>
 <body>
 
 <div id="ui">
 <div id="money">💰 0</div>
+<div id="income" class="small">+0 / сек</div>
 
 <button onclick="build('farm')">🌾 Ферма</button>
 <button onclick="build('factory')">🏭 Завод</button>
 <button onclick="build('house')">🏠 Будинок</button>
 
-<div id="quests">
-<b>🎯 Квести:</b><br>
-<div id="q1">▫ Побудуй 2 ферми</div>
-<div id="q2">▫ Побудуй 1 завод</div>
-<div id="q3">▫ Зароби 20 💰</div>
-</div>
+<hr>
+
+<div>🕒 Час: <span id="time">День</span></div>
+<div>🍂 Сезон: <span id="season">Весна</span></div>
+<div class="small">Зміна через: <span id="seasonTimer">60</span> c</div>
+
+<button class="premium" onclick="buyPremium()">⭐ Premium Pass</button>
+<div id="premiumStatus" class="small">Неактивний</div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
@@ -51,20 +52,23 @@ renderer.setClearColor(0x87ceeb);
 document.body.appendChild(renderer.domElement);
 
 // світло
-scene.add(new THREE.AmbientLight(0x888888));
+let ambient=new THREE.AmbientLight(0xffffff,.6);
+scene.add(ambient);
+
 let sun=new THREE.DirectionalLight(0xffffff,1);
 sun.position.set(50,100,20);
 scene.add(sun);
 
 // земля
+let groundMat=new THREE.MeshLambertMaterial({color:0x2e8b57});
 let ground=new THREE.Mesh(
 new THREE.PlaneGeometry(200,200),
-new THREE.MeshLambertMaterial({color:0x2e8b57})
+groundMat
 );
 ground.rotation.x=-Math.PI/2;
 scene.add(ground);
 
-// 🗺 РАЙОНИ
+// райони
 const districts={
 farm:{x:-25,z:0,color:0x7cfc00},
 factory:{x:25,z:0,color:0xaaaaaa},
@@ -74,7 +78,10 @@ residential:{x:0,z:25,color:0x87cefa}
 for(let d in districts){
 let zone=new THREE.Mesh(
 new THREE.CircleGeometry(15,32),
-new THREE.MeshBasicMaterial({color:districts[d].color,transparent:true,opacity:0.15})
+new THREE.MeshBasicMaterial({
+color:districts[d].color,
+transparent:true,opacity:0.15
+})
 );
 zone.rotation.x=-Math.PI/2;
 zone.position.set(districts[d].x,.05,districts[d].z);
@@ -82,42 +89,83 @@ scene.add(zone);
 }
 
 // економіка
-let money=0,income=0;
-let moneyEl=document.getElementById("money");
+let money=0;
+let baseIncome=0;
+let premium=false;
+
+const moneyEl=document.getElementById("money");
+const incomeEl=document.getElementById("income");
+
+// сезони
+const seasons=[
+{name:"Весна",ground:0x2e8b57,bonus:1},
+{name:"Літо",ground:0x3cb371,bonus:1.2},
+{name:"Осінь",ground:0x8b4513,bonus:0.9},
+{name:"Зима",ground:0xe0f7fa,bonus:0.7}
+];
+let seasonIndex=0;
+let seasonTime=60;
+
+function applySeason(){
+const s=seasons[seasonIndex];
+document.getElementById("season").innerText=s.name;
+ground.material.color.setHex(s.ground);
+}
+
+applySeason();
+
+// день / ніч
+let day=true;
+function toggleDayNight(){
+day=!day;
+document.getElementById("time").innerText=day?"День":"Ніч";
+ambient.intensity=day?0.6:0.25;
+sun.intensity=day?1:0.3;
+renderer.setClearColor(day?0x87ceeb:0x0b132b);
+}
+setInterval(toggleDayNight,20000);
+
+// таймер сезону
 setInterval(()=>{
-money+=income;
-moneyEl.innerText="💰 "+money;
-checkQuests();
+seasonTime--;
+document.getElementById("seasonTimer").innerText=seasonTime;
+if(seasonTime<=0){
+seasonTime=60;
+seasonIndex=(seasonIndex+1)%seasons.length;
+applySeason();
+}
 },1000);
 
-// лічильники
-let stats={farm:0,factory:0};
+// дохід
+setInterval(()=>{
+let totalIncome=baseIncome*seasons[seasonIndex].bonus;
+if(premium) totalIncome*=1.5;
+money+=totalIncome;
+moneyEl.innerText="💰 "+Math.floor(money);
+incomeEl.innerText="+"+totalIncome.toFixed(1)+" / сек";
+},1000);
 
-// 🏗 будівництво
+// будівництво
 function build(type){
-let geo,mat,zone;
+let geo,mat,zone,inc=0;
 
 if(type==="farm"){
 geo=new THREE.BoxGeometry(4,2,4);
 mat=new THREE.MeshLambertMaterial({color:0xdeb887});
 zone=districts.farm;
-stats.farm++;
-income+=1;
+inc=1;
 }
-
 if(type==="factory"){
 geo=new THREE.BoxGeometry(5,4,5);
 mat=new THREE.MeshLambertMaterial({color:0x777777});
 zone=districts.factory;
-stats.factory++;
-income+=3;
+inc=3;
 }
-
 if(type==="house"){
 geo=new THREE.BoxGeometry(3,3,3);
 mat=new THREE.MeshLambertMaterial({color:0xffe4b5});
 zone=districts.residential;
-income+=0.5;
+inc=0.5;
 }
 
 let b=new THREE.Mesh(geo,mat);
@@ -127,32 +175,19 @@ zone.x+Math.random()*10-5,
 zone.z+Math.random()*10-5
 );
 scene.add(b);
+
+baseIncome+=inc;
+if(premium) money+=1;
 }
 
-// 🎯 КВЕСТИ
-let quests={
-q1:false,q2:false,q3:false
-};
-
-function checkQuests(){
-if(!quests.q1 && stats.farm>=2){
-quests.q1=true;
-document.getElementById("q1").className="quest-done";
-money+=10;
-}
-if(!quests.q2 && stats.factory>=1){
-quests.q2=true;
-document.getElementById("q2").className="quest-done";
-money+=10;
-}
-if(!quests.q3 && money>=20){
-quests.q3=true;
-document.getElementById("q3").className="quest-done";
-money+=20;
-}
+// premium
+function buyPremium(){
+if(premium) return;
+premium=true;
+document.getElementById("premiumStatus").innerText="Активний ⭐";
 }
 
-// анімація
+// камера
 let t=0;
 function animate(){
 requestAnimationFrame(animate);
