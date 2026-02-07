@@ -2,144 +2,181 @@
 <html lang="uk">
 <head>
 <meta charset="UTF-8">
-<title>City Empire</title>
+<title>City Empire 2026</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <style>
-body {
-  margin:0;
-  background:#0b1020;
-  color:#fff;
-  font-family:system-ui;
+body{margin:0;background:#0b1020;color:#fff;font-family:system-ui}
+#top{display:flex;justify-content:space-around;padding:10px;background:#020617}
+.stat{font-weight:700}
+#game{position:relative}
+canvas{display:block;margin:auto}
+#panel{
+  position:fixed;bottom:0;width:100%;
+  background:#020617;padding:8px;
+  display:flex;gap:8px;overflow-x:auto
 }
-#top {
-  display:flex;
-  justify-content:space-around;
-  padding:10px;
-  background:#020617;
+button{
+  background:#2563eb;border:0;color:#fff;
+  padding:10px 14px;border-radius:12px;
+  font-weight:700;white-space:nowrap
 }
-.stat { font-weight:600 }
-canvas {
-  display:block;
-  margin:auto;
+.card{
+  position:fixed;top:20%;left:50%;
+  transform:translateX(-50%);
+  background:#020617;border-radius:16px;
+  padding:16px;display:none;width:280px
 }
-#ui {
-  position:fixed;
-  bottom:0;
-  width:100%;
-  background:#020617;
-  display:flex;
-  justify-content:space-around;
-  padding:10px;
-}
-button {
-  background:#2563eb;
-  color:#fff;
-  border:none;
-  padding:10px 14px;
-  border-radius:10px;
-  font-weight:600;
-}
-button:active { transform:scale(.96) }
+.card h3{margin:0 0 10px}
+.card button{width:100%;margin-top:8px}
 </style>
 </head>
 <body>
 
 <div id="top">
-  <div class="stat">💰 <span id="money">500</span></div>
-  <div class="stat">🏙 <span id="pop">10</span></div>
-  <div class="stat">💵/год <span id="income">5</span></div>
+  <div class="stat">💰 <span id="money">1000</span></div>
+  <div class="stat">💵/хв <span id="income">20</span></div>
+  <div class="stat">👥 <span id="pop">20</span></div>
 </div>
 
+<div id="game">
 <canvas id="map" width="420" height="520"></canvas>
-
-<div id="ui">
-  <button onclick="build('farm')">🌾 Ферма</button>
-  <button onclick="build('house')">🏠 Будинок</button>
-  <button onclick="build('factory')">🏭 Завод</button>
 </div>
 
-<audio id="click" src="data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAQB8AAIA+AAACABAAZGF0YQAAAAA="></audio>
+<div id="panel">
+  <button onclick="select('farm')">🌾 Ферма</button>
+  <button onclick="select('house')">🏠 Будинок</button>
+  <button onclick="select('factory')">🏭 Завод</button>
+  <button onclick="select('hospital')">🏥 Лікарня</button>
+</div>
+
+<div id="card" class="card">
+  <h3 id="cardTitle"></h3>
+  <div id="cardInfo"></div>
+  <button onclick="upgrade()">⬆ Покращити</button>
+  <button onclick="closeCard()">❌ Закрити</button>
+</div>
 
 <script>
-const c = document.getElementById("map");
-const ctx = c.getContext("2d");
-const click = document.getElementById("click");
+const c=document.getElementById("map"),ctx=c.getContext("2d")
+let money=1000,income=20,pop=20
+const size=36,GRID=8
+let selected=null,opened=null
 
-let money = 500;
-let income = 5;
-let pop = 10;
-
-const grid = [];
-const size = 40;
-
-function iso(x,y){
-  return {
-    x: 210 + (x-y)*size,
-    y: 80 + (x+y)*size/2
-  }
+const types={
+ farm:{cost:200,inc:6,color:"#22c55e"},
+ house:{cost:300,pop:10,color:"#38bdf8"},
+ factory:{cost:600,inc:20,color:"#64748b"},
+ hospital:{cost:500,pop:15,color:"#e11d48"}
 }
 
-function drawTile(x,y,color){
-  const p = iso(x,y);
-  ctx.beginPath();
-  ctx.moveTo(p.x, p.y);
-  ctx.lineTo(p.x+size, p.y+size/2);
-  ctx.lineTo(p.x, p.y+size);
-  ctx.lineTo(p.x-size, p.y+size/2);
-  ctx.closePath();
-  ctx.fillStyle = color;
-  ctx.fill();
+const buildings=[]
+
+function iso(x,y){
+ return{
+  x:210+(x-y)*size,
+  y:80+(x+y)*size/2
+ }
+}
+
+function tile(x,y,color){
+ const p=iso(x,y)
+ ctx.beginPath()
+ ctx.moveTo(p.x,p.y)
+ ctx.lineTo(p.x+size,p.y+size/2)
+ ctx.lineTo(p.x,p.y+size)
+ ctx.lineTo(p.x-size,p.y+size/2)
+ ctx.closePath()
+ ctx.fillStyle=color
+ ctx.fill()
 }
 
 function render(){
-  ctx.clearRect(0,0,c.width,c.height);
-  for(let x=0;x<6;x++){
-    for(let y=0;y<6;y++){
-      drawTile(x,y,"#1e293b");
-    }
-  }
-  grid.forEach(b=>{
-    drawTile(b.x,b.y,b.color);
-  });
+ ctx.clearRect(0,0,c.width,c.height)
+ for(let x=0;x<GRID;x++)
+  for(let y=0;y<GRID;y++)
+   tile(x,y,"#1e293b")
+
+ buildings.forEach(b=>{
+  tile(b.x,b.y,b.color)
+ })
 }
 
-function build(type){
-  const cost = {farm:100,house:150,factory:300}[type];
-  if(money < cost) return;
+c.onclick=e=>{
+ const rect=c.getBoundingClientRect()
+ const mx=e.clientX-rect.left
+ const my=e.clientY-rect.top
+ buildings.forEach(b=>{
+  const p=iso(b.x,b.y)
+  if(Math.abs(mx-p.x)<size && Math.abs(my-p.y)<size){
+   openCard(b)
+  }
+ })
+}
 
-  money -= cost;
-  click.play();
+function select(t){selected=t}
 
-  const tile = {
-    x: Math.floor(Math.random()*6),
-    y: Math.floor(Math.random()*6),
-    color: type==="farm" ? "#22c55e" :
-           type==="house" ? "#38bdf8" : "#64748b"
-  };
-  grid.push(tile);
+function place(){
+ if(!selected)return
+ const t=types[selected]
+ if(money<t.cost)return
+ money-=t.cost
 
-  if(type==="farm") income += 3;
-  if(type==="house") pop += 5;
-  if(type==="factory") income += 8;
+ const b={
+  type:selected,
+  lvl:1,
+  x:Math.floor(Math.random()*GRID),
+  y:Math.floor(Math.random()*GRID),
+  color:t.color
+ }
+ buildings.push(b)
 
-  update();
-  render();
+ if(t.inc)income+=t.inc
+ if(t.pop)pop+=t.pop
+
+ update();render()
+}
+
+function openCard(b){
+ opened=b
+ document.getElementById("card").style.display="block"
+ document.getElementById("cardTitle").innerText=b.type.toUpperCase()+" lvl "+b.lvl
+ document.getElementById("cardInfo").innerText=
+  "Доход/населення росте з рівнем"
+}
+
+function upgrade(){
+ if(!opened)return
+ const cost=opened.lvl*300
+ if(money<cost)return
+ money-=cost
+ opened.lvl++
+
+ if(types[opened.type].inc)income+=types[opened.type].inc
+ if(types[opened.type].pop)pop+=types[opened.type].pop
+
+ update();render()
+ openCard(opened)
+}
+
+function closeCard(){
+ opened=null
+ document.getElementById("card").style.display="none"
 }
 
 function update(){
-  money = Math.floor(money);
-  document.getElementById("money").innerText = money;
-  document.getElementById("income").innerText = income;
-  document.getElementById("pop").innerText = pop;
+ document.getElementById("money").innerText=Math.floor(money)
+ document.getElementById("income").innerText=income
+ document.getElementById("pop").innerText=pop
 }
 
 setInterval(()=>{
-  money += income/60;
-  update();
-},1000);
+ money+=income/60
+ update()
+},1000)
 
-render();
-update();
+setInterval(place,3000)
+
+render();update()
 </script>
 </body>
 </html>
