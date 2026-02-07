@@ -13,7 +13,6 @@ body {
   text-align: center;
 }
 
-/* TOP BAR */
 #top {
   display: flex;
   justify-content: space-between;
@@ -26,21 +25,24 @@ body {
   color: #00ff7f;
 }
 
-/* MULTIPLIERS */
 .mult {
   position: fixed;
-  top: 50%;
-  padding: 10px;
+  top: 55%;
+  padding: 10px 14px;
   background: #222;
-  border-radius: 10px;
+  border-radius: 12px;
+  cursor: pointer;
+}
+
+.mult.active {
+  background: #ff9800;
 }
 
 #x2 { left: 10px; }
 #x5 { right: 10px; }
 
-/* TAP BUTTON */
 #coin {
-  margin: 80px auto 20px;
+  margin: 70px auto 15px;
   width: 180px;
   height: 180px;
   border-radius: 50%;
@@ -52,28 +54,13 @@ body {
   font-weight: bold;
   cursor: pointer;
   transition: filter 0.3s;
-  position: relative;
 }
 
-.coin-rain {
-  position: absolute;
-  animation: fall 1s linear forwards;
-}
-
-@keyframes fall {
-  to {
-    transform: translateY(200px);
-    opacity: 0;
-  }
-}
-
-/* BALANCE */
 #balance {
   font-size: 22px;
-  margin-bottom: 20px;
+  margin-bottom: 15px;
 }
 
-/* BUTTONS */
 .block {
   margin: 10px auto;
   width: 90%;
@@ -82,93 +69,119 @@ body {
 }
 
 #daily { background: #333; }
-#timer { background: #0b84d6; }
+#bonus30 { background: #0b84d6; }
 #withdraw { background: green; width: fit-content; padding: 8px 20px; }
 
+#subscribe {
+  background: #444;
+}
 </style>
 </head>
 
 <body>
 
 <div id="top">
-  <button>🎥 +50</button>
+  <button id="adBtn">🎥 +0.10</button>
 
   <div id="online">
-    🟢 Online: <span id="onlineCount">3421</span><br>
+    🟢 Online: <span id="onlineCount">3045</span><br>
     🎁 Bonus today: <span id="bonusToday">187</span>
   </div>
 
-  <div id="level">LEVEL 2</div>
+  <div id="level">LEVEL 1</div>
 </div>
 
 <div id="x2" class="mult">X2</div>
 <div id="x5" class="mult">X5</div>
 
 <div id="coin">TAP</div>
-
-<div id="balance">💵 Balance: 0 $</div>
+<div id="balance">💵 Balance: 0.00 $</div>
 
 <div id="daily" class="block">📁 Денний бонус</div>
-<div id="timer" class="block">⏳ Бонус через 30 днів</div>
+<div id="bonus30" class="block">⏳ Бонус через 30 днів</div>
+<div id="subscribe" class="block">📢 Підпишись → +5.00 $</div>
 <div id="withdraw">💳 Вивід</div>
 
 <script>
-let coins = 0;
-let level = 1;
+let balance = parseFloat(localStorage.getItem("balance")) || 0;
+let multiplier = 1;
 
-const balance = document.getElementById("balance");
-const coinBtn = document.getElementById("coin");
-const levelText = document.getElementById("level");
+function updateBalance() {
+  document.getElementById("balance").textContent =
+    `💵 Balance: ${balance.toFixed(2)} $`;
+  localStorage.setItem("balance", balance);
+}
+updateBalance();
 
 /* TAP */
-coinBtn.onclick = () => {
-  coins++;
-  balance.textContent = `💵 Balance: ${coins} $`;
-
+document.getElementById("coin").onclick = () => {
+  balance += 0.01 * multiplier;
+  updateBalance();
   if (navigator.vibrate) navigator.vibrate(30);
-
-  if (coins < 1000000) {
-    const rain = document.createElement("div");
-    rain.textContent = "🪙";
-    rain.className = "coin-rain";
-    rain.style.left = "50%";
-    coinBtn.appendChild(rain);
-    setTimeout(() => rain.remove(), 1000);
-  }
-
-  updateVisual();
 };
 
-/* VISUAL PROGRESSION */
-function updateVisual() {
-  if (coins >= 1000000) {
-    coinBtn.style.filter = "brightness(1.8)";
-    coinBtn.textContent = "🦁";
-  } else if (coins >= 100000) {
-    coinBtn.style.filter = "brightness(1.6)";
-    coinBtn.textContent = "🧰";
-  } else if (coins >= 10000) {
-    coinBtn.style.filter = "brightness(1.4)";
-    coinBtn.textContent = "⭐";
-  } else if (coins >= 1000) {
-    coinBtn.style.filter = "brightness(1.2)";
-    coinBtn.textContent = "💎";
-  } else {
-    coinBtn.textContent = "TAP";
-  }
-
-  level = coins >= 1000000 ? 5 :
-          coins >= 100000 ? 4 :
-          coins >= 10000 ? 3 :
-          coins >= 1000 ? 2 : 1;
-
-  levelText.textContent = "LEVEL " + level;
+/* MULTIPLIERS */
+function activateMult(x, el) {
+  multiplier = x;
+  el.classList.add("active");
+  setTimeout(() => {
+    multiplier = 1;
+    el.classList.remove("active");
+  }, 10000);
 }
 
-/* FAKE ONLINE */
+x2.onclick = () => activateMult(2, x2);
+x5.onclick = () => activateMult(5, x5);
+
+/* DAILY BONUS */
+daily.onclick = () => {
+  let day = parseInt(localStorage.getItem("dailyDay")) || 1;
+  if (day > 7) return alert("Бонус вже отриманий");
+
+  let reward = day * 0.25;
+  balance += reward;
+  localStorage.setItem("dailyDay", day + 1);
+  updateBalance();
+  alert(`День ${day}: +${reward.toFixed(2)} $`);
+};
+
+/* 30 DAYS BONUS */
+bonus30.onclick = () => {
+  let last = localStorage.getItem("bonus30");
+  let now = Date.now();
+
+  if (!last || now - last > 2592000000) {
+    balance += 10;
+    localStorage.setItem("bonus30", now);
+    updateBalance();
+    alert("🎉 Ви отримали 10.00 $");
+  } else {
+    alert("⏳ Бонус ще недоступний");
+  }
+};
+
+/* SUBSCRIBE */
+subscribe.onclick = () => {
+  balance += 5;
+  updateBalance();
+  subscribe.style.display = "none";
+};
+
+/* AD */
+adBtn.onclick = () => {
+  balance += 0.10;
+  updateBalance();
+};
+
+/* WITHDRAW */
+withdraw.onclick = () => {
+  alert("🔒 Вивід буде доступний пізніше");
+};
+
+/* FAKE ONLINE + BONUS TODAY */
 setInterval(() => {
-  document.getElementById("onlineCount").textContent =
-    3000 + Math.floor(Math.random() * 500);
+  onlineCount.textContent = 2800 + Math.floor(Math.random() * 600);
+  bonusToday.textContent = 150 + Math.floor(Math.random() * 80);
 }, 3000);
 </script>
 
