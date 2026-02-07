@@ -2,198 +2,173 @@
 <html lang="uk">
 <head>
 <meta charset="UTF-8">
-<title>Core Empire</title>
+<title>TapDay Core</title>
+
 <style>
 html,body{
   margin:0;
   padding:0;
-  background:#0b0f1a;
+  background:#0b1020;
   color:#fff;
-  font-family:Arial,Helvetica,sans-serif;
+  font-family:system-ui,Arial;
   height:100%;
-  overflow:hidden;
 }
 #app{
+  height:100%;
   display:flex;
   flex-direction:column;
   align-items:center;
   justify-content:space-between;
-  height:100%;
 }
 header{
   width:100%;
   display:flex;
   justify-content:space-between;
-  padding:12px 20px;
+  padding:14px 20px;
   font-size:14px;
-  opacity:.9;
+  opacity:.85;
 }
-#core-wrapper{
-  position:relative;
-  width:260px;
-  height:260px;
-  margin-top:20px;
+#level{
+  opacity:.7;
 }
 #core{
-  width:100%;
-  height:100%;
+  width:280px;
+  height:280px;
   border-radius:50%;
-  background:radial-gradient(circle at top,#ffd76a,#f5a400);
-  box-shadow:0 0 60px rgba(255,200,50,.6);
+  background:radial-gradient(circle,#ffd36a,#f4a800);
+  box-shadow:0 0 40px rgba(255,200,50,.4);
   display:flex;
   align-items:center;
   justify-content:center;
-  cursor:pointer;
-  transition:.2s;
+  transition:.3s;
 }
-#core.level2{background:radial-gradient(circle,#ff7bd5,#ff2aa3);box-shadow:0 0 80px #ff4fc4;}
-#core.level3{background:radial-gradient(circle,#7bf0ff,#1bb7ff);box-shadow:0 0 90px #3bdcff;}
-#core:active{transform:scale(.96);}
+#core.level2{background:radial-gradient(circle,#ff9ad5,#ff3aa0);}
+#core.level3{background:radial-gradient(circle,#8be7ff,#3bbcff);}
+#core:active{transform:scale(.97);}
 #coin{
   width:60px;
   height:60px;
   border-radius:50%;
   background:gold;
-  box-shadow:inset -5px -5px 0 rgba(0,0,0,.2);
 }
 #count{
-  font-size:42px;
-  font-weight:bold;
-  margin-top:20px;
+  font-size:44px;
+  font-weight:600;
+  margin:16px 0;
 }
-#effects span{
-  position:absolute;
-  color:gold;
-  font-weight:bold;
-  animation:fly 1s ease-out forwards;
-}
-@keyframes fly{
-  from{transform:translateY(0);opacity:1;}
-  to{transform:translateY(-80px);opacity:0;}
+#shards{
+  font-size:14px;
+  opacity:.6;
 }
 footer{
   display:flex;
-  gap:20px;
-  padding-bottom:30px;
+  gap:22px;
+  padding-bottom:28px;
 }
 .btn{
-  width:70px;
-  height:70px;
+  width:72px;
+  height:72px;
   border-radius:18px;
-  background:#131a33;
+  background:#151c3a;
   display:flex;
   align-items:center;
   justify-content:center;
-  cursor:pointer;
-  font-size:22px;
+  flex-direction:column;
+  font-size:20px;
 }
-.btn small{
-  position:absolute;
-  bottom:6px;
-  font-size:10px;
+.btn span{
+  font-size:11px;
   opacity:.7;
 }
 #overlay{
   position:absolute;
   inset:0;
-  background:rgba(0,0,0,.6);
+  background:rgba(0,0,0,.65);
   display:none;
   align-items:center;
   justify-content:center;
 }
 .modal{
-  background:#141a35;
+  background:#141b3d;
+  border-radius:18px;
   padding:20px;
-  border-radius:20px;
   width:80%;
-  max-width:320px;
 }
-.modal h3{margin-top:0;}
 .modal button{
   width:100%;
-  padding:10px;
+  padding:12px;
   margin-top:10px;
   border:none;
   border-radius:10px;
-  background:#ffd76a;
-  font-weight:bold;
+  background:#ffd36a;
+  font-weight:600;
 }
 </style>
 </head>
+
 <body>
-
 <div id="app">
-  <header>
-    <div>💰 <span id="money">0</span></div>
-    <div>⚡ x<span id="mult">1</span></div>
-  </header>
 
-  <div id="core-wrapper">
-    <div id="core">
-      <div id="coin"></div>
-    </div>
-    <div id="effects"></div>
-  </div>
+<header>
+  <div>💰 <span id="money">0</span></div>
+  <div id="level">Рівень 1</div>
+</header>
 
-  <div id="count">0</div>
+<div id="core">
+  <div id="coin"></div>
+</div>
 
-  <footer>
-    <div class="btn" id="bonus">🎁<small>Бонус</small></div>
-    <div class="btn" id="x2">⚡<small>2X</small></div>
-    <div class="btn" id="robot">🤖<small>Робот</small></div>
-  </footer>
+<div id="count">0</div>
+<div id="shards">Фрагменти: <span id="shardCount">0</span></div>
+
+<footer>
+  <div class="btn" id="bonus">🎁<span>Бонус</span></div>
+  <div class="btn" id="boost">⚡<span>Прискорення</span></div>
+  <div class="btn" id="robot">🤖<span>Робот</span></div>
+</footer>
+
 </div>
 
 <div id="overlay">
   <div class="modal" id="modal"></div>
 </div>
 
-<audio id="clickSound" src="https://actions.google.com/sounds/v1/cartoon/wood_plank_flicks.ogg"></audio>
-
 <script>
 let money=0;
+let shards=0;
 let level=1;
 let mult=1;
-let robotIncome=0;
-let x2Active=false;
+let passive=0;
 
-const moneyEl=document.getElementById('money');
+const moneyEl=moneySpan=document.getElementById('money');
 const countEl=document.getElementById('count');
+const shardEl=document.getElementById('shardCount');
+const levelEl=document.getElementById('level');
 const core=document.getElementById('core');
-const effects=document.getElementById('effects');
-const multEl=document.getElementById('mult');
-const clickSound=document.getElementById('clickSound');
 
-function updateUI(){
-  moneyEl.textContent=Math.floor(money);
-  countEl.textContent=Math.floor(money);
-  multEl.textContent=mult;
+function update(){
+  moneyEl.textContent=money;
+  countEl.textContent=money;
+  shardEl.textContent=shards;
+  levelEl.textContent='Рівень '+level;
+
   core.className='';
-  if(money>=1000)core.classList.add('level2');
-  if(money>=10000)core.classList.add('level3');
+  if(level>=3)core.classList.add('level2');
+  if(level>=6)core.classList.add('level3');
 }
 
-function spawnEffect(x,y,val){
-  const s=document.createElement('span');
-  s.style.left=x+'px';
-  s.style.top=y+'px';
-  s.textContent='+'+val;
-  effects.appendChild(s);
-  setTimeout(()=>s.remove(),1000);
-}
-
-core.onclick=(e)=>{
-  const gain=1*mult;
-  money+=gain;
-  clickSound.currentTime=0;
-  clickSound.play();
-  spawnEffect(e.offsetX,e.offsetY,gain);
-  updateUI();
+core.onclick=()=>{
+  money+=mult;
+  shards++;
+  if(money>=level*500){
+    level++;
+  }
+  update();
 };
 
 setInterval(()=>{
-  money+=robotIncome;
-  updateUI();
+  money+=passive;
+  update();
 },1000);
 
 const overlay=document.getElementById('overlay');
@@ -208,33 +183,21 @@ overlay.onclick=()=>overlay.style.display='none';
 document.getElementById('bonus').onclick=()=>{
   openModal(`
     <h3>🎁 Бонус</h3>
-    <p>Отримати +50 монет</p>
-    <button onclick="money+=50;updateUI();overlay.style.display='none'">Забрати</button>
+    <p>Підпишись і отримай +500</p>
+    <button onclick="window.open('https://t.me/YOUR_CHANNEL','_blank')">Перейти</button>
   `);
 };
 
-document.getElementById('x2').onclick=()=>{
-  if(x2Active)return;
-  x2Active=true;
+document.getElementById('boost').onclick=()=>{
   mult=2;
-  updateUI();
-  setTimeout(()=>{
-    mult=1;
-    x2Active=false;
-    updateUI();
-  },30000);
+  setTimeout(()=>mult=1,20000);
 };
 
 document.getElementById('robot').onclick=()=>{
-  openModal(`
-    <h3>🤖 Робот</h3>
-    <p>Пасивний дохід +1/сек</p>
-    <button onclick="robotIncome+=1;overlay.style.display='none'">Активувати</button>
-  `);
+  passive+=1;
 };
 
-updateUI();
+update();
 </script>
-
 </body>
 </html>
