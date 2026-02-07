@@ -5,158 +5,177 @@
 <title>TapDay Play</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <style>
-body {
-  margin:0;
-  background: radial-gradient(circle at top, #111827, #020617);
-  font-family: system-ui, sans-serif;
-  color:#fff;
-  overflow:hidden;
+body{
+margin:0;
+font-family:system-ui;
+background:radial-gradient(circle at top,#0f172a,#020617);
+color:#fff;
+overflow:hidden;
 }
-.top {
-  display:flex;
-  justify-content:space-between;
-  padding:14px;
-  font-size:14px;
+.top{
+display:flex;
+justify-content:space-between;
+padding:14px;
+font-size:14px;
+opacity:.9;
 }
-#game {
-  position:relative;
-  height:calc(100vh - 60px);
-  display:flex;
-  align-items:center;
-  justify-content:center;
+#game{
+height:calc(100vh - 120px);
+display:flex;
+align-items:center;
+justify-content:center;
+position:relative;
 }
-.coin {
-  width:220px;
-  height:220px;
-  border-radius:50%;
-  background: radial-gradient(circle at 30% 30%, #ffe08a, #f59e0b);
-  box-shadow: 0 0 40px rgba(255,200,50,.6);
-  transition:.3s;
+.coin{
+width:240px;height:240px;
+border-radius:50%;
+background:radial-gradient(circle at 30% 30%,#ffe08a,#f59e0b);
+box-shadow:0 0 60px rgba(255,200,80,.7);
+transition:.25s;
 }
-.coin.gold { background:radial-gradient(circle at 30% 30%, #fff3b0,#facc15); }
-.coin.platinum { background:radial-gradient(circle at 30% 30%, #e5e7eb,#9ca3af); }
-.coin.legend { background:radial-gradient(circle at 30% 30%, #fde68a,#f59e0b); box-shadow:0 0 70px gold;}
+.gold{background:radial-gradient(circle,#fff3b0,#facc15);}
+.platinum{background:radial-gradient(circle,#e5e7eb,#9ca3af);}
+.legend{background:radial-gradient(circle,#fde68a,#f59e0b);box-shadow:0 0 90px gold;}
 
-#score {
-  position:absolute;
-  bottom:120px;
-  font-size:32px;
-  font-weight:700;
+#score{
+position:absolute;
+bottom:40px;
+font-size:34px;
+font-weight:700;
 }
 
-.btn {
-  position:absolute;
-  width:60px;height:60px;
-  border-radius:16px;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  font-size:24px;
-  user-select:none;
+.hud{
+position:absolute;
+bottom:0;
+width:100%;
+display:flex;
+justify-content:space-around;
+padding:14px;
+background:linear-gradient(to top,rgba(2,6,23,.9),transparent);
 }
-.x2 { top:90px; right:16px; background:#2563eb; }
-.bot { bottom:90px; right:16px; background:#0ea5e9; }
-.gift { bottom:90px; left:16px; background:#f59e0b; }
 
-.particle {
-  position:absolute;
-  font-size:18px;
-  pointer-events:none;
-  animation:fly 0.8s linear forwards;
+.btn{
+width:64px;height:64px;
+border-radius:18px;
+display:flex;
+align-items:center;
+justify-content:center;
+font-size:26px;
 }
-@keyframes fly {
-  from { transform:translate(0,0) scale(1); opacity:1;}
-  to { transform:translate(var(--x),var(--y)) scale(0); opacity:0;}
+
+.x2{background:#2563eb;}
+.bot{background:#0ea5e9;}
+.gift{background:#f59e0b;}
+
+.status{
+position:absolute;
+top:70px;
+font-size:14px;
+opacity:.85;
+}
+
+.particle{
+position:absolute;
+font-size:18px;
+pointer-events:none;
+animation:fly .8s linear forwards;
+}
+@keyframes fly{
+to{transform:translate(var(--x),var(--y)) scale(0);opacity:0;}
 }
 </style>
 </head>
 
 <body>
 <div class="top">
-  <div>Active: <span id="active">12 3xx</span></div>
-  <div>Today rewards: <span id="today">3 0xx</span></div>
+<div>Active: 12 3xx</div>
+<div>Today rewards: 3 0xx</div>
 </div>
 
 <div id="game">
-  <div id="coin" class="coin"></div>
-  <div id="score">0</div>
-
-  <div class="btn x2">⚡</div>
-  <div class="btn bot">🤖</div>
-  <div class="btn gift">🎁</div>
+<div id="coin" class="coin"></div>
+<div id="score">0</div>
+<div class="status" id="status"></div>
 </div>
 
-<audio id="tapSound" src="https://assets.mixkit.co/sfx/preview/mixkit-arcade-click-1115.mp3"></audio>
-<audio id="levelSound" src="https://assets.mixkit.co/sfx/preview/mixkit-achievement-bell-600.mp3"></audio>
+<div class="hud">
+<div class="btn gift">🎁</div>
+<div class="btn x2">⚡</div>
+<div class="btn bot">🤖</div>
+</div>
+
+<audio id="tap" src="https://assets.mixkit.co/sfx/preview/mixkit-arcade-click-1115.mp3"></audio>
+<audio id="level" src="https://assets.mixkit.co/sfx/preview/mixkit-achievement-bell-600.mp3"></audio>
 
 <script>
-let score = 0;
-let tapValue = 1;
-let autoTap = false;
+let score=0,tapValue=1,auto=false,sound=false;
+const coin=document.getElementById("coin");
+const scoreEl=document.getElementById("score");
+const status=document.getElementById("status");
+const tap=document.getElementById("tap");
+const level=document.getElementById("level");
 
-const coin = document.getElementById("coin");
-const scoreEl = document.getElementById("score");
-const tapSound = document.getElementById("tapSound");
-const levelSound = document.getElementById("levelSound");
-
-function updateCoin() {
-  if (score >= 100000) coin.className = "coin legend";
-  else if (score >= 10000) coin.className = "coin platinum";
-  else if (score >= 1000) coin.className = "coin gold";
+function updateCoin(){
+coin.className="coin";
+if(score>=100000)coin.classList.add("legend");
+else if(score>=10000)coin.classList.add("platinum");
+else if(score>=1000)coin.classList.add("gold");
 }
 
-function flash() {
-  coin.style.transform = "scale(1.1)";
-  setTimeout(()=>coin.style.transform="scale(1)",150);
+function addParticles(x,y){
+for(let i=0;i<6;i++){
+let p=document.createElement("div");
+p.className="particle";
+p.textContent="🪙";
+p.style.left=x+"px";
+p.style.top=y+"px";
+p.style.setProperty("--x",(Math.random()*120-60)+"px");
+p.style.setProperty("--y",(Math.random()*-120)+"px");
+document.body.appendChild(p);
+setTimeout(()=>p.remove(),800);
+}
 }
 
-function particles(x,y) {
-  for(let i=0;i<8;i++){
-    const p=document.createElement("div");
-    p.className="particle";
-    p.textContent="🪙";
-    p.style.left=x+"px";
-    p.style.top=y+"px";
-    p.style.setProperty("--x",(Math.random()*100-50)+"px");
-    p.style.setProperty("--y",(Math.random()*-120)+"px");
-    document.body.appendChild(p);
-    setTimeout(()=>p.remove(),800);
-  }
+coin.addEventListener("pointerdown",e=>{
+sound=true;
+score+=tapValue;
+scoreEl.textContent=score.toLocaleString("uk-UA");
+tap.currentTime=0;tap.play();
+addParticles(e.clientX,e.clientY);
+coin.style.transform="scale(1.08)";
+setTimeout(()=>coin.style.transform="scale(1)",120);
+
+if([1000,10000,100000].includes(score)){
+level.play();
+updateCoin();
 }
-
-coin.addEventListener("pointerdown", e=>{
-  score += tapValue;
-  scoreEl.textContent = score.toLocaleString("uk-UA");
-  tapSound.currentTime=0; tapSound.play();
-  particles(e.clientX,e.clientY);
-  flash();
-
-  if ([1000,10000,100000].includes(score)) {
-    levelSound.play();
-    updateCoin();
-  }
 });
 
 document.querySelector(".x2").onclick=()=>{
-  tapValue=2;
-  setTimeout(()=>tapValue=1,10000);
+tapValue=2;
+status.textContent="⚡ X2 активний (10с)";
+setTimeout(()=>{
+tapValue=1;
+status.textContent="";
+},10000);
 };
 
 document.querySelector(".bot").onclick=()=>{
-  if(autoTap) return;
-  autoTap=true;
-  let i=0;
-  const t=setInterval(()=>{
-    score+=tapValue;
-    scoreEl.textContent=score.toLocaleString("uk-UA");
-    updateCoin();
-    i++;
-    if(i>50){clearInterval(t);autoTap=false;}
-  },200);
+if(auto)return;
+auto=true;
+status.textContent="🤖 Auto tap ON";
+let i=0;
+let t=setInterval(()=>{
+score+=tapValue;
+scoreEl.textContent=score.toLocaleString("uk-UA");
+updateCoin();
+i++;
+if(i>=30){clearInterval(t);auto=false;status.textContent="";}
+},1200);
 };
 
 document.querySelector(".gift").onclick=()=>{
-  alert("Завдання: підпишись на канал, щоб отримати бонус 🎁");
+alert("Завдання:\nПідпишись на канал, щоб отримати бонус 🎁");
 };
 </script>
 </body>
