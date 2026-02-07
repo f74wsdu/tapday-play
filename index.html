@@ -2,144 +2,176 @@
 <html lang="uk">
 <head>
 <meta charset="UTF-8">
-<title>TapDay Play</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TapDay Play</title>
+
 <style>
 body {
-  margin:0;
-  background:#0b0f1a;
-  color:#fff;
-  font-family:Arial, sans-serif;
-  text-align:center;
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background: radial-gradient(circle at center, #111 0%, #050505 70%);
+  color: #fff;
+  text-align: center;
 }
+
 .top {
-  display:flex;
-  justify-content:space-between;
-  padding:10px 15px;
-  font-size:14px;
+  display: flex;
+  justify-content: space-between;
+  padding: 12px 16px;
+  font-size: 14px;
 }
-.glow {
-  width:260px;
-  height:260px;
-  border-radius:50%;
-  margin:40px auto;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  box-shadow:0 0 40px gold;
-  transition:0.4s;
+
+.center {
+  margin-top: 40px;
 }
-.glow img {
-  width:220px;
-  height:220px;
-  border-radius:50%;
+
+.coin {
+  width: 220px;
+  height: 220px;
+  border-radius: 50%;
+  background: radial-gradient(circle, gold, #b8860b);
+  box-shadow: 0 0 40px gold;
+  margin: auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28px;
+  font-weight: bold;
+  user-select: none;
+  cursor: pointer;
 }
-.money {
-  font-size:26px;
-  margin-top:10px;
+
+.level {
+  margin-top: 12px;
+  font-size: 16px;
+  opacity: 0.8;
 }
-.multis button {
-  margin:10px;
-  padding:10px 18px;
-  border-radius:20px;
-  border:none;
-  font-size:16px;
+
+.tap-buttons {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  margin: 20px 0;
 }
-.active { background:#18c08f; color:#000; }
-.bonus {
-  margin:20px;
-  padding:15px;
-  background:#111827;
-  border-radius:15px;
+
+.tap-buttons button {
+  padding: 10px 18px;
+  border-radius: 20px;
+  border: none;
+  font-size: 16px;
+  cursor: pointer;
 }
-.bonus a {
-  display:block;
-  margin-top:10px;
-  padding:15px;
-  background:#18c08f;
-  color:#000;
-  border-radius:12px;
-  text-decoration:none;
-  font-weight:bold;
+
+.active {
+  background: #16c784;
+  color: #000;
+}
+
+button:not(.active) {
+  background: #eee;
+  color: #000;
+}
+
+.panel {
+  background: #0f172a;
+  margin: 16px;
+  padding: 14px;
+  border-radius: 14px;
+}
+
+.big-btn {
+  background: #16c784;
+  color: #000;
+  font-size: 18px;
+  padding: 14px;
+  border-radius: 14px;
+  border: none;
+  width: 100%;
+  cursor: pointer;
 }
 </style>
 </head>
+
 <body>
 
 <div class="top">
-  <div>💵 <span id="money">0</span></div>
+  <div>💵 Баланс: <span id="balance">0</span></div>
   <div>
-    👥 Онлайн: <span id="online">3840</span><br>
-    🎁 Бонусів сьогодні: <span id="bonuses">3120</span>
+    👥 Онлайн: 3846<br>
+    🎁 Бонусів сьогодні: 3123
   </div>
 </div>
 
-<div class="glow" id="coinBox">
-  <img id="coin" src="https://i.imgur.com/0Z8FQYk.png">
+<div class="center">
+  <div class="coin" id="coin">🦁</div>
+  <div class="level">Рівень: <span id="level">1</span></div>
 </div>
 
-<div class="money">Баланс: 💵 <span id="balance">0</span></div>
-
-<div class="multis">
-  <button onclick="setMulti(1)" id="m1" class="active">x1</button>
-  <button onclick="setMulti(3)" id="m3">x3</button>
-  <button onclick="setMulti(5)" id="m5">x5</button>
+<div class="tap-buttons">
+  <button class="active" onclick="setTap(1)">x1</button>
+  <button onclick="setTap(3)">x3</button>
+  <button onclick="setTap(5)">x5</button>
 </div>
 
-<div class="bonus">
-  🎁 Підпишись на канал  
-  <a href="https://t.me/TVIY_KANAL" target="_blank" onclick="getBonus()">Отримати +10 000</a>
+<div class="panel">
+  🎁 Підпишись на канал<br><br>
+  <button class="big-btn" onclick="subscribeBonus()">Отримати +10 000 ₴</button>
+</div>
+
+<div class="panel">
+  📆 Щоденний бонус<br>
+  <small>Сьогодні: +50 ₴</small><br><br>
+  <button class="big-btn" onclick="dailyBonus()">Забрати</button>
+</div>
+
+<div class="panel">
+  💳 Вивід на картку<br>
+  <small>Мінімум: 10 000 ₴</small>
 </div>
 
 <script>
 let balance = 0;
-let multi = 1;
-let level = 0;
+let level = 1;
+let tap = 1;
 
-const levels = [
-  {need:0, img:"https://i.imgur.com/0Z8FQYk.png", glow:"bronze"},
-  {need:1000, img:"https://i.imgur.com/2yZK0Xb.png", glow:"silver"},
-  {need:10000, img:"https://i.imgur.com/yQp8B9G.png", glow:"gold"},
-  {need:100000, img:"https://i.imgur.com/9yM0Q7F.png", glow:"cyan"}
+const coinStages = [
+  "🦁",
+  "🪙",
+  "💰",
+  "💵",
+  "💎"
 ];
 
-document.getElementById("coinBox").onclick = () => {
-  balance += multi;
-  document.getElementById("balance").innerText = balance;
-  checkLevel();
+function updateUI() {
+  document.getElementById("balance").innerText = balance.toLocaleString();
+  document.getElementById("level").innerText = level;
+  document.getElementById("coin").innerText = coinStages[Math.min(level-1, coinStages.length-1)];
+}
+
+document.getElementById("coin").onclick = () => {
+  balance += tap;
+  if (balance >= level * 10000) level++;
+  updateUI();
 };
 
-function setMulti(x){
-  multi = x;
-  document.querySelectorAll(".multis button").forEach(b=>b.classList.remove("active"));
-  document.getElementById("m"+x).classList.add("active");
+function setTap(x) {
+  tap = x;
+  document.querySelectorAll(".tap-buttons button").forEach(b => b.classList.remove("active"));
+  event.target.classList.add("active");
 }
 
-function checkLevel(){
-  if(level+1 < levels.length && balance >= levels[level+1].need){
-    level++;
-    document.getElementById("coin").src = levels[level].img;
-    document.getElementById("coinBox").style.boxShadow = `0 0 50px ${levels[level].glow}`;
-    balance += level * 50;
-  }
-}
-
-function getBonus(){
+function subscribeBonus() {
+  window.open("https://t.me/tapday_clicker", "_blank");
   balance += 10000;
-  document.getElementById("balance").innerText = balance;
+  updateUI();
 }
 
-setInterval(()=>{
-  let o = document.getElementById("online");
-  let val = parseInt(o.innerText);
-  o.innerText = val + Math.floor(Math.random()*5-2);
-  if(val < 2000) o.innerText = 2000;
-},3000);
+function dailyBonus() {
+  balance += 50;
+  updateUI();
+}
 
-setInterval(()=>{
-  let b = document.getElementById("bonuses");
-  b.innerText = parseInt(b.innerText) + Math.floor(Math.random()*3);
-},5000);
+updateUI();
 </script>
 
 </body>
