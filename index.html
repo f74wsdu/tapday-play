@@ -34,4 +34,72 @@
 </div><div id="modal">
   <div class="box" id="modalContent"></div>
 </div><script>
-let cash = 100
+let cash = 100;
+let level = 1;
+let income = 0;
+
+const buildings = [
+  { id:'farm', name:'Ферма', base:50, inc:1, owned:0, desc:'Стабільний дохід' },
+  { id:'factory', name:'Завод', base:300, inc:5, owned:0, desc:'Серйозне виробництво' },
+  { id:'hospital', name:'Лікарня', base:800, inc:10, owned:0, desc:'Соціальний вплив' },
+  { id:'police', name:'Поліцейська станція', base:1500, inc:20, owned:0, desc:'Контроль міста' }
+];
+
+function price(b){ return Math.floor(b.base * Math.pow(1.4, b.owned)); }
+
+function render(){
+  document.getElementById('cash').innerText = cash;
+  document.getElementById('lvl').innerText = level;
+  const map = document.getElementById('map');
+  map.innerHTML='';
+  buildings.forEach(b=>{
+    const canBuy = cash >= price(b);
+    const div = document.createElement('div');
+    div.className='tile';
+    div.innerHTML = `
+      <div>
+        <h3>${b.name} (${b.owned})</h3>
+        <p>${b.desc}</p>
+        <p>Дохід: +${b.inc}/сек</p>
+        <p>Ціна: $${price(b)}</p>
+      </div>
+      <button ${!canBuy?'disabled':''} onclick="buy('${b.id}')">Купити</button>
+    `;
+    map.appendChild(div);
+  });
+}
+
+function buy(id){
+  const b = buildings.find(x=>x.id===id);
+  const p = price(b);
+  if(cash>=p){ cash-=p; b.owned++; income+=b.inc; checkLevel(); render(); }
+}
+
+function tap(){ cash+=1; render(); }
+
+function tick(){ cash+=income; render(); }
+
+function checkLevel(){ level = 1 + Math.floor((income+cash)/500); }
+
+function openBonus(){
+  showModal(`<h2>Бонус</h2><p>Підписка = +5000 монет</p><button onclick=\"subscribe()\">Перейти</button>`);
+}
+
+function subscribe(){
+  cash+=5000;
+  closeModal();
+  render();
+  window.open('https://t.me/your_channel','_blank');
+}
+
+function openStats(){
+  showModal(`<h2>Статистика</h2><p>Дохід/сек: ${income}</p><p>Гроші: $${cash}</p>`);
+}
+
+function showModal(html){ document.getElementById('modalContent').innerHTML=html; document.getElementById('modal').style.display='flex'; }
+function closeModal(){ document.getElementById('modal').style.display='none'; }
+
+setInterval(tick,1000);
+render();
+</script></body>
+</html>
