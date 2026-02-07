@@ -2,229 +2,186 @@
 <html lang="uk">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
 <title>TapDay Play</title>
 
 <style>
 *{box-sizing:border-box;font-family:Arial}
 body{
-  margin:0;background:#0d0d0d;color:#fff;
-  display:flex;justify-content:center;align-items:center;height:100vh;
+  margin:0;
+  background:#0c0c0c;
+  color:#fff;
+  text-align:center;
 }
-.app{width:360px;height:640px;position:relative}
-
-/* TOP */
 .top{
-  display:flex;justify-content:space-between;
-  padding:10px;font-size:14px;color:#ccc
+  padding:15px;
+  display:flex;
+  justify-content:space-between;
+  font-size:14px;
 }
-
-.balance{text-align:center;font-size:28px;margin-top:10px}
-.balance span{color:#3cff00}
-
-.level{
-  position:absolute;top:90px;right:10px;font-size:12px;color:#aaa
+.balance{
+  font-size:32px;
+  margin:10px 0;
 }
+.level{opacity:.6}
 
-/* AD */
-.ad{
-  position:absolute;
-  top:90px;left:10px;
-  background:#222;padding:8px 10px;
-  border-radius:8px;font-size:12px;cursor:pointer
-}
-
-/* CIRCLE */
-.circle-wrap{
-  display:flex;justify-content:center;align-items:center;
-  height:320px;position:relative
-}
 .circle{
-  width:260px;height:260px;border-radius:50%;
-  background:radial-gradient(circle,#ffd000,#ffae00);
-  display:flex;justify-content:center;align-items:center;
-  font-size:40px;cursor:pointer;position:relative;
+  width:260px;
+  height:260px;
+  margin:20px auto;
+  border-radius:50%;
+  background:#ffb400;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  transition:.3s;
 }
-.circle.glow{
-  box-shadow:0 0 40px 15px gold;
+.circle img{width:60px}
+
+.left{
+  position:absolute;
+  left:10px;
+  top:120px;
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+}
+.box{
+  background:#1a1a1a;
+  padding:8px 12px;
+  border-radius:10px;
+  font-size:13px;
+  cursor:pointer;
 }
 
-/* RAIN */
-.rain{
-  position:absolute;color:gold;font-size:14px;
-  animation:fall 1s linear forwards;
-}
-@keyframes fall{
-  from{opacity:1;transform:translateY(0)}
-  to{opacity:0;transform:translateY(120px)}
-}
-
-/* MULTI */
-.controls{
-  display:flex;justify-content:center;gap:10px
-}
-.btn{
-  padding:10px 16px;border-radius:8px;
-  background:#222;color:#fff;border:none
-}
-.btn.active{background:#ffb400}
-
-/* BONUS */
-.bonus{
-  margin:20px auto;width:200px;text-align:center;
-  background:#ff9800;padding:12px;border-radius:10px;
-  color:#000;font-weight:bold;cursor:pointer
-}
-
-/* DAILY */
 .daily{
-  position:absolute;left:10px;top:180px;
-  background:#1b1b1b;padding:8px;border-radius:10px;
-  font-size:12px;cursor:pointer
+  position:absolute;
+  left:10px;
+  bottom:110px;
+  background:#1a1a1a;
+  padding:10px 14px;
+  border-radius:12px;
+  font-size:13px;
 }
-.daily-box{
-  display:none;position:absolute;
-  left:50%;top:50%;transform:translate(-50%,-50%);
-  background:#111;padding:15px;border-radius:12px;
-  width:280px
-}
-.day{
-  padding:6px;border-bottom:1px solid #333;
-  display:flex;justify-content:space-between
-}
-.day.done{color:#3cff00}
 
-/* WITHDRAW */
+.multi{
+  display:flex;
+  justify-content:center;
+  gap:15px;
+  margin:20px 0;
+}
+.multi button{
+  padding:10px 18px;
+  border:none;
+  border-radius:10px;
+  background:#222;
+  color:#fff;
+  font-size:16px;
+}
+.multi .active{background:#ffb400;color:#000}
+
+.btn{
+  margin:15px auto;
+  width:80%;
+  padding:15px;
+  border-radius:14px;
+  background:#ff9800;
+  color:#000;
+  font-size:18px;
+}
 .withdraw{
-  position:absolute;bottom:10px;left:50%;
-  transform:translateX(-50%);
-  background:#0f8a3a;padding:10px 30px;
-  border-radius:10px;color:#fff;opacity:.6
+  background:#1f7a3a;
+  color:#fff;
 }
 </style>
 </head>
 
 <body>
-<div class="app">
 
 <div class="top">
-  <div>Онлайн: <span id="online">3895</span></div>
-  <div>Бонусів сьогодні: <span id="bonuses">4896</span></div>
+  <div>Онлайн: <span id="online">3974</span></div>
+  <div>Бонусів сьогодні: <span id="bonToday">4920</span></div>
 </div>
 
-<div class="balance">Баланс: <span id="money">10.62</span> $</div>
+<div class="balance">Баланс: <span id="money">0.00</span> $</div>
 <div class="level">Рівень: <span id="level">1</span></div>
 
-<div class="ad" onclick="adReward()">📺 Реклама +500</div>
-
-<div class="circle-wrap">
-  <div class="circle" id="circle">💵</div>
+<div class="left">
+  <div class="box" onclick="adBonus()">📺 Реклама +500</div>
 </div>
 
-<div class="controls">
-  <button class="btn active" onclick="setMulti(1)">x1</button>
-  <button class="btn" onclick="setMulti(3)">x3</button>
-  <button class="btn" onclick="setMulti(5)">x5</button>
+<div class="circle" id="circle">
+  <img src="https://i.imgur.com/9YQq4Jg.png">
 </div>
 
-<div class="bonus" id="bonus">🎁 Бонус</div>
+<div class="daily" onclick="openDaily()">📁 Щоденний бонус</div>
 
-<div class="daily" onclick="toggleDaily()">📁 Щоденний бонус</div>
-
-<div class="daily-box" id="dailyBox"></div>
-
-<div class="withdraw">💳 Вивід</div>
-
+<div class="multi">
+  <button onclick="setMulti(1)" class="active">x1</button>
+  <button onclick="setMulti(3)">x3</button>
+  <button onclick="setMulti(5)">x5</button>
 </div>
+
+<div class="btn" onclick="bonus()">🎁 Бонус</div>
+<div class="btn withdraw">💳 Вивід</div>
 
 <script>
-let money=10.62,taps=0,multi=1,level=1;
-let day=localStorage.day||1;
-let last=localStorage.last||0;
+let money=0,level=1,multi=1,taps=0;
+const moneyEl=document.getElementById('money');
+const levelEl=document.getElementById('level');
+const circle=document.getElementById('circle');
 
-const days=[25,50,100,200,400,800,1600];
-
-const tapSound=new Audio('https://actions.google.com/sounds/v1/cartoon/wood_plank_flicks.ogg');
-const coinSound=new Audio('https://actions.google.com/sounds/v1/alarms/coin_drop.ogg');
-const levelSound=new Audio('https://actions.google.com/sounds/v1/crowds/applause.ogg');
+const rewards=[25,50,100,200,400,800,1600];
 
 function setMulti(m){
   multi=m;
-  document.querySelectorAll('.btn').forEach(b=>b.classList.remove('active'));
+  document.querySelectorAll('.multi button').forEach(b=>b.classList.remove('active'));
   event.target.classList.add('active');
 }
 
 circle.onclick=()=>{
-  taps+=multi;
   money+=0.01*multi;
+  taps+=multi;
   moneyEl.innerText=money.toFixed(2);
-  tapSound.play();
   navigator.vibrate(20);
-  rain();
-  check();
-}
 
-function rain(){
-  for(let i=0;i<3;i++){
-    let r=document.createElement('div');
-    r.className='rain';r.innerText='💵';
-    r.style.left=(120+Math.random()*40)+'px';
-    r.style.top='120px';
-    circle.appendChild(r);
-    setTimeout(()=>r.remove(),1000);
+  if(taps>level*500){
+    level++;
+    levelEl.innerText=level;
+    circle.style.background=`hsl(${level*30},90%,55%)`;
+    new Audio("https://assets.mixkit.co/sfx/preview/mixkit-cheering-crowd-2019.mp3").play();
   }
-}
+};
 
-function check(){
-  if(taps>10000 && level==1){
-    level=2;circle.classList.add('glow');circle.innerText='🦁';levelSound.play();
-  }
-  if(taps>100000) level=3;
-  if(taps>1000000) level=4;
-  levelEl.innerText=level;
-}
-
-function adReward(){
-  money+=500;
+function bonus(){
+  money+=1;
   moneyEl.innerText=money.toFixed(2);
-  coinSound.play();
+  new Audio("https://assets.mixkit.co/sfx/preview/mixkit-achievement-bell-600.mp3").play();
 }
 
-function toggleDaily(){
-  const box=document.getElementById('dailyBox');
-  box.style.display=box.style.display=='block'?'none':'block';
-  box.innerHTML='';
-  days.forEach((v,i)=>{
-    let d=document.createElement('div');
-    d.className='day'+(i+1<day?' done':'');
-    d.innerHTML=`День ${i+1} <span>${v}</span>`;
-    if(i+1==day) d.onclick=()=>getDay(v);
-    box.appendChild(d);
-  });
+function adBonus(){
+  money+=5;
+  moneyEl.innerText=money.toFixed(2);
+  new Audio("https://assets.mixkit.co/sfx/preview/mixkit-video-game-mystery-alert-234.wav").play();
 }
 
-function getDay(v){
+function openDaily(){
+  let day=localStorage.day||0;
+  let last=localStorage.last||0;
   let now=Date.now();
-  if(now-last>86400000 && day>1){day=1;}
-  money+=v;coinSound.play();
-  last=now;day++;
-  if(day>7) day=1;
-  localStorage.day=day;localStorage.last=last;
-  moneyEl.innerText=money.toFixed(2);
-  toggleDaily();
+  if(now-last>86400000){
+    day++;
+    if(day>7)day=1;
+    money+=rewards[day-1];
+    moneyEl.innerText=money.toFixed(2);
+    localStorage.day=day;
+    localStorage.last=now;
+    new Audio("https://assets.mixkit.co/sfx/preview/mixkit-coin-win-notification-1992.wav").play();
+  }else{
+    alert("Сьогодні вже забрано");
+  }
 }
-
-setInterval(()=>{
-  online.innerText=3800+Math.floor(Math.random()*200);
-  bonuses.innerText++;
-},3000);
-
-bonus.onclick=()=>{
-  window.open('https://t.me/tapday_clicker','_blank');
-  bonus.style.display='none';
-}
-
-const moneyEl=document.getElementById('money');
-const levelEl=document.getElementById('level');
 </script>
+
 </body>
 </html>
