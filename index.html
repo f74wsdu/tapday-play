@@ -6,130 +6,155 @@
 <title>TapDay Play</title>
 
 <style>
-body {
-    margin: 0;
-    font-family: Arial, sans-serif;
-    background: #0b0b0b;
-    color: #fff;
-    text-align: center;
+body{
+    margin:0;
+    background:#0b0b0b;
+    color:#fff;
+    font-family:Arial,sans-serif;
+    text-align:center;
 }
 
-.header {
-    padding: 12px;
-    background: #111;
-    display: flex;
-    justify-content: space-between;
-    font-size: 14px;
+.header{
+    display:flex;
+    justify-content:space-between;
+    padding:12px;
+    background:#111;
+    font-size:14px;
 }
 
-.balance {
-    font-size: 36px;
-    font-weight: bold;
-    margin: 15px 0;
+.balance{
+    font-size:36px;
+    font-weight:bold;
+    margin:15px 0;
 }
 
-.ad-btn {
-    background: #1c1c1c;
-    padding: 8px 16px;
-    border-radius: 20px;
-    display: inline-block;
-    margin-bottom: 10px;
+.side-row{
+    display:flex;
+    justify-content:space-between;
+    padding:0 20px;
+    align-items:center;
 }
 
-.level {
-    font-size: 14px;
+.ad-btn{
+    background:#1c1c1c;
+    padding:8px 14px;
+    border-radius:20px;
 }
 
-.circle-wrap {
-    display: flex;
-    justify-content: center;
-    margin: 20px 0;
+.level{
+    font-size:14px;
 }
 
-.circle {
-    width: 260px;
-    height: 260px;
-    border-radius: 50%;
-    background: radial-gradient(circle, #444, #111);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 70px;
-    transition: 0.3s;
+.circle-wrap{
+    display:flex;
+    justify-content:center;
+    margin:25px 0;
 }
 
-.multi {
-    display: flex;
-    justify-content: center;
-    gap: 10px;
-    margin-bottom: 15px;
+.circle{
+    width:260px;
+    height:260px;
+    border-radius:50%;
+    background:radial-gradient(circle,#ffd500,#ffb700);
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    transition:0.4s;
 }
 
-.multi button {
-    padding: 8px 18px;
-    border-radius: 14px;
-    border: none;
-    background: #2b2b2b;
-    color: #fff;
+.circle img{
+    width:90px;
 }
 
-.play-btn {
-    background: #ffc400;
-    border: none;
-    padding: 14px;
-    width: 80%;
-    border-radius: 16px;
-    font-size: 18px;
-    font-weight: bold;
+.bright-1{filter:brightness(1.1);}
+.bright-2{filter:brightness(1.25);}
+.bright-3{filter:brightness(1.4);}
+
+.multi{
+    display:flex;
+    justify-content:center;
+    gap:10px;
+    margin-bottom:15px;
 }
 
-.timer {
-    margin: 8px 0;
-    font-size: 14px;
+.multi button{
+    padding:8px 18px;
+    border-radius:14px;
+    border:none;
+    background:#2b2b2b;
+    color:#fff;
 }
 
-.withdraw {
-    background: #1e8e3e;
-    border: none;
-    padding: 12px;
-    width: 70%;
-    border-radius: 14px;
-    font-size: 16px;
-    color: #fff;
-    margin-top: 10px;
+.main-btn{
+    background:#ffc400;
+    border:none;
+    padding:14px;
+    width:85%;
+    border-radius:18px;
+    font-size:18px;
+    font-weight:bold;
+    margin-bottom:8px;
 }
 
-.folder {
-    position: fixed;
-    left: 15px;
-    top: 55%;
-    font-size: 36px;
-    cursor: pointer;
+.timer{
+    font-size:14px;
+    opacity:0.8;
 }
 
-.modal {
-    display: none;
-    position: fixed;
-    inset: 0;
-    background: rgba(0,0,0,0.7);
+.subscribe{
+    background:#ffc400;
+    border:none;
+    padding:14px;
+    width:85%;
+    border-radius:18px;
+    font-size:18px;
+    font-weight:bold;
+    margin-top:10px;
 }
 
-.modal-content {
-    background: #111;
-    margin: 20% auto;
-    padding: 20px;
-    width: 85%;
-    border-radius: 16px;
+.withdraw{
+    background:#1e8e3e;
+    border:none;
+    padding:14px;
+    width:85%;
+    border-radius:18px;
+    font-size:18px;
+    color:#fff;
+    margin-top:10px;
 }
 
-.modal button {
-    margin-top: 10px;
-    padding: 10px;
-    width: 100%;
-    border-radius: 12px;
-    border: none;
-    background: #ffc400;
-    font-weight: bold;
+.folder{
+    position:fixed;
+    left:15px;
+    top:55%;
+    font-size:30px;
+    cursor:pointer;
+}
+
+.modal{
+    position:fixed;
+    inset:0;
+    background:rgba(0,0,0,0.85);
+    display:none;
+    justify-content:center;
+    align-items:center;
+}
+
+.modal-box{
+    background:#111;
+    padding:20px;
+    border-radius:14px;
+    width:80%;
+}
+
+.modal-box button{
+    margin-top:10px;
+    padding:10px;
+    width:100%;
+    border:none;
+    border-radius:10px;
+    background:#ffc400;
+    font-weight:bold;
 }
 </style>
 </head>
@@ -143,11 +168,15 @@ body {
 
 <div class="balance">Баланс: ₴<span id="balance">1255</span></div>
 
-<div class="ad-btn">📺 Реклама +50</div>
-<div class="level">Рівень: 2</div>
+<div class="side-row">
+    <div class="ad-btn">📺 Реклама +50</div>
+    <div class="level">Рівень: 2</div>
+</div>
 
 <div class="circle-wrap">
-    <div class="circle" id="circle">🐔</div>
+    <div id="circle" class="circle">
+        <img id="icon" src="https://cdn-icons-png.flaticon.com/512/833/833472.png">
+    </div>
 </div>
 
 <div class="multi">
@@ -156,89 +185,109 @@ body {
     <button>x5</button>
 </div>
 
-<button class="play-btn" id="mainBonus">Підпишись · Отримай 500 гривень бонус</button>
-<div class="timer" id="timer"></div>
+<button id="subscribeBtn" class="subscribe">Підпишись · Отримай 500 гривень бонус</button>
+
+<button id="mainBonus" class="main-btn" style="display:none;">
+    TapDay Play · Бонус +1000
+</button>
+<div id="timer" class="timer"></div>
 
 <button class="withdraw">💳 Вивід</button>
 
 <div class="folder" onclick="openDaily()">📁</div>
 
-<div class="modal" id="dailyModal">
-    <div class="modal-content">
-        <h3>Щоденний бонус</h3>
+<div id="dailyModal" class="modal">
+    <div class="modal-box">
         <div id="dailyText"></div>
         <button onclick="claimDaily()">Забрати</button>
-        <button onclick="closeDaily()">Закрити</button>
     </div>
 </div>
 
+<audio id="sound" src="https://assets.mixkit.co/sfx/preview/mixkit-achievement-bell-600.mp3"></audio>
+
 <script>
-let balance = 1255;
-let clicks = 0;
+let balance=1255;
+let online=3945;
+let bonusToday=4763;
+let dailyDay=localStorage.getItem("dailyDay")||1;
+let lastDaily=localStorage.getItem("lastDaily")||0;
+let subscribed=localStorage.getItem("subscribed");
 
-const dailyRewards = [25,50,75,100,150,200,300];
-let lastClaim = localStorage.getItem("lastClaim") || 0;
-let day = localStorage.getItem("day") || 0;
+setInterval(()=>{online+=Math.floor(Math.random()*3);onlineEl.innerText=online},3000);
+setInterval(()=>{bonusToday+=Math.floor(Math.random()*4);bonusTodayEl.innerText=bonusToday},2500);
 
-function openDaily() {
-    document.getElementById("dailyModal").style.display = "block";
-    document.getElementById("dailyText").innerText =
-        day < 7 ? `День ${+day+1}: +${dailyRewards[day]} грн` : "Бонус завершено";
+const onlineEl=document.getElementById("online");
+const bonusTodayEl=document.getElementById("bonusToday");
+const balanceEl=document.getElementById("balance");
+const icon=document.getElementById("icon");
+const circle=document.getElementById("circle");
+const sound=document.getElementById("sound");
+
+function openDaily(){
+    let now=Date.now();
+    if(now-lastDaily<86400000 && lastDaily!=0)return alert("Чекай 24 години");
+    document.getElementById("dailyText").innerText=
+        `День ${dailyDay}: +${dailyDay*25} грн`;
+    document.getElementById("dailyModal").style.display="flex";
 }
 
-function closeDaily() {
-    document.getElementById("dailyModal").style.display = "none";
+function claimDaily(){
+    balance+=dailyDay*25;
+    balanceEl.innerText=balance;
+    sound.play();
+    lastDaily=Date.now();
+    localStorage.setItem("lastDaily",lastDaily);
+    dailyDay++;
+    if(dailyDay>7)dailyDay=1;
+    localStorage.setItem("dailyDay",dailyDay);
+    document.getElementById("dailyModal").style.display="none";
+    updateCircle();
 }
 
-function claimDaily() {
-    let now = Date.now();
-    if (now - lastClaim < 86400000 && lastClaim != 0) {
-        alert("Ще не минуло 24 години");
-        return;
-    }
-    if (day < 7) {
-        balance += dailyRewards[day];
-        day++;
-        localStorage.setItem("day", day);
-        localStorage.setItem("lastClaim", now);
-        updateBalance();
-    }
-    closeDaily();
-}
-
-document.getElementById("mainBonus").onclick = () => {
-    if (!localStorage.getItem("subBonus")) {
-        window.open("https://t.me/tapday_clicker", "_blank");
-        balance += 500;
-        localStorage.setItem("subBonus", "1");
-        document.getElementById("mainBonus").innerText = "TapDay Play · Бонус +1000";
-        startTimer();
-        updateBalance();
-    }
+document.getElementById("subscribeBtn").onclick=()=>{
+    window.open("https://t.me/tapday_clicker","_blank");
+    balance+=500;
+    balanceEl.innerText=balance;
+    sound.play();
+    localStorage.setItem("subscribed",1);
+    document.getElementById("subscribeBtn").style.display="none";
+    document.getElementById("mainBonus").style.display="block";
+    startTimer();
+    updateCircle();
 };
 
-function startTimer() {
-    let time = 30 * 24 * 60 * 60;
-    setInterval(() => {
-        time--;
-        document.getElementById("timer").innerText =
-            `⏳ ${Math.floor(time/86400)}д ${Math.floor(time%86400/3600)}г`;
+function startTimer(){
+    let end=Date.now()+2592000000;
+    setInterval(()=>{
+        let d=end-Date.now();
+        if(d<0)return;
+        let days=Math.floor(d/86400000);
+        let h=Math.floor(d%86400000/3600000);
+        let m=Math.floor(d%3600000/60000);
+        let s=Math.floor(d%60000/1000);
+        timer.innerText=`⏳ ${days}д ${h}г ${m}хв ${s}с`;
     },1000);
 }
 
-function updateBalance() {
-    document.getElementById("balance").innerText = balance;
+function updateCircle(){
+    if(balance>=10000){
+        icon.src="https://cdn-icons-png.flaticon.com/512/616/616489.png";
+        circle.className="circle bright-3";
+    }else if(balance>=1000){
+        icon.src="https://cdn-icons-png.flaticon.com/512/616/616554.png";
+        circle.className="circle bright-2";
+    }else if(balance>=100){
+        icon.src="https://cdn-icons-png.flaticon.com/512/616/616430.png";
+        circle.className="circle bright-1";
+    }
 }
 
-document.getElementById("circle").onclick = () => {
-    clicks++;
-    if (clicks >= 100) document.getElementById("circle").innerText = "👑";
-    if (clicks >= 1000) document.getElementById("circle").innerText = "💎";
-    if (clicks >= 5000) document.getElementById("circle").innerText = "⭐";
-
-    document.getElementById("circle").style.background =
-        `radial-gradient(circle, #ffd500, #ff9f00)`;
-};
+if(subscribed){
+    document.getElementById("subscribeBtn").style.display="none";
+    document.getElementById("mainBonus").style.display="block";
+    startTimer();
+}
+updateCircle();
 </script>
 
 </body>
