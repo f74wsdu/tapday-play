@@ -2,180 +2,135 @@
 <html lang="uk">
 <head>
 <meta charset="UTF-8">
-<title>City Live – Premium Build</title>
+<title>City Tap Life</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <style>
-html,body{margin:0;overflow:hidden;font-family:Arial;background:#000}
-#ui{
-position:absolute;top:10px;left:10px;z-index:10;
-background:rgba(0,0,0,.7);color:#fff;
-padding:14px;border-radius:14px;width:280px
+body {
+  margin:0;
+  font-family:Arial,sans-serif;
+  background:#1e1e1e;
+  color:#fff;
+  text-align:center;
 }
-.btn{
-margin-top:6px;padding:8px;
-background:#ffd700;color:#000;
-border-radius:8px;text-align:center;
-font-weight:bold;cursor:pointer
+.top {
+  padding:10px;
+  background:#111;
 }
-.btn.premium{background:#ff66cc}
-.small{font-size:12px;opacity:.8}
-.quest{background:#222;padding:6px;border-radius:6px;margin-top:4px}
+button {
+  padding:12px;
+  margin:5px;
+  font-size:16px;
+  border:none;
+  border-radius:8px;
+}
+.tap { background:#00c853; color:#000; }
+.city { background:#2979ff; color:#fff; }
+.bonus { background:#ffca28; color:#000; }
+.screen { display:none; padding:20px; }
+.active { display:block; }
+.card {
+  background:#2a2a2a;
+  margin:10px;
+  padding:10px;
+  border-radius:10px;
+}
 </style>
 </head>
 <body>
 
-<div id="ui">
-<div>🌍 City Live</div>
-<div id="money">💰 0</div>
-<div id="income" class="small">+1 / сек</div>
-
-<div class="quest">📜 Побудуй 1 будівлю (+50)</div>
-<div class="quest">🚶 100 людей у місті (+100)</div>
-
-<div class="btn" onclick="build()">🏗 Побудувати</div>
-<div class="btn premium" onclick="buyPremium()">⭐ Premium Pass</div>
-<div class="btn" onclick="subscribe()">🔔 Підписка на канал</div>
-
-<div class="small" id="premiumStatus">Premium: ❌</div>
+<div class="top">
+💰 <span id="money">0</span> | +<span id="perSec">0</span>/сек | 🌍 <span id="season">Весна</span>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
+<div>
+<button class="tap" onclick="show('tap')">Тап</button>
+<button class="city" onclick="show('city')">Місто</button>
+<button class="bonus" onclick="show('bonus')">Бонус</button>
+</div>
+
+<div id="tap" class="screen active">
+<h2>Тапай</h2>
+<button class="tap" style="font-size:30px" onclick="tap()">👆 ТАП</button>
+</div>
+
+<div id="city" class="screen">
+<h2>Місто</h2>
+
+<div class="card">
+🏠 Житло (+1/сек) — 20
+<br><button onclick="buy('house',20,1)">Купити</button>
+</div>
+
+<div class="card">
+🌾 Ферма (+3/сек) — 60
+<br><button onclick="buy('farm',60,3)">Купити</button>
+</div>
+
+<div class="card">
+🏭 Бізнес (+6/сек) — 120
+<br><button onclick="buy('biz',120,6)">Купити</button>
+</div>
+
+</div>
+
+<div id="bonus" class="screen">
+<h2>Бонус</h2>
+<div id="bonusText">Готово!</div>
+<button onclick="claimBonus()">🎁 Забрати +50</button>
+</div>
+
 <script>
-// --------- ДАНІ ГРАВЦЯ ----------
-let money=0;
-let income=1;
-let premium=false;
-let buildings=0;
+let money=0, perSec=0;
+let bonusReady=true;
+let seasonIndex=0;
+const seasons=["Весна","Літо","Осінь","Зима"];
 
-// --------- UI ----------
-const moneyEl=document.getElementById('money');
-const incomeEl=document.getElementById('income');
-const premiumEl=document.getElementById('premiumStatus');
-
-function updateUI(){
-moneyEl.innerText="💰 "+Math.floor(money);
-incomeEl.innerText="+"+(premium?income*2:income)+" / сек";
-premiumEl.innerText="Premium: "+(premium?"✅":"❌");
+function show(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
 }
-updateUI();
 
-// --------- ДОХІД ----------
+function tap(){
+  money++;
+  update();
+}
+
+function buy(type,cost,inc){
+  if(money>=cost){
+    money-=cost;
+    perSec+=inc;
+    update();
+  }
+}
+
+function claimBonus(){
+  if(bonusReady){
+    money+=50;
+    bonusReady=false;
+    document.getElementById('bonusText').innerText="Чекай 30 сек...";
+    setTimeout(()=>{
+      bonusReady=true;
+      document.getElementById('bonusText').innerText="Готово!";
+    },30000);
+    update();
+  }
+}
+
+function update(){
+  document.getElementById('money').innerText=money;
+  document.getElementById('perSec').innerText=perSec;
+}
+
 setInterval(()=>{
-money+=premium?income*2:income;
-updateUI();
+  money+=perSec;
+  update();
 },1000);
 
-// --------- BUILD ----------
-function build(){
-if(money<10) return;
-money-=10;
-buildings++;
-income++;
-spawnBuilding();
-updateUI();
-}
-
-// --------- PREMIUM ----------
-function buyPremium(){
-premium=true;
-updateUI();
-}
-
-// --------- ПІДПИСКА ----------
-function subscribe(){
-window.open("https://t.me/tapday_clicker","_blank");
-}
-
-// --------- THREE.JS ----------
-const scene=new THREE.Scene();
-scene.fog=new THREE.Fog(0x000033,50,200);
-
-const camera=new THREE.PerspectiveCamera(60,innerWidth/innerHeight,0.1,500);
-camera.position.set(0,70,90);
-camera.lookAt(0,0,0);
-
-const renderer=new THREE.WebGLRenderer({antialias:true});
-renderer.setSize(innerWidth,innerHeight);
-renderer.setClearColor(0x87ceeb);
-document.body.appendChild(renderer.domElement);
-
-// світло день/ніч
-const sun=new THREE.DirectionalLight(0xffffff,1);
-sun.position.set(50,100,50);
-scene.add(sun);
-scene.add(new THREE.AmbientLight(0xffffff,.4));
-
-// земля
-const ground=new THREE.Mesh(
-new THREE.PlaneGeometry(400,400),
-new THREE.MeshLambertMaterial({color:0x3cb371})
-);
-ground.rotation.x=-Math.PI/2;
-scene.add(ground);
-
-// будівлі
-function spawnBuilding(){
-const b=new THREE.Mesh(
-new THREE.BoxGeometry(6,Math.random()*10+6,6),
-new THREE.MeshLambertMaterial({color:0xb0b0b0})
-);
-b.position.set(
-Math.random()*120-60,
-b.geometry.parameters.height/2,
-Math.random()*120-60
-);
-scene.add(b);
-}
-
-// люди
-const people=[];
-const personGeo=new THREE.CylinderGeometry(0.5,0.5,2,8);
-for(let i=0;i<60;i++){
-const p=new THREE.Mesh(personGeo,new THREE.MeshLambertMaterial({color:0xffd700}));
-p.position.set(Math.random()*120-60,1,Math.random()*120-60);
-p.userData={dir:Math.random()*Math.PI*2,speed:.04};
-people.push(p);
-scene.add(p);
-}
-
-// звук
-const audio=new Audio("https://cdn.pixabay.com/download/audio/2022/03/15/audio_4c69b6f4b2.mp3");
-audio.loop=true;
-audio.volume=.2;
-audio.play();
-
-// день/ніч цикл
-let time=0;
-
-// анімація
-function animate(){
-requestAnimationFrame(animate);
-
-time+=0.0005;
-sun.intensity=0.5+Math.sin(time)*0.5;
-renderer.setClearColor(sun.intensity>0.3?0x87ceeb:0x02020f);
-
-// люди рухаються
-people.forEach(p=>{
-p.position.x+=Math.cos(p.userData.dir)*p.userData.speed;
-p.position.z+=Math.sin(p.userData.dir)*p.userData.speed;
-if(Math.random()<0.01) p.userData.dir=Math.random()*Math.PI*2;
-});
-
-// камера орбіта
-camera.position.x=Math.sin(Date.now()*0.0002)*100;
-camera.position.z=Math.cos(Date.now()*0.0002)*100;
-camera.lookAt(0,0,0);
-
-renderer.render(scene,camera);
-}
-animate();
-
-onresize=()=>{
-camera.aspect=innerWidth/innerHeight;
-camera.updateProjectionMatrix();
-renderer.setSize(innerWidth,innerHeight);
-};
+setInterval(()=>{
+  seasonIndex=(seasonIndex+1)%4;
+  document.getElementById('season').innerText=seasons[seasonIndex];
+},60000);
 </script>
+
 </body>
 </html>
