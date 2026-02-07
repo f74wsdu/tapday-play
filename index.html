@@ -2,164 +2,133 @@
 <html lang="uk">
 <head>
 <meta charset="UTF-8">
-<title>COIN CITY</title>
+<title>MONEY CITY</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <style>
-html,body{
-margin:0;height:100%;background:#050b18;
-font-family:Arial;color:#fff;
-overflow:hidden;
-}
+html,body{margin:0;height:100%;background:#060b1a;font-family:Arial;color:#fff;overflow:hidden}
 
-#money{
-position:absolute;top:20px;left:20px;
-font-size:22px;font-weight:bold;
-}
+#balance{position:absolute;top:20px;left:20px;font-size:22px;font-weight:bold}
 
 #coin{
-position:absolute;
-top:50%;left:50%;
+position:absolute;top:50%;left:50%;
 transform:translate(-50%,-50%);
-width:180px;height:180px;
-border-radius:50%;
-background:radial-gradient(circle,#ffd700,#ff9f00);
-box-shadow:0 0 40px #ffd700;
+width:180px;height:180px;border-radius:50%;
 display:flex;align-items:center;justify-content:center;
-font-size:42px;font-weight:bold;
-cursor:pointer;
-animation:pulse 2s infinite;
+font-size:36px;font-weight:bold;cursor:pointer;
+transition:.2s;
 }
 
-@keyframes pulse{
-0%{box-shadow:0 0 30px #ffd700}
-50%{box-shadow:0 0 70px #ffea00}
-100%{box-shadow:0 0 30px #ffd700}
-}
+#coin img{width:120px;height:120px}
 
 #menu{
 position:absolute;bottom:0;width:100%;
-display:flex;background:#020713;
+display:flex;background:#020713
 }
-
 #menu button{
-flex:1;padding:16px;
-font-size:16px;
-background:none;color:#fff;
-border:none;
+flex:1;padding:16px;font-size:16px;
+background:none;color:#fff;border:none
 }
 
 .panel{
 position:absolute;top:0;left:0;
 width:100%;height:100%;
-background:#050b18;
-display:none;padding:20px;
+background:#060b1a;display:none;padding:20px
 }
-
 .card{
-background:#0e1730;
-padding:16px;
-border-radius:16px;
-margin-bottom:16px;
+background:#0e1730;padding:16px;
+border-radius:16px;margin-bottom:16px
 }
-
 .btn{
-padding:12px 18px;
-border:none;border-radius:12px;
-background:#ffd700;color:#000;
-font-weight:bold;
+padding:12px 18px;border:none;
+border-radius:12px;background:#00ffcc;
+color:#000;font-weight:bold
 }
 </style>
 </head>
 <body>
 
-<div id="money">🪙 <span id="coins">0</span></div>
+<div id="balance">💵 <span id="money">0</span></div>
 
-<div id="coin" onclick="tap()">🪙</div>
+<div id="coin" onclick="tap()">
+<img id="coinImg" src="https://i.imgur.com/1Q9Z1Zm.png">
+</div>
 
 <div id="city" class="panel">
 <h2>🏙 Місто</h2>
 
 <div class="card">
-🌾 Ферма +1/сек — 50  
+🔼 x3 кліки — 500  
 <br><br>
-<button class="btn" onclick="buy(50,1)">Купити</button>
+<button class="btn" onclick="buyTap(500,3)">Купити</button>
 </div>
 
 <div class="card">
-🏭 Завод +5/сек — 200  
+🔼 x5 кліків — 2000  
 <br><br>
-<button class="btn" onclick="buy(200,5)">Купити</button>
+<button class="btn" onclick="buyTap(2000,5)">Купити</button>
 </div>
 
-<button class="btn" onclick="closeAll()">Назад</button>
-</div>
-
-<div id="bonus" class="panel">
-<h2>🎁 Бонус</h2>
-<div class="card">
-Підпишись на канал — отримай 200 🪙  
-<br><br>
-<button class="btn" onclick="bonus()">Отримати</button>
-</div>
 <button class="btn" onclick="closeAll()">Назад</button>
 </div>
 
 <div id="menu">
 <button onclick="openPanel('city')">Місто</button>
-<button onclick="openPanel('bonus')">Бонус</button>
 </div>
 
 <script>
-let coins=0;
-let income=0;
-let bonusTaken=false;
+let money=0;
+let tapPower=1;
+
+const stages=[
+{v:0,img:"https://i.imgur.com/1Q9Z1Zm.png"},
+{v:100,img:"https://i.imgur.com/5XQYQ9T.png"},
+{v:1000,img:"https://i.imgur.com/zr7kN3n.png"},
+{v:10000,img:"https://i.imgur.com/8u6xZxX.png"},
+{v:100000,img:"https://i.imgur.com/JxGzJXv.png"},
+{v:1000000,img:"https://i.imgur.com/w1Xn5YF.png"},
+{v:10000000,img:"https://i.imgur.com/3Vx5m4k.png"}
+];
 
 function tap(){
-coins++;
+money+=tapPower;
 flash();
 update();
+checkStage();
 }
 
 function flash(){
 const c=document.getElementById("coin");
-c.style.transform="translate(-50%,-50%) scale(1.1)";
+c.style.transform="translate(-50%,-50%) scale(1.12)";
 setTimeout(()=>c.style.transform="translate(-50%,-50%) scale(1)",120);
 }
 
-function buy(cost,inc){
-if(coins>=cost){
-coins-=cost;
-income+=inc;
+function buyTap(cost,power){
+if(money>=cost){
+money-=cost;
+tapPower=power;
 update();
 }
-}
-
-function bonus(){
-if(bonusTaken)return;
-bonusTaken=true;
-window.open("https://t.me/YOUR_CHANNEL","_blank");
-setTimeout(()=>{
-coins+=200;
-update();
-},3000);
 }
 
 function update(){
-document.getElementById("coins").innerText=coins;
+document.getElementById("money").innerText=money.toLocaleString();
+}
+
+function checkStage(){
+for(let i=stages.length-1;i>=0;i--){
+if(money>=stages[i].v){
+document.getElementById("coinImg").src=stages[i].img;
+break;
+}
+}
 }
 
 function openPanel(id){
 document.getElementById(id).style.display="block";
 }
-
 function closeAll(){
 document.querySelectorAll(".panel").forEach(p=>p.style.display="none");
 }
-
-setInterval(()=>{
-coins+=income;
-update();
-},1000);
 </script>
 
 </body>
