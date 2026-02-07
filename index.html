@@ -22,12 +22,12 @@ body{margin:0;background:#0b0b0b;color:#fff;font-family:Arial;text-align:center;
 }
 .fly{
  position:absolute;font-size:32px;
- animation:fly 0.9s ease-out forwards;
+ animation:fly .9s ease-out forwards;
  pointer-events:none;
 }
 @keyframes fly{
- 0%{transform:translate(0,0) scale(1);opacity:1}
- 100%{transform:translate(var(--x),-120px) scale(1.4);opacity:0}
+ 0%{transform:translate(0,0);opacity:1}
+ 100%{transform:translate(var(--x),-120px) scale(1.3);opacity:0}
 }
 .controls{display:flex;justify-content:center;gap:15px}
 .mult{background:#222;padding:10px 18px;border-radius:14px}
@@ -39,8 +39,10 @@ body{margin:0;background:#0b0b0b;color:#fff;font-family:Arial;text-align:center;
  padding:10px;width:180px;display:none
 }
 .day{padding:6px;border-bottom:1px solid #222;cursor:pointer}
-.mainBtn{margin-top:20px;width:90%;padding:18px;border-radius:20px;
- background:#ffb700;font-size:20px;border:none}
+.mainBtn{
+ margin-top:20px;width:90%;padding:18px;border-radius:20px;
+ background:#ffb700;font-size:20px;border:none
+}
 .withdraw{
  margin:10px auto;width:160px;padding:10px;
  background:#1f8f3a;border-radius:14px;font-size:16px
@@ -52,10 +54,10 @@ body{margin:0;background:#0b0b0b;color:#fff;font-family:Arial;text-align:center;
 
 <div class="top">
  <div class="row">
-  <div>Онлайн: <span id="online">3959</span></div>
-  <div>Бонусів сьогодні: <span id="bonuses">4730</span></div>
+  <div>Онлайн: <span id="online">3940</span></div>
+  <div>Бонусів сьогодні: <span id="bonuses">4744</span></div>
  </div>
- <div class="balance">Баланс: $<span id="balance">253.04</span></div>
+ <div class="balance">Баланс: $<span id="balance">264.63</span></div>
  <div class="middle">
   <div class="ad">📺 Реклама +500</div>
   <div>Рівень: 2</div>
@@ -81,7 +83,7 @@ body{margin:0;background:#0b0b0b;color:#fff;font-family:Arial;text-align:center;
  <div class="mult" data-m="5">x5</div>
 </div>
 
-<button class="mainBtn">TapDay Play</button>
+<button class="mainBtn" id="mainBtn"></button>
 <div class="withdraw">💳 Вивід</div>
 
 <audio id="sound">
@@ -89,18 +91,30 @@ body{margin:0;background:#0b0b0b;color:#fff;font-family:Arial;text-align:center;
 </audio>
 
 <script>
-let balance=253.04, mult=1;
-let online=3959, bonuses=4730;
-const bEl=balanceEl=document.getElementById("balance");
+let balance=264.63, mult=1;
+let online=3940, bonuses=4744;
+const bEl=document.getElementById("balance");
 const ball=document.getElementById("ball");
 const sound=document.getElementById("sound");
+const mainBtn=document.getElementById("mainBtn");
 
-setInterval(()=>{
- online+=Math.floor(Math.random()*5-2);
- bonuses+=Math.random()<0.3?1:0;
- document.getElementById("online").textContent=online;
- document.getElementById("bonuses").textContent=bonuses;
-},2000);
+let subscribed = localStorage.getItem("subscribed")==="1";
+
+mainBtn.textContent = subscribed ? "TapDay Play" : "Підпишись і отримай бонус";
+
+mainBtn.onclick=()=>{
+ if(!subscribed){
+  window.open("https://t.me/tapday_clicker","_blank");
+  localStorage.setItem("subscribed","1");
+  navigator.vibrate(80);
+  sound.play();
+  balance+=500;
+  bonuses++;
+  bEl.textContent=balance.toFixed(2);
+  mainBtn.textContent="TapDay Play";
+  subscribed=true;
+ }
+};
 
 function icon(){
  if(balance>=1000) return "💎";
@@ -139,6 +153,10 @@ folder.onclick=()=>{
 
 document.querySelectorAll(".day").forEach(d=>{
  d.onclick=()=>{
+  const last=localStorage.getItem("daily");
+  const now=Date.now();
+  if(last && now-last<86400000) return;
+  localStorage.setItem("daily",now);
   navigator.vibrate(80);
   sound.play();
   balance+=+d.dataset.v;
