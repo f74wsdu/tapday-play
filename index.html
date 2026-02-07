@@ -2,143 +2,201 @@
 <html lang="uk">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>TapDay Play</title>
 
 <style>
-html,body{margin:0;height:100%;background:#050812;color:#fff;font-family:Arial;overflow:hidden}
-#money{position:absolute;top:10px;left:10px;font-size:22px}
-#level{position:absolute;top:40px;left:10px;font-size:14px;opacity:.8}
-#ad{position:absolute;top:10px;right:10px;background:#222;padding:10px 14px;border-radius:14px}
+html,body{
+  margin:0;
+  padding:0;
+  background:#070b18;
+  color:#fff;
+  font-family:system-ui,Arial;
+  overflow:hidden;
+  touch-action:manipulation;
+}
+
+#top{
+  position:fixed;
+  top:10px;
+  left:10px;
+  right:10px;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  font-size:16px;
+}
+
+#money{font-size:22px;font-weight:700}
+#level{opacity:.7}
+
+.btn{
+  background:#1c233a;
+  padding:10px 14px;
+  border-radius:14px;
+  cursor:pointer;
+}
+
+#ad{background:#1f1f1f}
+
+#game{
+  position:absolute;
+  inset:0;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+}
+
 #coin{
-position:absolute;top:50%;left:50%;
-transform:translate(-50%,-50%);
-width:220px;height:220px;border-radius:50%;
-background:radial-gradient(circle,#ffd700,#b8860b);
-}
-.rain{position:absolute;top:-20px;font-size:20px;animation:fall 1s linear forwards}
-@keyframes fall{to{transform:translateY(110vh);opacity:0}}
-
-#city{
-position:absolute;bottom:10px;left:10px;
-background:#111;padding:10px;border-radius:12px;font-size:12px
+  width:260px;
+  height:260px;
+  border-radius:50%;
+  background:
+    radial-gradient(circle at 30% 30%, #fff5a0, #f4c400 45%, #b88900 70%);
+  box-shadow:
+    0 0 40px rgba(255,215,0,.6),
+    inset 0 0 30px rgba(255,255,255,.4);
 }
 
-#bonusBox{
-position:absolute;bottom:80px;left:50%;
-transform:translateX(-50%);
-background:#0d1733;padding:20px;border-radius:18px;text-align:center
+#bonus{
+  position:fixed;
+  bottom:120px;
+  left:50%;
+  transform:translateX(-50%);
+  background:#11183a;
+  padding:16px;
+  border-radius:18px;
+  text-align:center;
 }
 
-#daily{
-position:absolute;bottom:10px;right:10px;
-background:#112;padding:10px;border-radius:12px;font-size:12px
+#bonus button{
+  margin-top:10px;
+  background:#00ffd0;
+  border:0;
+  padding:10px 16px;
+  border-radius:12px;
+  font-size:16px;
 }
 
-#soon{
-position:absolute;top:80px;right:10px;font-size:12px;opacity:.6
+#bottom{
+  position:fixed;
+  bottom:10px;
+  left:10px;
+  right:10px;
+  display:flex;
+  justify-content:space-between;
+  font-size:14px;
+  opacity:.85;
+}
+
+.particle{
+  position:absolute;
+  font-size:20px;
+  pointer-events:none;
+  animation:fly 1s linear forwards;
+}
+
+@keyframes fly{
+  0%{transform:translate(0,0);opacity:1}
+  100%{transform:translate(var(--x),var(--y));opacity:0}
 }
 </style>
 </head>
+
 <body>
 
-<div id="money">💵 0</div>
-<div id="level">Рівень: 1</div>
-
-<div id="ad" onclick="fakeAd()">РЕКЛАМА +2000</div>
-
-<div id="coin"></div>
-
-<div id="bonusBox" id="bonus">
-🎁 БОНУС<br>
-<button onclick="getBonus()">Отримати +10 000</button>
+<div id="top">
+  <div>
+    💵 <span id="money">0</span><br>
+    <span id="level">Рівень: 1</span>
+  </div>
+  <div class="btn" id="ad">РЕКЛАМА +2000</div>
 </div>
 
-<div id="city">
-🏙 Місто<br>
-+5 / сек<br>
-Таймер: <span id="cityTimer">00:00</span>
+<div id="game">
+  <div id="coin"></div>
 </div>
 
-<div id="daily">
-🎁 Щоденний бонус<br>
-<span id="dailyTimer">24:00:00</span>
+<div id="bonus">
+  🎁 БОНУС<br>Підпишись на канал
+  <button id="getBonus">Отримати +10 000</button>
 </div>
 
-<div id="soon">💳 Вивід: скоро</div>
+<div id="bottom">
+  <div>🏙 Місто +5/сек<br>Таймер: <span id="cityTimer">00:60</span></div>
+  <div>🎁 Щоденний бонус<br><span id="daily">24:00:00</span></div>
+</div>
+
+<audio id="sndTap" src="https://assets.mixkit.co/sfx/preview/mixkit-arcade-coin-216.wav"></audio>
+<audio id="sndBonus" src="https://assets.mixkit.co/sfx/preview/mixkit-achievement-bell-600.wav"></audio>
 
 <script>
-let money=0,level=1,tapPower=1;
-let lastBonus=0,lastDaily=0;
-let cityTime=60;
+let money=0, level=1, tapPower=1;
+const moneyEl=document.getElementById('money');
+const levelEl=document.getElementById('level');
+const coin=document.getElementById('coin');
 
-const coin=document.getElementById("coin");
+function fmt(n){return n.toLocaleString('uk-UA')}
 
-coin.addEventListener("touchstart",e=>{
-for(let i=0;i<e.touches.length;i++)tap();
-});
-coin.onclick=tap;
+function update(){
+  moneyEl.textContent=fmt(money);
+  levelEl.textContent="Рівень: "+level;
+}
 
-function tap(){
-money+=tapPower;
-rain();
-check();
-update();
+function coinStage(){
+  if(money>=10_000_000) tapPower=50;
+  else if(money>=1_000_000) tapPower=25;
+  else if(money>=100_000) tapPower=10;
+  else if(money>=10_000) tapPower=5;
+  else if(money>=1_000) tapPower=3;
 }
 
 function rain(){
-for(let i=0;i<8;i++){
-let r=document.createElement("div");
-r.className="rain";
-r.innerText="🪙";
-r.style.left=Math.random()*100+"%";
-document.body.appendChild(r);
-setTimeout(()=>r.remove(),1000);
-}
-}
-
-function check(){
-level=Math.floor(money/10000)+1;
-if(money>100000)coin.style.background="radial-gradient(circle,#00ffd5,#008b8b)";
-if(money>1000000)coin.style.background="radial-gradient(circle,#ff00ff,#800080)";
+  for(let i=0;i<tapPower;i++){
+    const p=document.createElement('div');
+    p.className='particle';
+    p.textContent='💵';
+    p.style.left='50%';
+    p.style.top='50%';
+    p.style.setProperty('--x',`${(Math.random()*300-150)}px`);
+    p.style.setProperty('--y',`${(Math.random()*-300)}px`);
+    document.body.appendChild(p);
+    setTimeout(()=>p.remove(),1000);
+  }
 }
 
-function update(){
-moneyEl.innerText="💵 "+money.toLocaleString();
-levelEl.innerText="Рівень: "+level;
-}
+coin.addEventListener('touchstart',e=>{
+  e.preventDefault();
+  const taps=e.touches.length;
+  money+=taps*tapPower;
+  document.getElementById('sndTap').play();
+  coinStage();
+  rain();
+  if(money/1000>level) level++;
+  update();
+},{passive:false});
 
-moneyEl=document.getElementById("money");
-levelEl=document.getElementById("level");
+document.getElementById('ad').onclick=()=>{
+  money+=2000;
+  document.getElementById('sndBonus').play();
+  update();
+};
 
-function getBonus(){
-if(lastBonus)return;
-window.open("https://t.me/YOUR_CHANNEL","_blank");
-money+=10000;
-document.getElementById("bonusBox").remove();
-lastBonus=1;
-update();
-}
+document.getElementById('getBonus').onclick=()=>{
+  window.open('https://t.me/tapday_clicker','_blank');
+  money+=10000;
+  document.getElementById('bonus').remove();
+  document.getElementById('sndBonus').play();
+  update();
+};
 
-function fakeAd(){
-money+=2000;
-update();
-}
-
+// місто
 setInterval(()=>{
-money+=5;
-cityTime--;
-if(cityTime<=0)cityTime=60;
-document.getElementById("cityTimer").innerText="00:"+String(cityTime).padStart(2,"0");
-update();
+  money+=5;
+  update();
 },1000);
 
-setInterval(()=>{
-let t=86400-Math.floor((Date.now()-lastDaily)/1000);
-if(t<=0){money+=5000;lastDaily=Date.now()}
-document.getElementById("dailyTimer").innerText=
-new Date(t*1000).toISOString().substr(11,8);
-},1000);
+update();
 </script>
 
 </body>
