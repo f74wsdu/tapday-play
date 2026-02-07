@@ -2,38 +2,48 @@
 <html lang="uk">
 <head>
 <meta charset="UTF-8">
-<title>City Live</title>
+<title>City Live – Districts & Quests</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <style>
 html,body{margin:0;overflow:hidden;background:#000;font-family:Arial}
 #ui{
 position:absolute;top:10px;left:10px;z-index:10;
-background:rgba(0,0,0,.6);color:#fff;
-padding:10px;border-radius:10px;width:220px
+background:rgba(0,0,0,.65);color:#fff;
+padding:10px;border-radius:10px;width:240px
 }
 button{
 width:100%;margin-top:6px;padding:8px;
 background:#1fa34a;border:none;color:#fff;
 border-radius:6px;font-size:14px
 }
+#quests{
+margin-top:10px;font-size:13px
+}
+.quest-done{color:#7CFC00}
 </style>
 </head>
 <body>
 
 <div id="ui">
 <div id="money">💰 0</div>
-<button onclick="buildFarm()">🌾 Ферма (+1/с)</button>
-<button onclick="buildFactory()">🏭 Завод (+3/с)</button>
-<button onclick="toggleTime()">🌗 День / Ніч</button>
+
+<button onclick="build('farm')">🌾 Ферма</button>
+<button onclick="build('factory')">🏭 Завод</button>
+<button onclick="build('house')">🏠 Будинок</button>
+
+<div id="quests">
+<b>🎯 Квести:</b><br>
+<div id="q1">▫ Побудуй 2 ферми</div>
+<div id="q2">▫ Побудуй 1 завод</div>
+<div id="q3">▫ Зароби 20 💰</div>
+</div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
 <script>
 let scene=new THREE.Scene();
-scene.fog=new THREE.Fog(0x88ccee,40,120);
-
 let camera=new THREE.PerspectiveCamera(60,innerWidth/innerHeight,.1,500);
-camera.position.set(0,30,40);
+camera.position.set(0,35,45);
 
 let renderer=new THREE.WebGLRenderer({antialias:true});
 renderer.setSize(innerWidth,innerHeight);
@@ -41,10 +51,10 @@ renderer.setClearColor(0x87ceeb);
 document.body.appendChild(renderer.domElement);
 
 // світло
+scene.add(new THREE.AmbientLight(0x888888));
 let sun=new THREE.DirectionalLight(0xffffff,1);
 sun.position.set(50,100,20);
 scene.add(sun);
-scene.add(new THREE.AmbientLight(0x888888));
 
 // земля
 let ground=new THREE.Mesh(
@@ -54,131 +64,102 @@ new THREE.MeshLambertMaterial({color:0x2e8b57})
 ground.rotation.x=-Math.PI/2;
 scene.add(ground);
 
-// дорога (коло)
-let road=new THREE.Mesh(
-new THREE.RingGeometry(18,22,64),
-new THREE.MeshBasicMaterial({color:0x333333})
-);
-road.rotation.x=-Math.PI/2;
-scene.add(road);
+// 🗺 РАЙОНИ
+const districts={
+farm:{x:-25,z:0,color:0x7cfc00},
+factory:{x:25,z:0,color:0xaaaaaa},
+residential:{x:0,z:25,color:0x87cefa}
+};
 
-// вода
-let water=new THREE.Mesh(
-new THREE.CircleGeometry(10,32),
-new THREE.MeshPhongMaterial({color:0x1e90ff})
+for(let d in districts){
+let zone=new THREE.Mesh(
+new THREE.CircleGeometry(15,32),
+new THREE.MeshBasicMaterial({color:districts[d].color,transparent:true,opacity:0.15})
 );
-water.rotation.x=-Math.PI/2;
-water.position.set(15,.1,-10);
-scene.add(water);
-
-// дерева
-function tree(x,z){
-let t=new THREE.Mesh(
-new THREE.CylinderGeometry(.3,.4,3),
-new THREE.MeshLambertMaterial({color:0x8b4513})
-);
-t.position.set(x,1.5,z);
-let c=new THREE.Mesh(
-new THREE.SphereGeometry(1.5,8,8),
-new THREE.MeshLambertMaterial({color:0x228b22})
-);
-c.position.set(x,4,z);
-scene.add(t,c);
+zone.rotation.x=-Math.PI/2;
+zone.position.set(districts[d].x,.05,districts[d].z);
+scene.add(zone);
 }
-for(let i=0;i<30;i++)tree(Math.random()*60-30,Math.random()*60-30);
 
 // економіка
 let money=0,income=0;
+let moneyEl=document.getElementById("money");
 setInterval(()=>{
 money+=income;
 moneyEl.innerText="💰 "+money;
+checkQuests();
 },1000);
-let moneyEl=document.getElementById("money");
 
-function buildFarm(){
-let f=new THREE.Mesh(
-new THREE.BoxGeometry(4,2,4),
-new THREE.MeshLambertMaterial({color:0xdeb887})
-);
-f.position.set(Math.random()*20-10,1,Math.random()*20-10);
-scene.add(f);
+// лічильники
+let stats={farm:0,factory:0};
+
+// 🏗 будівництво
+function build(type){
+let geo,mat,zone;
+
+if(type==="farm"){
+geo=new THREE.BoxGeometry(4,2,4);
+mat=new THREE.MeshLambertMaterial({color:0xdeb887});
+zone=districts.farm;
+stats.farm++;
 income+=1;
 }
 
-function buildFactory(){
-let f=new THREE.Mesh(
-new THREE.BoxGeometry(5,4,5),
-new THREE.MeshLambertMaterial({color:0x777777})
-);
-f.position.set(Math.random()*20-10,2,Math.random()*20-10);
-scene.add(f);
+if(type==="factory"){
+geo=new THREE.BoxGeometry(5,4,5);
+mat=new THREE.MeshLambertMaterial({color:0x777777});
+zone=districts.factory;
+stats.factory++;
 income+=3;
 }
 
-// 👤 ЛЮДИ
-let people=[];
-function spawnPerson(){
-let p=new THREE.Mesh(
-new THREE.CapsuleGeometry(.4,1.2),
-new THREE.MeshLambertMaterial({color:0xffcc99})
-);
-p.position.set(Math.random()*20-10,1,Math.random()*20-10);
-p.userData={dir:Math.random()*Math.PI*2};
-scene.add(p);
-people.push(p);
+if(type==="house"){
+geo=new THREE.BoxGeometry(3,3,3);
+mat=new THREE.MeshLambertMaterial({color:0xffe4b5});
+zone=districts.residential;
+income+=0.5;
 }
-for(let i=0;i<12;i++)spawnPerson();
 
-// 🚗 МАШИНИ
-let cars=[];
-function spawnCar(){
-let c=new THREE.Mesh(
-new THREE.BoxGeometry(2,1,1),
-new THREE.MeshLambertMaterial({color:0xff0000})
+let b=new THREE.Mesh(geo,mat);
+b.position.set(
+zone.x+Math.random()*10-5,
+2,
+zone.z+Math.random()*10-5
 );
-c.userData={angle:Math.random()*Math.PI*2,speed:0.01+Math.random()*0.01};
-scene.add(c);
-cars.push(c);
+scene.add(b);
 }
-for(let i=0;i<6;i++)spawnCar();
 
-// день/ніч
-let night=false;
-function toggleTime(){
-night=!night;
-renderer.setClearColor(night?0x050510:0x87ceeb);
-sun.intensity=night?.2:1;
+// 🎯 КВЕСТИ
+let quests={
+q1:false,q2:false,q3:false
+};
+
+function checkQuests(){
+if(!quests.q1 && stats.farm>=2){
+quests.q1=true;
+document.getElementById("q1").className="quest-done";
+money+=10;
+}
+if(!quests.q2 && stats.factory>=1){
+quests.q2=true;
+document.getElementById("q2").className="quest-done";
+money+=10;
+}
+if(!quests.q3 && money>=20){
+quests.q3=true;
+document.getElementById("q3").className="quest-done";
+money+=20;
+}
 }
 
 // анімація
 let t=0;
 function animate(){
 requestAnimationFrame(animate);
-
-// люди ходять
-people.forEach(p=>{
-p.position.x+=Math.cos(p.userData.dir)*0.03;
-p.position.z+=Math.sin(p.userData.dir)*0.03;
-if(Math.random()<0.01)p.userData.dir=Math.random()*Math.PI*2;
-});
-
-// машини їздять
-cars.forEach(c=>{
-c.userData.angle+=c.userData.speed;
-c.position.set(
-Math.cos(c.userData.angle)*20,
-.5,
-Math.sin(c.userData.angle)*20
-);
-c.rotation.y=-c.userData.angle;
-});
-
-// камера
 t+=0.002;
-camera.position.x=Math.sin(t)*45;
-camera.position.z=Math.cos(t)*45;
+camera.position.x=Math.sin(t)*50;
+camera.position.z=Math.cos(t)*50;
 camera.lookAt(0,0,0);
-
 renderer.render(scene,camera);
 }
 animate();
