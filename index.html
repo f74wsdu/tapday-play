@@ -4,109 +4,140 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>TapDay Play</title>
+
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+
 <style>
-body{
+body {
   margin:0;
-  background:#0b0f1a;
+  font-family: Arial, sans-serif;
+  background: radial-gradient(circle at top, #111827, #000);
   color:#fff;
-  font-family:Arial, sans-serif;
   text-align:center;
 }
-.top{
+
+/* TOP */
+.top {
   display:flex;
   justify-content:space-between;
   padding:12px 16px;
-  align-items:center;
-}
-.money{font-size:18px}
-.level{font-size:14px;opacity:.7}
-.ad{
-  background:#2a2f3f;
-  padding:10px 14px;
-  border-radius:14px;
   font-size:14px;
 }
-.sun-wrap{
-  margin:30px auto;
+.hint {
+  text-align:center;
+  font-size:13px;
+  opacity:.8;
+  margin-top:-6px;
+}
+
+/* SUN */
+.sun-wrap {
+  display:flex;
+  justify-content:center;
+  margin:40px 0 20px;
+}
+.sun {
   width:260px;
   height:260px;
   border-radius:50%;
-  background:radial-gradient(circle at 30% 30%, #fff7a8, #ffd500 40%, #ffb700 65%, #ff9c00 100%);
-  box-shadow:0 0 40px rgba(255,200,0,.7);
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  cursor:pointer;
+  background: radial-gradient(circle at 30% 30%, #fff7b0, #ffcc00, #ff9f00);
+  box-shadow:
+    0 0 40px #ffcc00,
+    0 0 80px #ffb700;
+  position:relative;
+  animation:pulse 2s infinite;
 }
-.sun-value{
-  font-size:34px;
-  font-weight:bold;
+.sun::before {
+  content:"";
+  position:absolute;
+  inset:-25px;
+  border-radius:50%;
+  background: repeating-conic-gradient(
+    from 0deg,
+    rgba(255,200,0,.6) 0deg 10deg,
+    transparent 10deg 20deg
+  );
+  filter:blur(6px);
 }
-.taps{
+@keyframes pulse {
+  0% {transform:scale(1)}
+  50% {transform:scale(1.05)}
+  100% {transform:scale(1)}
+}
+
+/* MULTI */
+.multi {
   display:flex;
   justify-content:center;
   gap:12px;
-  margin-bottom:20px;
+  margin-bottom:25px;
 }
-.taps button{
-  background:#2a2f3f;
-  color:#fff;
-  border:none;
-  border-radius:14px;
+.multi button {
   padding:10px 18px;
+  border-radius:14px;
+  border:none;
+  background:#1f2937;
+  color:#fff;
   font-size:16px;
 }
-.subscribe{
-  margin:10px 16px;
-  background:#141a2b;
-  border-radius:16px;
+.multi button.active {
+  background:#22c55e;
+  color:#000;
+}
+
+/* SUB */
+.sub {
+  background:#0f172a;
+  margin:0 16px;
+  border-radius:18px;
   padding:16px;
 }
-.subscribe button{
+.sub button {
   width:100%;
-  background:#1fe0b6;
+  padding:16px;
+  border-radius:16px;
   border:none;
-  border-radius:14px;
-  padding:14px;
+  background:#2dd4bf;
+  color:#000;
   font-size:18px;
+  font-weight:bold;
 }
-.timer{
-  margin-top:8px;
-  opacity:.7;
-}
-.bottom{
+
+/* BOTTOM */
+.bottom {
   display:flex;
   justify-content:space-between;
-  padding:12px 16px;
+  padding:14px 16px;
   font-size:14px;
-  opacity:.8;
+  opacity:.9;
 }
 </style>
 </head>
+
 <body>
 
 <div class="top">
-  <div>
-    <div class="money" id="money">💵 0</div>
-    <div class="level" id="level">Рівень 1</div>
-  </div>
-  <div class="ad">РЕКЛАМА +2000</div>
+  <div>💵 <span id="money">0</span><br>Рівень 1</div>
+  <div>РЕКЛАМА +2000</div>
 </div>
 
-<div class="sun-wrap" id="sun">
-  <div class="sun-value" id="sunValue">₴100</div>
+<div class="hint">
+  Тапай сонце — заробляй. Чим довше граєш, тим більше.
 </div>
 
-<div class="taps">
-  <button onclick="setMulti(1)">x1</button>
-  <button onclick="setMulti(3)">x3</button>
-  <button onclick="setMulti(5)">x5</button>
+<div class="sun-wrap">
+  <div class="sun" id="sun"></div>
 </div>
 
-<div class="subscribe">
-  🎁 Підпишись на канал
-  <button id="subBtn" onclick="subscribe()">Отримати +10 000</button>
-  <div class="timer" id="subTimer"></div>
+<div class="multi">
+  <button onclick="setMulti(1)" class="active" id="m1">x1</button>
+  <button onclick="setMulti(3)" id="m3">x3</button>
+  <button onclick="setMulti(5)" id="m5">x5</button>
+</div>
+
+<div class="sub">
+  🎁 Підпишись на канал<br><br>
+  <button id="subBtn">Отримати +10 000</button>
 </div>
 
 <div class="bottom">
@@ -114,72 +145,59 @@ body{
   <div>🎁 Щоденний бонус <span id="daily">24:00:00</span></div>
 </div>
 
-<audio id="tapSound">
-  <source src="https://actions.google.com/sounds/v1/cartoon/wood_plank_flicks.ogg">
-</audio>
-
 <script>
-let money=0;
-let multi=1;
-let subscribed=false;
-let subCooldown=0;
-let dailyTime=86400;
+Telegram.WebApp.ready();
 
-function format(n){
-  if(n>=1e7) return "₴"+(n/1e6).toFixed(0)+"M";
-  if(n>=1e6) return "₴"+(n/1e6).toFixed(1)+"M";
-  if(n>=1e5) return "₴"+(n/1e3).toFixed(0)+"K";
-  if(n>=1e4) return "₴"+(n/1e3).toFixed(1)+"K";
-  return "₴"+n;
+let money = 0;
+let multi = 1;
+let subscribed = false;
+let dailyTime = 86400;
+
+const moneyEl = document.getElementById("money");
+
+function updateMoney() {
+  moneyEl.innerText = money.toLocaleString();
 }
 
-function sunValue(){
-  let base=100;
-  document.getElementById("sunValue").innerText=format(base);
+function setMulti(x) {
+  multi = x;
+  document.querySelectorAll(".multi button").forEach(b=>b.classList.remove("active"));
+  document.getElementById("m"+x).classList.add("active");
 }
 
-sunValue();
-
-document.getElementById("sun").onclick=()=>{
-  money+=100*multi;
-  document.getElementById("money").innerText="💵 "+format(money);
-  document.getElementById("tapSound").play();
+document.getElementById("sun").onclick = () => {
+  money += 1 * multi;
+  updateMoney();
 };
 
-function setMulti(m){multi=m;}
-
-function subscribe(){
-  if(!subscribed){
-    window.open("https://t.me/YOUR_CHANNEL","_blank");
-    subscribed=true;
-    subCooldown=86400;
-    money+=10000;
-    document.getElementById("money").innerText="💵 "+format(money);
-    document.getElementById("subBtn").disabled=true;
+document.getElementById("subBtn").onclick = () => {
+  if (!subscribed) {
+    subscribed = true;
+    Telegram.WebApp.openTelegramLink("https://t.me/ТУТ_ТВІЙ_КАНАЛ");
+    money += 10000;
+    updateMoney();
+    document.getElementById("subBtn").innerText = "Отримано";
+    document.getElementById("subBtn").disabled = true;
   }
-}
+};
 
+/* DAILY TIMER */
 setInterval(()=>{
-  if(subCooldown>0){
-    subCooldown--;
-    document.getElementById("subTimer").innerText=subCooldown+" сек";
-    if(subCooldown===0){
-      subscribed=false;
-      document.getElementById("subBtn").disabled=false;
-      document.getElementById("subTimer").innerText="";
-    }
-  }
-  if(dailyTime>0){
+  if (dailyTime > 0) {
     dailyTime--;
-    let h=Math.floor(dailyTime/3600);
-    let m=Math.floor((dailyTime%3600)/60);
-    let s=dailyTime%60;
-    document.getElementById("daily").innerText=
-      String(h).padStart(2,"0")+":"+
-      String(m).padStart(2,"0")+":"+
-      String(s).padStart(2,"0");
+    let h = String(Math.floor(dailyTime/3600)).padStart(2,"0");
+    let m = String(Math.floor(dailyTime%3600/60)).padStart(2,"0");
+    let s = String(dailyTime%60).padStart(2,"0");
+    document.getElementById("daily").innerText = `${h}:${m}:${s}`;
   }
 },1000);
+
+/* PASSIVE */
+setInterval(()=>{
+  money += 5;
+  updateMoney();
+},1000);
 </script>
+
 </body>
 </html>
