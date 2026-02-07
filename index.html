@@ -6,243 +6,141 @@
 <title>TapCity 2026</title>
 
 <style>
-html, body {
-  margin: 0;
-  padding: 0;
-  background: #0e1621;
-  color: #fff;
-  font-family: system-ui, -apple-system, BlinkMacSystemFont;
-  overflow: hidden;
-}
-
-#top {
-  position: absolute;
-  top: 10px;
-  left: 50%;
-  transform: translateX(-50%);
-  background: rgba(0,0,0,.6);
-  padding: 10px 20px;
-  border-radius: 14px;
-  display: flex;
-  gap: 20px;
-  align-items: center;
-}
-
-.stat {
-  font-weight: 600;
-}
-
-#map {
-  position: absolute;
-  inset: 0;
-}
-
-#ui {
-  position: absolute;
-  bottom: 20px;
-  width: 100%;
-  display: flex;
-  justify-content: space-around;
-  pointer-events: none;
-}
-
-.btn {
-  pointer-events: auto;
-  background: linear-gradient(135deg,#ffd54f,#ffb300);
-  color: #000;
-  padding: 14px 18px;
-  border-radius: 18px;
-  font-weight: 700;
-  box-shadow: 0 6px 20px rgba(255,200,0,.4);
-}
-
-#tapCoin {
-  position: absolute;
-  bottom: 120px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 140px;
-  height: 140px;
-  border-radius: 50%;
-  background: radial-gradient(circle at 30% 30%, #fff59d, #fbc02d);
-  box-shadow: 0 0 40px rgba(255,215,0,.8);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 26px;
-  font-weight: 800;
-  color: #5d4037;
-  user-select: none;
-}
-
-#tapCoin:active {
-  transform: translateX(-50%) scale(.94);
-}
-
-.float {
-  position: absolute;
-  color: gold;
-  font-weight: 800;
-  pointer-events: none;
-  animation: floatUp 1s ease-out forwards;
-}
-
-@keyframes floatUp {
-  0% {opacity:1; transform:translateY(0)}
-  100% {opacity:0; transform:translateY(-60px)}
-}
-
-canvas {
-  width: 100%;
-  height: 100%;
-}
+html,body{margin:0;padding:0;overflow:hidden;background:#0b1320;color:#fff;font-family:system-ui}
+#top{position:absolute;top:10px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,.6);padding:10px 18px;border-radius:14px;display:flex;gap:16px}
+.stat{font-weight:700}
+#ui{position:absolute;bottom:14px;width:100%;display:flex;justify-content:space-around}
+.btn{background:linear-gradient(135deg,#ffd54f,#ffb300);color:#000;padding:12px 16px;border-radius:16px;font-weight:800}
+#tapCoin{position:absolute;bottom:110px;left:50%;transform:translateX(-50%);width:130px;height:130px;border-radius:50%;
+background:radial-gradient(circle at 30% 30%,#fffde7,#fbc02d);
+box-shadow:0 0 40px rgba(255,215,0,.8);display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:900;color:#5d4037}
+#tapCoin:active{transform:translateX(-50%) scale(.94)}
+.float{position:absolute;color:gold;font-weight:900;pointer-events:none;animation:up 1s ease-out forwards}
+@keyframes up{0%{opacity:1}100%{opacity:0;transform:translateY(-60px)}}
+canvas{width:100%;height:100%}
 </style>
 </head>
 
 <body>
-
 <canvas id="map"></canvas>
 
 <div id="top">
   <div class="stat">💰 <span id="money">0</span></div>
-  <div class="stat">⭐ Рівень <span id="level">1</span></div>
+  <div class="stat">⭐ <span id="level">1</span></div>
+  <div class="stat">📅 День <span id="day">1</span></div>
 </div>
 
 <div id="tapCoin">TAP</div>
 
 <div id="ui">
-  <div class="btn" onclick="openBonus()">🎁 Бонус</div>
   <div class="btn" onclick="buyFarm()">🌾 Ферма</div>
   <div class="btn" onclick="buyFactory()">🏭 Завод</div>
+  <div class="btn" onclick="openBonus()">🎁 Бонус</div>
 </div>
 
-<audio id="clickSound">
-  <source src="https://cdn.pixabay.com/audio/2022/03/15/audio_5c2c8a7a2c.mp3">
+<audio id="click">
+<source src="https://cdn.pixabay.com/audio/2022/03/15/audio_5c2c8a7a2c.mp3">
 </audio>
 
 <script>
-const canvas = document.getElementById("map");
-const ctx = canvas.getContext("2d");
+const c=document.getElementById("map"),x=c.getContext("2d");
+function r(){c.width=innerWidth;c.height=innerHeight}r();onresize=r;
 
-function resize() {
-  canvas.width = innerWidth;
-  canvas.height = innerHeight;
-}
-window.onresize = resize;
-resize();
+let money=100,level=1,income=0,day=1,time=0,seasonDay=1;
+const moneyEl=money=document.getElementById("money");
+const levelEl=document.getElementById("level");
+const dayEl=document.getElementById("day");
+const snd=document.getElementById("click");
 
-// GAME STATE
-let money = 100;
-let level = 1;
-let income = 0;
-
-// UI
-const moneyEl = document.getElementById("money");
-const levelEl = document.getElementById("level");
-const clickSound = document.getElementById("clickSound");
-
-function updateUI() {
-  moneyEl.textContent = Math.floor(money);
-  levelEl.textContent = level;
-}
-updateUI();
+const buildings=[],people=[],cars=[];
 
 // TAP
-const tapCoin = document.getElementById("tapCoin");
-tapCoin.addEventListener("click", e => {
-  money += 1 + level;
-  clickSound.currentTime = 0;
-  clickSound.volume = 0.2;
-  clickSound.play();
-  floatText("+ " + (1 + level), e.clientX, e.clientY);
-  checkLevel();
-  updateUI();
-});
-
-// FLOAT TEXT
-function floatText(text, x, y) {
-  const el = document.createElement("div");
-  el.className = "float";
-  el.textContent = text;
-  el.style.left = x + "px";
-  el.style.top = y + "px";
-  document.body.appendChild(el);
-  setTimeout(() => el.remove(), 1000);
-}
-
-// LEVEL
-function checkLevel() {
-  const need = level * level * 100;
-  if (money >= need) {
-    level++;
-    money += 50;
-  }
-}
+tapCoin.onclick=e=>{
+ money+=1+level;
+ snd.currentTime=0;snd.volume=.15;snd.play();
+ float("+"+(1+level),e.clientX,e.clientY);
+ if(money>level*200){level++;money+=100}
+};
 
 // BUSINESSES
-function buyFarm() {
-  if (money >= 200) {
-    money -= 200;
-    income += 1;
-    addBuilding("farm");
-    updateUI();
-  }
+function buyFarm(){
+ if(money<200)return;
+ money-=200;income+=2;
+ buildings.push({t:"farm",x:50+Math.random()*200,y:300+Math.random()*150});
 }
-
-function buyFactory() {
-  if (money >= 800) {
-    money -= 800;
-    income += 5;
-    addBuilding("factory");
-    updateUI();
-  }
+function buyFactory(){
+ if(money<800)return;
+ money-=800;income+=6;
+ buildings.push({t:"factory",x:350+Math.random()*200,y:300+Math.random()*150});
 }
 
 // BONUS
-function openBonus() {
-  // ЗАМІНИ НА СВІЙ КАНАЛ
-  window.open("https://t.me/tapday_clicker", "_blank");
-  money += 5000;
-  updateUI();
+function openBonus(){
+ window.open("https://t.me/tapday_clicker","_blank");
+ money+=5000;
 }
 
-// PASSIVE INCOME
-setInterval(() => {
-  money += income;
-  updateUI();
-}, 1000);
-
-// MAP
-const buildings = [];
-
-function addBuilding(type) {
-  buildings.push({
-    type,
-    x: Math.random() * canvas.width,
-    y: Math.random() * canvas.height
-  });
+// FLOAT
+function float(t,xp,yp){
+ const d=document.createElement("div");
+ d.className="float";d.textContent=t;
+ d.style.left=xp+"px";d.style.top=yp+"px";
+ document.body.appendChild(d);
+ setTimeout(()=>d.remove(),900);
 }
 
-// DRAW MAP
-function draw() {
-  // grass
-  ctx.fillStyle = "#2e7d32";
-  ctx.fillRect(0,0,canvas.width,canvas.height);
+// PEOPLE & CARS
+for(let i=0;i<10;i++)people.push({x:Math.random()*innerWidth,y:Math.random()*innerHeight,v:0.3+Math.random()});
+for(let i=0;i<6;i++)cars.push({x:Math.random()*innerWidth,y:innerHeight*0.65+Math.random()*40,v:1+Math.random()});
 
-  // water
-  ctx.fillStyle = "#1565c0";
-  ctx.fillRect(0, canvas.height*0.7, canvas.width, canvas.height*0.3);
+// LOOP
+setInterval(()=>{
+ money+=income;
+ time++;
+ if(time%20==0){day++;seasonDay++;if(seasonDay>7)seasonDay=1}
+},1000);
 
-  // buildings
-  buildings.forEach(b => {
-    ctx.fillStyle = b.type === "farm" ? "#aed581" : "#90a4ae";
-    ctx.fillRect(b.x, b.y, 24, 24);
-  });
+// DRAW
+function draw(){
+ // day/night
+ const night=Math.sin(time/50)*0.5+0.5;
+ x.fillStyle=`rgba(20,40,20,1)`;x.fillRect(0,0,c.width,c.height);
+ x.fillStyle="#1b5e20";x.fillRect(0,c.height*0.55,c.width,c.height);
+ x.fillStyle="#1565c0";x.fillRect(0,c.height*0.75,c.width,c.height);
 
-  requestAnimationFrame(draw);
+ // roads
+ x.fillStyle="#555";x.fillRect(0,c.height*0.65,c.width,40);
+
+ // buildings
+ buildings.forEach(b=>{
+  x.fillStyle=b.t=="farm"?"#8bc34a":"#90a4ae";
+  x.fillRect(b.x,b.y,28,28);
+ });
+
+ // people
+ people.forEach(p=>{
+  p.x+=p.v*(Math.random()>.5?1:-1);
+  p.y+=p.v*(Math.random()>.5?1:-1);
+  x.fillStyle="#ffccbc";x.fillRect(p.x,p.y,4,4);
+ });
+
+ // cars
+ cars.forEach(car=>{
+  car.x+=car.v;if(car.x>c.width)car.x=0;
+  x.fillStyle="#f44336";x.fillRect(car.x,car.y,14,6);
+ });
+
+ // night overlay
+ x.fillStyle=`rgba(0,0,40,${night*0.4})`;
+ x.fillRect(0,0,c.width,c.height);
+
+ moneyEl.textContent=Math.floor(money);
+ levelEl.textContent=level;
+ dayEl.textContent=day;
+
+ requestAnimationFrame(draw);
 }
 draw();
 </script>
-
 </body>
 </html>
