@@ -2,134 +2,123 @@
 <html lang="uk">
 <head>
 <meta charset="UTF-8">
-<title>TapDay World – Living Map</title>
+<title>TapDay World 2026</title>
 <meta name="viewport" content="width=device-width,initial-scale=1.0,user-scalable=no">
 <style>
-html,body{margin:0;overflow:hidden;background:#000;font-family:system-ui;color:#fff}
+html,body{margin:0;overflow:hidden;background:#0b1a0b;font-family:system-ui;color:#fff}
+canvas{display:block}
 #ui{
 position:fixed;top:10px;left:10px;right:10px;
-display:flex;justify-content:space-between;z-index:10
+display:flex;gap:10px;z-index:10
 }
-.badge{
+.panel{
 background:rgba(0,0,0,.55);
-backdrop-filter:blur(6px);
+backdrop-filter:blur(8px);
 padding:10px 14px;border-radius:14px
 }
-canvas{display:block}
+button{
+background:#2ecc71;border:0;
+padding:8px 12px;border-radius:10px;
+color:#000;font-weight:600
+}
 </style>
 </head>
-
 <body>
 
 <div id="ui">
-<div class="badge">💰 <span id="money">1500</span></div>
-<div class="badge">🌗 <span id="time">День</span></div>
-<div class="badge">🌍 TapDay World</div>
+<div class="panel">💰 <span id="money">1500</span></div>
+<div class="panel" id="time">🌤 День</div>
+<button onclick="mode='farm'">🌾 Ферма</button>
+<button onclick="mode='factory'">🏭 Завод</button>
+<button onclick="mode='hospital'">🏥 Лікарня</button>
 </div>
 
-<canvas id="map"></canvas>
+<canvas id="c"></canvas>
 
 <script>
-const c=document.getElementById("map");
-const ctx=c.getContext("2d");
-resize();window.onresize=resize;
+const c=document.getElementById("c"),ctx=c.getContext("2d");
+resize();addEventListener("resize",resize);
 
 let cam={x:0,y:0,z:1};
 let money=1500;
-let time=0;
+let mode=null;
+let t=0;
 
-// terrain map
-const tiles=[];
-const SIZE=80;
-for(let x=-SIZE;x<SIZE;x++){
-for(let y=-SIZE;y<SIZE;y++){
-let r=Math.random();
-tiles.push({
-x,y,
-type:r<0.08?"water":r<0.15?"forest":"grass"
-});
-}
-}
+// buildings
+const buildings=[];
 
-// birds
-const birds=Array.from({length:8},()=>({
-x:Math.random()*800-400,
-y:Math.random()*800-400,
-vx:Math.random()*0.4+0.2
-}));
+// organic terrain
+function noise(x,y){
+return Math.sin(x*0.01)+Math.cos(y*0.01);
+}
 
 function draw(){
 ctx.clearRect(0,0,c.width,c.height);
+t+=0.001;
 
-// day/night
-time+=0.0004;
-const day=Math.sin(time)*0.5+0.5;
-
-// sky overlay
-ctx.fillStyle=`rgba(5,10,20,${0.6-day*0.5})`;
-ctx.fillRect(0,0,c.width,c.height);
+const day=Math.sin(t)*0.5+0.5;
+document.getElementById("time").textContent=day>0.5?"🌤 День":"🌙 Ніч";
 
 ctx.save();
 ctx.translate(c.width/2+cam.x,c.height/2+cam.y);
 ctx.scale(cam.z,cam.z);
 
-// draw terrain
-for(const t of tiles){
-let color="#3a7d3a";
-if(t.type==="water") color="#1c4fa1";
-if(t.type==="forest") color="#245c2a";
-ctx.fillStyle=color;
-ctx.fillRect(t.x*32,t.y*32,32,32);
+// land
+for(let x=-2000;x<2000;x+=40){
+for(let y=-2000;y<2000;y+=40){
+const n=noise(x,y);
+if(n>1){
+ctx.fillStyle="#1e6bd6"; // water
+}else{
+ctx.fillStyle="#2f8f3f"; // grass
 }
-
-// trees
-for(const t of tiles){
-if(t.type==="forest"){
-ctx.beginPath();
-ctx.arc(t.x*32+16,t.y*32+16,8,0,Math.PI*2);
-ctx.fillStyle="#1e3f1e";
-ctx.fill();
+ctx.fillRect(x,y,40,40);
 }
 }
 
-// birds
-ctx.fillStyle="#fff";
-for(const b of birds){
-b.x+=b.vx;
-if(b.x>500) b.x=-500;
-ctx.beginPath();
-ctx.arc(b.x,b.y,3,0,Math.PI*2);
-ctx.fill();
+// buildings
+for(const b of buildings){
+ctx.fillStyle=b.type==="farm"?"#c9b458":
+b.type==="factory"?"#888":
+"#e74c3c";
+ctx.fillRect(b.x-15,b.y-15,30,30);
 }
 
 // fog
-ctx.fillStyle="rgba(200,200,200,0.05)";
-ctx.fillRect(-2000,-2000,4000,4000);
+ctx.fillStyle=`rgba(200,200,200,${0.08-day*0.05})`;
+ctx.fillRect(-3000,-3000,6000,6000);
 
 ctx.restore();
-
-// UI
-document.getElementById("time").textContent=day>0.5?"День":"Ніч";
-
 requestAnimationFrame(draw);
 }
 draw();
 
-// camera
-let d=false,lx,ly;
-c.onpointerdown=e=>{d=true;lx=e.clientX;ly=e.clientY;}
-c.onpointerup=()=>d=false;
-c.onpointermove=e=>{
-if(d){
-cam.x+=e.clientX-lx;
-cam.y+=e.clientY-ly;
-lx=e.clientX;ly=e.clientY;
-}
+// place buildings
+c.onclick=e=>{
+if(!mode) return;
+const rect=c.getBoundingClientRect();
+const x=(e.clientX-rect.width/2-cam.x)/cam.z;
+const y=(e.clientY-rect.height/2-cam.y)/cam.z;
+buildings.push({x,y,type:mode});
+money-=100;
+document.getElementById("money").textContent=money;
 };
+
+// camera
+let drag=false,px,py;
+c.onpointerdown=e=>{drag=true;px=e.clientX;py=e.clientY}
+c.onpointerup=()=>drag=false;
+c.onpointermove=e=>{
+if(drag){
+cam.x+=e.clientX-px;
+cam.y+=e.clientY-py;
+px=e.clientX;py=e.clientY;
+}
+}
 c.onwheel=e=>{
 cam.z+=e.deltaY*-0.001;
-cam.z=Math.max(.6,Math.min(1.5,cam.z));
-};
+cam.z=Math.max(.6,Math.min(1.6,cam.z));
+}
 
 function resize(){
 c.width=innerWidth;
