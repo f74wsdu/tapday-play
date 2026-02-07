@@ -2,201 +2,218 @@
 <html lang="uk">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>TapDay Play</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
 
 <style>
-html,body{
+body {
   margin:0;
-  padding:0;
-  background:#070b18;
+  font-family:Arial, sans-serif;
+  background:radial-gradient(circle at top, #0b1220, #000);
   color:#fff;
-  font-family:system-ui,Arial;
-  overflow:hidden;
-  touch-action:manipulation;
-}
-
-#top{
-  position:fixed;
-  top:10px;
-  left:10px;
-  right:10px;
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  font-size:16px;
-}
-
-#money{font-size:22px;font-weight:700}
-#level{opacity:.7}
-
-.btn{
-  background:#1c233a;
-  padding:10px 14px;
-  border-radius:14px;
-  cursor:pointer;
-}
-
-#ad{background:#1f1f1f}
-
-#game{
-  position:absolute;
-  inset:0;
-  display:flex;
-  justify-content:center;
-  align-items:center;
-}
-
-#coin{
-  width:260px;
-  height:260px;
-  border-radius:50%;
-  background:
-    radial-gradient(circle at 30% 30%, #fff5a0, #f4c400 45%, #b88900 70%);
-  box-shadow:
-    0 0 40px rgba(255,215,0,.6),
-    inset 0 0 30px rgba(255,255,255,.4);
-}
-
-#bonus{
-  position:fixed;
-  bottom:120px;
-  left:50%;
-  transform:translateX(-50%);
-  background:#11183a;
-  padding:16px;
-  border-radius:18px;
   text-align:center;
 }
 
-#bonus button{
+/* TOP */
+.top {
+  display:flex;
+  justify-content:space-between;
+  padding:10px 15px;
+  font-size:18px;
+}
+
+.ad {
+  background:#222;
+  padding:8px 14px;
+  border-radius:20px;
+}
+.ad small {
+  display:block;
+  font-size:11px;
+  opacity:.6;
+}
+
+/* MONEY */
+.money {
+  font-size:32px;
   margin-top:10px;
-  background:#00ffd0;
-  border:0;
-  padding:10px 16px;
+}
+
+/* COIN */
+.coin-wrap {
+  margin:40px auto;
+  width:260px;
+  height:260px;
+  position:relative;
+}
+
+.ray {
+  position:absolute;
+  inset:-40px;
+  border-radius:50%;
+  background:radial-gradient(circle, rgba(255,215,0,.4), transparent 70%);
+  filter:blur(8px);
+  animation:pulse 2s infinite;
+}
+
+.coin {
+  width:100%;
+  height:100%;
+  border-radius:50%;
+  background:
+    radial-gradient(circle at 30% 30%, #fff6b0, #f5c400 40%, #b8860b 70%);
+  box-shadow:
+    inset -8px -8px 16px rgba(0,0,0,.4),
+    inset 8px 8px 16px rgba(255,255,255,.3);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:28px;
+  font-weight:bold;
+  cursor:pointer;
+  user-select:none;
+}
+
+@keyframes pulse {
+  0%{opacity:.4}
+  50%{opacity:.9}
+  100%{opacity:.4}
+}
+
+/* TAP MODES */
+.modes button {
+  margin:5px;
+  padding:8px 14px;
+  border:none;
   border-radius:12px;
+  background:#1f2937;
+  color:#fff;
   font-size:16px;
 }
 
-#bottom{
-  position:fixed;
-  bottom:10px;
-  left:10px;
-  right:10px;
+/* BONUS */
+.bonus {
+  background:#111827;
+  margin:20px;
+  padding:15px;
+  border-radius:16px;
+}
+
+.bonus button {
+  background:#00f5c4;
+  border:none;
+  padding:10px 18px;
+  font-size:18px;
+  border-radius:12px;
+}
+
+/* BOTTOM */
+.bottom {
   display:flex;
   justify-content:space-between;
+  padding:10px 15px;
   font-size:14px;
-  opacity:.85;
-}
-
-.particle{
-  position:absolute;
-  font-size:20px;
-  pointer-events:none;
-  animation:fly 1s linear forwards;
-}
-
-@keyframes fly{
-  0%{transform:translate(0,0);opacity:1}
-  100%{transform:translate(var(--x),var(--y));opacity:0}
 }
 </style>
 </head>
 
 <body>
 
-<div id="top">
-  <div>
-    💵 <span id="money">0</span><br>
-    <span id="level">Рівень: 1</span>
-  </div>
-  <div class="btn" id="ad">РЕКЛАМА +2000</div>
+<div class="top">
+  <div>💵 <span id="money">0</span><br><small>Рівень <span id="level">1</span></small></div>
+  <div class="ad">РЕКЛАМА +2000<small>Скоро вибий</small></div>
 </div>
 
-<div id="game">
-  <div id="coin"></div>
+<div class="coin-wrap">
+  <div class="ray"></div>
+  <div class="coin" id="coin">₴1</div>
 </div>
 
-<div id="bonus">
-  🎁 БОНУС<br>Підпишись на канал
-  <button id="getBonus">Отримати +10 000</button>
+<div class="modes">
+  <button onclick="setTap(1)">x1</button>
+  <button onclick="setTap(3)">x3</button>
+  <button onclick="setTap(5)">x5</button>
 </div>
 
-<div id="bottom">
-  <div>🏙 Місто +5/сек<br>Таймер: <span id="cityTimer">00:60</span></div>
-  <div>🎁 Щоденний бонус<br><span id="daily">24:00:00</span></div>
+<div class="bonus">
+  🎁 Підпишись на канал<br><br>
+  <button onclick="bonus()">Отримати +10 000</button><br>
+  <small id="bonusTimer">Готово</small>
 </div>
 
-<audio id="sndTap" src="https://assets.mixkit.co/sfx/preview/mixkit-arcade-coin-216.wav"></audio>
-<audio id="sndBonus" src="https://assets.mixkit.co/sfx/preview/mixkit-achievement-bell-600.wav"></audio>
+<div class="bottom">
+  <div>🏙 Місто +5/сек<br>⏱ <span id="cityTimer">60</span></div>
+  <div>🎁 Щоденний бонус<br>⏱ 24:00:00</div>
+</div>
 
 <script>
-let money=0, level=1, tapPower=1;
-const moneyEl=document.getElementById('money');
-const levelEl=document.getElementById('level');
-const coin=document.getElementById('coin');
+Telegram.WebApp.ready();
 
-function fmt(n){return n.toLocaleString('uk-UA')}
+let money = 0;
+let tap = 1;
+let coinValue = 1;
+let level = 1;
+let bonusReady = true;
+
+const stages = [
+  {v:100, label:"₴1"},
+  {v:1000, label:"₴10"},
+  {v:10000, label:"₴100"},
+  {v:100000, label:"₴1K"},
+  {v:1000000, label:"₴10K"},
+  {v:10000000, label:"₴100K"},
+];
+
+document.getElementById("coin").onclick = () => {
+  money += coinValue * tap;
+  update();
+};
+
+function setTap(x){ tap = x; }
 
 function update(){
-  moneyEl.textContent=fmt(money);
-  levelEl.textContent="Рівень: "+level;
+  document.getElementById("money").innerText = money.toLocaleString();
+  stages.forEach((s,i)=>{
+    if(money >= s.v){
+      coinValue = Math.pow(10,i);
+      document.getElementById("coin").innerText = s.label;
+      level = i+1;
+    }
+  });
+  document.getElementById("level").innerText = level;
 }
 
-function coinStage(){
-  if(money>=10_000_000) tapPower=50;
-  else if(money>=1_000_000) tapPower=25;
-  else if(money>=100_000) tapPower=10;
-  else if(money>=10_000) tapPower=5;
-  else if(money>=1_000) tapPower=3;
+function bonus(){
+  if(!bonusReady) return;
+  money += 10000;
+  bonusReady = false;
+  let t = 30;
+  const el = document.getElementById("bonusTimer");
+  el.innerText = "30";
+  const i = setInterval(()=>{
+    t--;
+    el.innerText = t;
+    if(t<=0){
+      clearInterval(i);
+      bonusReady = true;
+      el.innerText = "Готово";
+    }
+  },1000);
+  update();
 }
 
-function rain(){
-  for(let i=0;i<tapPower;i++){
-    const p=document.createElement('div');
-    p.className='particle';
-    p.textContent='💵';
-    p.style.left='50%';
-    p.style.top='50%';
-    p.style.setProperty('--x',`${(Math.random()*300-150)}px`);
-    p.style.setProperty('--y',`${(Math.random()*-300)}px`);
-    document.body.appendChild(p);
-    setTimeout(()=>p.remove(),1000);
-  }
-}
-
-coin.addEventListener('touchstart',e=>{
-  e.preventDefault();
-  const taps=e.touches.length;
-  money+=taps*tapPower;
-  document.getElementById('sndTap').play();
-  coinStage();
-  rain();
-  if(money/1000>level) level++;
-  update();
-},{passive:false});
-
-document.getElementById('ad').onclick=()=>{
-  money+=2000;
-  document.getElementById('sndBonus').play();
-  update();
-};
-
-document.getElementById('getBonus').onclick=()=>{
-  window.open('https://t.me/tapday_clicker','_blank');
-  money+=10000;
-  document.getElementById('bonus').remove();
-  document.getElementById('sndBonus').play();
-  update();
-};
-
-// місто
+/* CITY TIMER */
+let city = 60;
 setInterval(()=>{
-  money+=5;
-  update();
+  city--;
+  if(city<=0){
+    money += 300;
+    city = 60;
+    update();
+  }
+  document.getElementById("cityTimer").innerText = city;
 },1000);
-
-update();
 </script>
 
 </body>
