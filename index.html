@@ -12,57 +12,37 @@ body {
     color: #fff;
     font-family: Arial, sans-serif;
     text-align: center;
-}
-
-.header {
-    display: flex;
-    justify-content: space-between;
-    padding: 12px;
-    font-size: 14px;
-}
-
-.online { color: #00ff6a; }
-.bonus { color: #ffd500; }
-
-.ad {
-    background: #1a1a1a;
-    border-radius: 12px;
-    padding: 8px 14px;
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    margin-top: 10px;
+    overflow: hidden;
 }
 
 .balance {
-    font-size: 48px;
+    font-size: 46px;
+    margin-top: 20px;
     font-weight: bold;
-    margin: 10px 0;
 }
 
 .sub {
-    font-size: 14px;
-    opacity: 0.7;
+    opacity: .7;
+    margin-bottom: 10px;
 }
 
 .circle-wrap {
     display: flex;
     justify-content: center;
     margin: 20px 0;
+    position: relative;
 }
 
 .circle {
     width: 260px;
     height: 260px;
     border-radius: 50%;
-    background: radial-gradient(circle, #ffd500, #c7a600);
+    background: radial-gradient(circle, #555, #222);
     display: flex;
     align-items: center;
     justify-content: center;
-}
-
-.circle img {
-    width: 110px;
+    font-size: 110px;
+    transition: all .5s ease;
 }
 
 .multi {
@@ -77,7 +57,6 @@ body {
     border: none;
     background: #2b2b2b;
     color: #fff;
-    font-size: 16px;
 }
 
 .multi .active {
@@ -85,176 +64,93 @@ body {
     color: #000;
 }
 
-.channel, .playBonus {
-    margin: 14px auto;
-    width: 80%;
-    background: #1c1c1c;
-    padding: 14px;
-    border-radius: 14px;
-    cursor: pointer;
-}
-
-.disabled {
-    opacity: 0.5;
+.rain {
+    position: absolute;
+    top: 130px;
+    font-size: 26px;
+    animation: fall 1.3s linear forwards;
     pointer-events: none;
 }
 
-.timer {
-    font-size: 13px;
-    margin-top: 6px;
-    opacity: 0.7;
-}
-
-.withdraw {
-    margin: 20px auto;
-    width: 90%;
-    padding: 16px;
-    background: #1e8e3e;
-    border-radius: 18px;
-    font-size: 18px;
+@keyframes fall {
+    from { transform: translateY(0); opacity: 1; }
+    to { transform: translateY(260px); opacity: 0; }
 }
 </style>
 </head>
 
 <body>
 
-<div class="header">
-    <div class="online">Онлайн: <span id="online">4321</span></div>
-    <div class="bonus">Бонус сьогодні: <span id="bonusToday">3120</span></div>
-</div>
-
-<div class="ad">▶ Реклама +50</div>
-
-<div class="balance"><span id="balance">120</span></div>
-<div class="sub" id="currency">🪙 монет</div>
-<div class="sub">Рівень: <span id="level">2</span> | Ціль: <span id="goal">1000</span></div>
+<div class="balance" id="balance">2140</div>
+<div class="sub" id="label">💎 кристалів</div>
 
 <div class="circle-wrap">
-    <div class="circle" id="tap">
-        <img src="https://cdn-icons-png.flaticon.com/512/616/616430.png">
-    </div>
+    <div class="circle" id="circle">💎</div>
 </div>
 
 <div class="multi">
-    <button onclick="setMulti(1)" class="active" id="m1">x1</button>
-    <button onclick="setMulti(2)" id="m2">x2</button>
-    <button onclick="setMulti(5)" id="m5">x5</button>
+    <button onclick="setMulti(1)">x1</button>
+    <button onclick="setMulti(2)">x2</button>
+    <button onclick="setMulti(5)" class="active">x5</button>
 </div>
-
-<div class="channel" id="channelBonus">
-🎁 Бонус з каналу +500
-</div>
-
-<div class="playBonus" id="playBonus">
-▶ PLAY бонус +1000
-<div class="timer" id="timer"></div>
-</div>
-
-<div class="withdraw">Вивід</div>
 
 <script>
-let balance = Number(localStorage.getItem('balance')) || 120;
-let multi = 1;
-let online = 4321;
-let bonusToday = 3120;
+let balance = Number(localStorage.getItem("balance")) || 2140;
+let multi = 5;
 
-const CHANNEL_URL = "https://t.me/tapday_clicker";
-const CHANNEL_KEY = "channel_bonus_taken";
-const PLAY_KEY = "play_bonus_time";
-const PLAY_COOLDOWN = 30 * 24 * 60 * 60 * 1000;
+const stages = [
+  { max: 100, icon: "🪙", label: "мішечків", rain: "🪙", bright: 0.3 },
+  { max: 1000, icon: "👑", label: "корон", rain: "👑", bright: 0.45 },
+  { max: 5000, icon: "💎", label: "кристалів", rain: "💎", bright: 0.6 },
+  { max: 20000, icon: "⭐", label: "зірок", rain: "⭐", bright: 0.75 },
+  { max: 100000, icon: "🧰", label: "сундуків", rain: "🧰", bright: 0.9 },
+  { max: 1000000, icon: "🦁", label: "лев", rain: null, bright: 1 }
+];
+
+function getStage() {
+    return stages.find(s => balance < s.max) || stages[stages.length - 1];
+}
+
+function updateUI() {
+    const s = getStage();
+    balanceEl.innerText = balance;
+    label.innerText = s.icon + " " + s.label;
+    circle.innerText = s.icon;
+    circle.style.background = `radial-gradient(circle, rgba(255,213,0,${s.bright}), #222)`;
+}
+
+function tap() {
+    balance += multi;
+    localStorage.setItem("balance", balance);
+    rain();
+    updateUI();
+}
+
+function rain() {
+    const s = getStage();
+    if (!s.rain) return;
+
+    const r = document.createElement("div");
+    r.className = "rain";
+    r.innerText = s.rain;
+    r.style.left = "50%";
+    document.body.appendChild(r);
+    setTimeout(() => r.remove(), 1300);
+}
 
 function setMulti(x) {
     multi = x;
-    document.querySelectorAll('.multi button').forEach(b => b.classList.remove('active'));
-    document.getElementById('m'+x).classList.add('active');
+    document.querySelectorAll(".multi button").forEach(b => b.classList.remove("active"));
+    event.target.classList.add("active");
 }
 
-document.getElementById('tap').onclick = () => {
-    balance += multi;
-    navigator.vibrate?.(20);
-    save();
-    update();
-};
+circle.onclick = tap;
 
-document.getElementById('channelBonus').onclick = () => {
-    if (!localStorage.getItem(CHANNEL_KEY)) {
-        localStorage.setItem("pending_channel", "1");
-        window.open(CHANNEL_URL, "_blank");
-    }
-};
+const balanceEl = document.getElementById("balance");
+const label = document.getElementById("label");
+const circle = document.getElementById("circle");
 
-if (localStorage.getItem("pending_channel")) {
-    localStorage.removeItem("pending_channel");
-    if (!localStorage.getItem(CHANNEL_KEY)) {
-        balance += 500;
-        localStorage.setItem(CHANNEL_KEY, "1");
-        save();
-    }
-}
-
-document.getElementById('playBonus').onclick = () => {
-    let now = Date.now();
-    let last = Number(localStorage.getItem(PLAY_KEY)) || 0;
-    if (now - last >= PLAY_COOLDOWN) {
-        balance += 1000;
-        localStorage.setItem(PLAY_KEY, now);
-        save();
-    }
-};
-
-function updateTimer() {
-    let last = Number(localStorage.getItem(PLAY_KEY)) || 0;
-    let diff = PLAY_COOLDOWN - (Date.now() - last);
-    let btn = document.getElementById('playBonus');
-    let t = document.getElementById('timer');
-
-    if (diff <= 0) {
-        btn.classList.remove("disabled");
-        t.innerText = "";
-        return;
-    }
-
-    btn.classList.add("disabled");
-
-    let d = Math.floor(diff / 86400000);
-    let h = Math.floor(diff % 86400000 / 3600000);
-    let m = Math.floor(diff % 3600000 / 60000);
-    let s = Math.floor(diff % 60000 / 1000);
-
-    t.innerText = `${d}д ${h}г ${m}хв ${s}с`;
-}
-
-function save() {
-    localStorage.setItem('balance', balance);
-}
-
-function update() {
-    document.getElementById('balance').innerText = balance;
-    if (balance < 100) {
-        currency.innerText = '🪙 монет';
-        goal.innerText = 100;
-    } else if (balance < 1000) {
-        currency.innerText = '👑 корон';
-        goal.innerText = 1000;
-    } else {
-        currency.innerText = '💎 кристалів';
-        goal.innerText = 5000;
-    }
-}
-
-setInterval(() => {
-    online += Math.floor(Math.random() * 3);
-    bonusToday += Math.floor(Math.random() * 5);
-    onlineSpan.innerText = online;
-    bonusTodaySpan.innerText = bonusToday;
-    updateTimer();
-}, 1000);
-
-const onlineSpan = document.getElementById('online');
-const bonusTodaySpan = document.getElementById('bonusToday');
-
-update();
-updateTimer();
+updateUI();
 </script>
 
 </body>
