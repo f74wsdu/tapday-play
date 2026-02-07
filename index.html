@@ -2,105 +2,111 @@
 <html lang="uk">
 <head>
 <meta charset="UTF-8">
-<title>TapDay Core</title>
+<title>TapDay 2026</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
 
 <style>
 html,body{
   margin:0;
-  padding:0;
-  background:#0b1020;
+  background:#0a0f1f;
   color:#fff;
   font-family:system-ui,Arial;
   height:100%;
+  touch-action:manipulation;
 }
 #app{
   height:100%;
   display:flex;
   flex-direction:column;
-  align-items:center;
   justify-content:space-between;
+  align-items:center;
 }
 header{
   width:100%;
+  padding:14px 18px;
   display:flex;
   justify-content:space-between;
-  padding:14px 20px;
   font-size:14px;
-  opacity:.85;
+  opacity:.9;
 }
-#level{
-  opacity:.7;
+.money{font-weight:600}
+#level{opacity:.6}
+
+#coin-wrap{
+  position:relative;
 }
-#core{
-  width:280px;
-  height:280px;
-  border-radius:50%;
-  background:radial-gradient(circle,#ffd36a,#f4a800);
-  box-shadow:0 0 40px rgba(255,200,50,.4);
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  transition:.3s;
-}
-#core.level2{background:radial-gradient(circle,#ff9ad5,#ff3aa0);}
-#core.level3{background:radial-gradient(circle,#8be7ff,#3bbcff);}
-#core:active{transform:scale(.97);}
 #coin{
-  width:60px;
-  height:60px;
+  width:300px;
+  height:300px;
   border-radius:50%;
-  background:gold;
+  background:
+    radial-gradient(circle at 30% 30%, #fff6c7, #f6b700 40%, #c58b00 70%);
+  box-shadow:
+    inset 0 0 20px rgba(255,255,255,.3),
+    0 0 60px rgba(255,200,40,.35);
+  transition:.08s;
 }
+#coin:active{transform:scale(.97)}
+
+#shine{
+  position:absolute;
+  inset:0;
+  border-radius:50%;
+  background:radial-gradient(circle, rgba(255,255,255,.4), transparent 60%);
+  pointer-events:none;
+}
+
 #count{
-  font-size:44px;
-  font-weight:600;
-  margin:16px 0;
+  font-size:42px;
+  margin:14px 0 4px;
 }
-#shards{
-  font-size:14px;
+#passive{
+  font-size:13px;
   opacity:.6;
 }
+
 footer{
   display:flex;
   gap:22px;
   padding-bottom:28px;
 }
 .btn{
-  width:72px;
-  height:72px;
-  border-radius:18px;
+  width:78px;
+  height:78px;
+  border-radius:20px;
   background:#151c3a;
   display:flex;
+  flex-direction:column;
   align-items:center;
   justify-content:center;
-  flex-direction:column;
   font-size:20px;
 }
 .btn span{
   font-size:11px;
   opacity:.7;
 }
-#overlay{
-  position:absolute;
+
+#modal-bg{
+  position:fixed;
   inset:0;
   background:rgba(0,0,0,.65);
   display:none;
   align-items:center;
   justify-content:center;
 }
-.modal{
+#modal{
   background:#141b3d;
   border-radius:18px;
   padding:20px;
   width:80%;
 }
-.modal button{
+#modal button{
   width:100%;
-  padding:12px;
   margin-top:10px;
+  padding:12px;
   border:none;
-  border-radius:10px;
-  background:#ffd36a;
+  border-radius:12px;
+  background:#f6b700;
   font-weight:600;
 }
 </style>
@@ -110,91 +116,96 @@ footer{
 <div id="app">
 
 <header>
-  <div>💰 <span id="money">0</span></div>
+  <div class="money">💎 <span id="money">0</span></div>
   <div id="level">Рівень 1</div>
 </header>
 
-<div id="core">
+<div id="coin-wrap">
   <div id="coin"></div>
+  <div id="shine"></div>
 </div>
 
 <div id="count">0</div>
-<div id="shards">Фрагменти: <span id="shardCount">0</span></div>
+<div id="passive">Пасив: <span id="pps">0</span>/сек</div>
 
 <footer>
   <div class="btn" id="bonus">🎁<span>Бонус</span></div>
-  <div class="btn" id="boost">⚡<span>Прискорення</span></div>
+  <div class="btn" id="boost">⚡<span>x2</span></div>
   <div class="btn" id="robot">🤖<span>Робот</span></div>
 </footer>
 
 </div>
 
-<div id="overlay">
-  <div class="modal" id="modal"></div>
+<div id="modal-bg">
+  <div id="modal"></div>
 </div>
 
 <script>
 let money=0;
-let shards=0;
 let level=1;
-let mult=1;
+let tapValue=1;
 let passive=0;
+let boost=false;
 
-const moneyEl=moneySpan=document.getElementById('money');
+const moneyEl=document.getElementById('money');
 const countEl=document.getElementById('count');
-const shardEl=document.getElementById('shardCount');
 const levelEl=document.getElementById('level');
-const core=document.getElementById('core');
+const ppsEl=document.getElementById('pps');
+const coin=document.getElementById('coin');
 
 function update(){
   moneyEl.textContent=money;
   countEl.textContent=money;
-  shardEl.textContent=shards;
+  ppsEl.textContent=passive;
   levelEl.textContent='Рівень '+level;
-
-  core.className='';
-  if(level>=3)core.classList.add('level2');
-  if(level>=6)core.classList.add('level3');
 }
 
-core.onclick=()=>{
-  money+=mult;
-  shards++;
-  if(money>=level*500){
-    level++;
-  }
+function gain(v){
+  money+=v;
+  if(money>=level*1000) level++;
   update();
-};
+}
 
-setInterval(()=>{
-  money+=passive;
-  update();
-},1000);
+// MULTI TOUCH
+coin.addEventListener('touchstart',e=>{
+  e.preventDefault();
+  let taps=e.touches.length;
+  gain(tapValue*taps*(boost?2:1));
+},{passive:false});
 
-const overlay=document.getElementById('overlay');
+coin.onclick=()=>gain(tapValue*(boost?2:1));
+
+// PASSIVE
+setInterval(()=>{ money+=passive; update(); },1000);
+
+// MODAL
+const bg=document.getElementById('modal-bg');
 const modal=document.getElementById('modal');
-
 function openModal(html){
   modal.innerHTML=html;
-  overlay.style.display='flex';
+  bg.style.display='flex';
 }
-overlay.onclick=()=>overlay.style.display='none';
+bg.onclick=()=>bg.style.display='none';
 
+// BONUS
 document.getElementById('bonus').onclick=()=>{
   openModal(`
     <h3>🎁 Бонус</h3>
-    <p>Підпишись і отримай +500</p>
-    <button onclick="window.open('https://t.me/YOUR_CHANNEL','_blank')">Перейти</button>
+    <button onclick="window.open('https://t.me/YOUR_CHANNEL')">+5000 за підписку</button>
+    <button onclick="window.open('https://t.me/YOUR_CHANNEL')">+10000 за актив</button>
   `);
 };
 
+// BOOST
 document.getElementById('boost').onclick=()=>{
-  mult=2;
-  setTimeout(()=>mult=1,20000);
+  boost=true;
+  setTimeout(()=>boost=false,20000);
 };
 
+// ROBOT
 document.getElementById('robot').onclick=()=>{
-  passive+=1;
+  passive+=2;
+  update();
 };
 
 update();
