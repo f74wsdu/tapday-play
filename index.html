@@ -8,10 +8,11 @@
 body{
 margin:0;
 font-family:system-ui;
-background:radial-gradient(circle at top,#0f172a,#020617);
+background:radial-gradient(circle at top,#0b1220,#020617);
 color:#fff;
 overflow:hidden;
 }
+
 .top{
 display:flex;
 justify-content:space-between;
@@ -19,29 +20,53 @@ padding:14px;
 font-size:14px;
 opacity:.9;
 }
+
+.money{
+display:flex;
+align-items:center;
+gap:6px;
+}
+
 #game{
-height:calc(100vh - 120px);
+height:calc(100vh - 150px);
 display:flex;
 align-items:center;
 justify-content:center;
 position:relative;
 }
+
 .coin{
-width:240px;height:240px;
+width:240px;
+height:240px;
 border-radius:50%;
-background:radial-gradient(circle at 30% 30%,#ffe08a,#f59e0b);
-box-shadow:0 0 60px rgba(255,200,80,.7);
+display:flex;
+align-items:center;
+justify-content:center;
+font-size:48px;
 transition:.25s;
+box-shadow:0 0 60px rgba(255,200,80,.6);
 }
-.gold{background:radial-gradient(circle,#fff3b0,#facc15);}
-.platinum{background:radial-gradient(circle,#e5e7eb,#9ca3af);}
-.legend{background:radial-gradient(circle,#fde68a,#f59e0b);box-shadow:0 0 90px gold;}
+
+.bronze{background:radial-gradient(circle,#cd7f32,#7c3f00);}
+.silver{background:radial-gradient(circle,#e5e7eb,#9ca3af);}
+.gold{background:radial-gradient(circle,#ffe08a,#f59e0b);}
+.diamond{background:radial-gradient(circle,#dbeafe,#60a5fa);}
+.emerald{background:radial-gradient(circle,#a7f3d0,#10b981);}
+.ruby{background:radial-gradient(circle,#fecaca,#dc2626);}
+.legend{background:radial-gradient(circle,#fde68a,#facc15);box-shadow:0 0 100px gold;}
 
 #score{
 position:absolute;
-bottom:40px;
+bottom:60px;
 font-size:34px;
 font-weight:700;
+}
+
+.level{
+position:absolute;
+top:60px;
+font-size:14px;
+opacity:.8;
 }
 
 .hud{
@@ -51,11 +76,20 @@ width:100%;
 display:flex;
 justify-content:space-around;
 padding:14px;
-background:linear-gradient(to top,rgba(2,6,23,.9),transparent);
+background:linear-gradient(to top,rgba(2,6,23,.95),transparent);
+}
+
+.hud-item{
+display:flex;
+flex-direction:column;
+align-items:center;
+font-size:12px;
+opacity:.9;
 }
 
 .btn{
-width:64px;height:64px;
+width:64px;
+height:64px;
 border-radius:18px;
 display:flex;
 align-items:center;
@@ -67,19 +101,13 @@ font-size:26px;
 .bot{background:#0ea5e9;}
 .gift{background:#f59e0b;}
 
-.status{
-position:absolute;
-top:70px;
-font-size:14px;
-opacity:.85;
-}
-
 .particle{
 position:absolute;
 font-size:18px;
 pointer-events:none;
-animation:fly .8s linear forwards;
+animation:fly .9s linear forwards;
 }
+
 @keyframes fly{
 to{transform:translate(var(--x),var(--y)) scale(0);opacity:0;}
 }
@@ -87,95 +115,117 @@ to{transform:translate(var(--x),var(--y)) scale(0);opacity:0;}
 </head>
 
 <body>
+
 <div class="top">
-<div>Active: 12 3xx</div>
-<div>Today rewards: 3 0xx</div>
+<div class="money">💵 <span id="cash">0</span></div>
+<div>Level: <span id="lvl">1</span></div>
 </div>
 
 <div id="game">
-<div id="coin" class="coin"></div>
+<div id="coin" class="coin bronze">🪙</div>
 <div id="score">0</div>
-<div class="status" id="status"></div>
 </div>
 
 <div class="hud">
+<div class="hud-item">
 <div class="btn gift">🎁</div>
+<div>Бонус</div>
+</div>
+
+<div class="hud-item">
 <div class="btn x2">⚡</div>
+<div>X2</div>
+</div>
+
+<div class="hud-item">
 <div class="btn bot">🤖</div>
+<div>Auto</div>
+</div>
 </div>
 
 <audio id="tap" src="https://assets.mixkit.co/sfx/preview/mixkit-arcade-click-1115.mp3"></audio>
-<audio id="level" src="https://assets.mixkit.co/sfx/preview/mixkit-achievement-bell-600.mp3"></audio>
+<audio id="up" src="https://assets.mixkit.co/sfx/preview/mixkit-achievement-bell-600.mp3"></audio>
 
 <script>
-let score=0,tapValue=1,auto=false,sound=false;
+let score=0,cash=0,level=1,tapValue=1,auto=false,sound=false;
+
 const coin=document.getElementById("coin");
 const scoreEl=document.getElementById("score");
-const status=document.getElementById("status");
+const cashEl=document.getElementById("cash");
+const lvlEl=document.getElementById("lvl");
 const tap=document.getElementById("tap");
-const level=document.getElementById("level");
+const up=document.getElementById("up");
+
+const levels=[1000,10000,30000,100000,300000,1000000];
 
 function updateCoin(){
 coin.className="coin";
-if(score>=100000)coin.classList.add("legend");
-else if(score>=10000)coin.classList.add("platinum");
+if(score>=1e9)coin.classList.add("legend");
+else if(score>=1e8)coin.classList.add("ruby");
+else if(score>=1e7)coin.classList.add("emerald");
+else if(score>=1e6)coin.classList.add("diamond");
 else if(score>=1000)coin.classList.add("gold");
+else if(score>=100)coin.classList.add("silver");
+else coin.classList.add("bronze");
 }
 
-function addParticles(x,y){
-for(let i=0;i<6;i++){
+function checkLevel(){
+if(levels[level-1] && score>=levels[level-1]){
+level++;
+lvlEl.textContent=level;
+up.play();
+}
+}
+
+function particles(x,y){
+for(let i=0;i<5;i++){
 let p=document.createElement("div");
 p.className="particle";
-p.textContent="🪙";
+p.textContent="💸";
 p.style.left=x+"px";
 p.style.top=y+"px";
 p.style.setProperty("--x",(Math.random()*120-60)+"px");
 p.style.setProperty("--y",(Math.random()*-120)+"px");
 document.body.appendChild(p);
-setTimeout(()=>p.remove(),800);
+setTimeout(()=>p.remove(),900);
 }
 }
 
-coin.addEventListener("pointerdown",e=>{
+coin.onclick=e=>{
 sound=true;
 score+=tapValue;
-scoreEl.textContent=score.toLocaleString("uk-UA");
+cash+=tapValue;
+scoreEl.textContent=score.toLocaleString();
+cashEl.textContent=cash.toLocaleString();
 tap.currentTime=0;tap.play();
-addParticles(e.clientX,e.clientY);
-coin.style.transform="scale(1.08)";
-setTimeout(()=>coin.style.transform="scale(1)",120);
-
-if([1000,10000,100000].includes(score)){
-level.play();
+particles(e.clientX,e.clientY);
 updateCoin();
-}
-});
+checkLevel();
+};
 
 document.querySelector(".x2").onclick=()=>{
 tapValue=2;
-status.textContent="⚡ X2 активний (10с)";
-setTimeout(()=>{
-tapValue=1;
-status.textContent="";
-},10000);
+setTimeout(()=>tapValue=1,10000);
 };
 
 document.querySelector(".bot").onclick=()=>{
 if(auto)return;
 auto=true;
-status.textContent="🤖 Auto tap ON";
 let i=0;
 let t=setInterval(()=>{
 score+=tapValue;
-scoreEl.textContent=score.toLocaleString("uk-UA");
+cash+=tapValue;
+scoreEl.textContent=score.toLocaleString();
+cashEl.textContent=cash.toLocaleString();
 updateCoin();
+checkLevel();
 i++;
-if(i>=30){clearInterval(t);auto=false;status.textContent="";}
-},1200);
+if(i>=25){clearInterval(t);auto=false;}
+},1300);
 };
 
 document.querySelector(".gift").onclick=()=>{
-alert("Завдання:\nПідпишись на канал, щоб отримати бонус 🎁");
+window.open("https://t.me/your_channel","_blank");
 };
 </script>
 </body>
