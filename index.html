@@ -12,19 +12,16 @@ body {
   font-family: Arial, sans-serif;
   text-align: center;
 }
-
 #top {
   display: flex;
   justify-content: space-between;
   align-items: center;
   padding: 10px;
 }
-
 #online {
   font-size: 12px;
   color: #00ff7f;
 }
-
 #coin {
   margin: 70px auto 15px;
   width: 180px;
@@ -38,12 +35,10 @@ body {
   font-weight: bold;
   cursor: pointer;
 }
-
 #balance {
   font-size: 22px;
   margin-bottom: 15px;
 }
-
 .block {
   margin: 10px auto;
   width: 90%;
@@ -52,23 +47,19 @@ body {
   background: #333;
   cursor: pointer;
 }
-
 #withdraw {
   background: green;
   width: fit-content;
   padding: 10px 25px;
 }
-
 #leftToWithdraw {
   margin-top: 8px;
   font-size: 14px;
   color: #ffcc00;
 }
-
 #share {
   background: #444;
 }
-
 .mult {
   position: fixed;
   top: 55%;
@@ -77,7 +68,6 @@ body {
   border-radius: 12px;
   cursor: pointer;
 }
-
 #x2 { left: 10px; }
 #x5 { right: 10px; }
 .mult.active { background: #ff9800; }
@@ -87,9 +77,9 @@ body {
 <body>
 
 <div id="top">
-  <button id="adBtn">🎥 +1.00</button>
+  <button>🎥 +1.00</button>
   <div id="online">
-    🟢 Online: <span id="onlineCount">3100</span><br>
+    🟢 Online: <span id="onlineCount">3000</span><br>
     🎁 Bonus today: <span id="bonusToday">200</span>
   </div>
 </div>
@@ -112,11 +102,13 @@ body {
 <script>
 const CHANNEL_LINK = "https://t.me/tapday_clicker";
 const WITHDRAW_MIN = 300;
+const DAILY_BONUSES = [0.5,0.75,1,1.5,1.75,2,2.5];
 
 let balance = parseFloat(localStorage.getItem("balance")) || 0;
 let multiplier = 1;
 
 function updateBalance() {
+  balance = Math.round(balance * 100) / 100;
   document.getElementById("balance").textContent =
     `💰 Balance: ${balance.toFixed(2)} $`;
   localStorage.setItem("balance", balance);
@@ -126,12 +118,9 @@ function updateBalance() {
 function updateWithdrawInfo() {
   const left = WITHDRAW_MIN - balance;
   const el = document.getElementById("leftToWithdraw");
-
-  if (left > 0) {
-    el.textContent = `До виводу залишилось: ${left.toFixed(2)} $`;
-  } else {
-    el.textContent = "✅ Вивід доступний";
-  }
+  el.textContent = left > 0
+    ? `До виводу залишилось: ${left.toFixed(2)} $`
+    : "✅ Вивід доступний";
 }
 
 updateBalance();
@@ -139,8 +128,11 @@ updateBalance();
 coin.onclick = () => {
   balance += 0.01 * multiplier;
   updateBalance();
-  if (navigator.vibrate) navigator.vibrate(30);
+  navigator.vibrate?.(30);
 };
+
+x2.onclick = () => activateMult(2, x2);
+x5.onclick = () => activateMult(5, x5);
 
 function activateMult(x, el) {
   multiplier = x;
@@ -151,32 +143,23 @@ function activateMult(x, el) {
   }, 10000);
 }
 
-x2.onclick = () => activateMult(2, x2);
-x5.onclick = () => activateMult(5, x5);
-
 withdraw.onclick = () => {
-  if (balance < WITHDRAW_MIN) {
-    alert(`❌ Мінімальна сума для виводу — ${WITHDRAW_MIN} $`);
-  } else {
-    alert("⏳ Вивід буде доступний пізніше");
-  }
+  alert(balance < WITHDRAW_MIN
+    ? `❌ Мінімум ${WITHDRAW_MIN} $`
+    : "⏳ Вивід буде доступний пізніше");
 };
 
+// 🔗 Share
 share.onclick = () => {
-  if (navigator.share) {
-    navigator.share({
-      title: "TapDay Play",
-      text: "Я заробляю тут гроші 💰",
-      url: window.location.href
-    });
-  } else {
-    alert("Скопіюй посилання і поділись вручну");
-  }
+  navigator.clipboard.writeText(CHANNEL_LINK);
+  alert("🔗 Посилання скопійовано");
 };
 
+// 📢 Subscribe
+if (localStorage.getItem("subBonus")) {
+  subscribe.style.display = "none";
+}
 subscribe.onclick = () => {
-  if (localStorage.getItem("subBonus")) return;
-
   window.open(CHANNEL_LINK, "_blank");
   balance += 10;
   localStorage.setItem("subBonus", "1");
@@ -184,21 +167,54 @@ subscribe.onclick = () => {
   updateBalance();
 };
 
-setInterval(() => {
-  onlineCount.textContent =
-    3000 + Math.floor(Math.random() * 500) - 250;
-}, 3000);
+// 📅 Daily bonus
+daily.onclick = () => {
+  const today = new Date().toDateString();
+  let last = localStorage.getItem("dailyDate");
+  let day = parseInt(localStorage.getItem("dailyDay")) || 0;
 
-let bonusTodayValue =
-  parseInt(localStorage.getItem("bonusToday")) || 180;
-
-setInterval(() => {
-  if (Math.random() > 0.6) {
-    bonusTodayValue++;
-    localStorage.setItem("bonusToday", bonusTodayValue);
+  if (last === today) {
+    alert("❌ Ви вже отримали бонус сьогодні");
+    return;
   }
-  bonusToday.textContent = bonusTodayValue;
-}, 5000);
+
+  if (last && (new Date(today) - new Date(last)) > 86400000 * 2) {
+    day = 0;
+  }
+
+  let reward = DAILY_BONUSES[day] || 0;
+  balance += reward;
+
+  localStorage.setItem("dailyDay", day + 1);
+  localStorage.setItem("dailyDate", today);
+  updateBalance();
+
+  alert(`🎁 Ви отримали ${reward.toFixed(2)} $`);
+};
+
+// ⏳ Bonus 30 days
+bonus30.onclick = () => {
+  let start = localStorage.getItem("startDate");
+  if (!start) {
+    localStorage.setItem("startDate", Date.now());
+    alert("⏳ Ще не настав час");
+    return;
+  }
+  if (Date.now() - start >= 30 * 86400000 &&
+      !localStorage.getItem("bonus30")) {
+    balance += 10;
+    localStorage.setItem("bonus30", "1");
+    updateBalance();
+    alert("🎉 Ви отримали 10$");
+  } else {
+    alert("⏳ Бонус ще недоступний");
+  }
+};
+
+// Online simulation
+setInterval(() => {
+  onlineCount.textContent = 3000 + Math.floor(Math.random() * 500) - 250;
+}, 3000);
 </script>
 
 </body>
