@@ -39,9 +39,9 @@ body {
   cursor: pointer;
 }
 
-#coins {
-  font-size: 20px;
-  margin-bottom: 10px;
+#balance, #coins {
+  font-size: 18px;
+  margin-bottom: 6px;
 }
 
 .block {
@@ -51,6 +51,10 @@ body {
   border-radius: 12px;
   background: #333;
   cursor: pointer;
+}
+
+#withdraw {
+  background: #1f8f4a;
 }
 
 .mult {
@@ -99,7 +103,7 @@ body {
 }
 
 #info {
-  margin-top: 12px;
+  margin-top: 10px;
   font-size: 12px;
   color: #aaa;
 }
@@ -109,7 +113,7 @@ body {
 <body>
 
 <div id="top">
-  <div class="block" id="earnBtn">🎁 EARN COINS</div>
+  <button id="adBtn">🎥 +Coins</button>
   <div id="online">
     🟢 Online: <span id="onlineCount">3000</span><br>
     🎁 Bonus today: <span id="bonusToday">200</span>
@@ -121,14 +125,17 @@ body {
 
 <div id="coin">TAP</div>
 
+<div id="balance">💰 Balance: 0.00 $</div>
 <div id="coins">🪙 Coins: 0</div>
 
-<div id="daily" class="block">📅 Daily bonus</div>
+<div id="daily" class="block">📅 Денний бонус</div>
 <div id="shop" class="block">🛒 Coin Shop</div>
-<div id="share" class="block">🔗 Share game</div>
+<div id="withdraw" class="block">💳 Вивід</div>
+<div id="share" class="block">🔗 Поділитися грою</div>
 
 <div id="info">
-Coins are virtual in-game rewards and have no real-world value.
+Displayed balance is for gameplay purposes only.<br>
+Rewards have no guaranteed real-world monetary value.
 </div>
 
 <!-- SHOP MODAL -->
@@ -136,27 +143,36 @@ Coins are virtual in-game rewards and have no real-world value.
   <div id="shopBox">
     <h3>🛒 Coin Shop</h3>
 
-    <div class="shopItem" onclick="buyBoost(2,50)">⚡ x2 Tap (10 min) — 50 coins</div>
-    <div class="shopItem" onclick="buyBoost(5,120)">🔥 x5 Tap (10 min) — 120 coins</div>
+    <div class="shopItem" onclick="buyBoost(2,50)">⚡ x2 Tap (10 хв) — 50 coins</div>
+    <div class="shopItem" onclick="buyBoost(5,120)">🔥 x5 Tap (10 хв) — 120 coins</div>
 
-    <div class="closeBtn" onclick="closeShop()">Close</div>
+    <div class="closeBtn" onclick="closeShop()">Закрити</div>
   </div>
 </div>
 
 <script>
+const CHANNEL_LINK = "https://t.me/tapday_clicker";
+const WITHDRAW_MIN = 300;
+
+let balance = parseFloat(localStorage.getItem("balance")) || 0;
 let coins = parseInt(localStorage.getItem("coins")) || 0;
 let multiplier = 1;
 
 // ===== UPDATE UI =====
 function updateUI() {
-  document.getElementById("coins").textContent = `🪙 Coins: ${coins}`;
+  balance = Math.min(balance, WITHDRAW_MIN);
+  document.getElementById("balance").textContent =
+    `💰 Balance: ${balance.toFixed(2)} $`;
+  document.getElementById("coins").textContent =
+    `🪙 Coins: ${coins}`;
+  localStorage.setItem("balance", balance);
   localStorage.setItem("coins", coins);
 }
 updateUI();
 
 // ===== TAP =====
 coin.onclick = () => {
-  coins += multiplier;
+  balance += 0.01 * multiplier;
   updateUI();
   navigator.vibrate?.(30);
 };
@@ -169,53 +185,57 @@ function activateMult(x) {
 x2.onclick = () => activateMult(2);
 x5.onclick = () => activateMult(5);
 
+// ===== AD PLACEHOLDER =====
+adBtn.onclick = () => {
+  alert("📺 Ad is loading, please try again later");
+};
+
 // ===== SHOP =====
 shop.onclick = () => shopModal.style.display = "flex";
 function closeShop(){ shopModal.style.display="none"; }
 
 function buyBoost(x, cost){
   if(coins < cost){
-    alert("❌ Not enough coins");
+    alert("❌ Недостатньо coins");
     return;
   }
   coins -= cost;
   activateMult(x);
   updateUI();
-  alert(`✅ x${x} activated`);
+  alert(`✅ Активовано x${x}`);
 }
-
-// ===== EARN COINS (OFFER PLACEHOLDER) =====
-earnBtn.onclick = () => {
-  alert(
-`Earn Coins
-
-Complete optional tasks to earn in-game coins.
-Offers will be available soon.`
-  );
-};
 
 // ===== DAILY BONUS =====
 daily.onclick = () => {
   const today = new Date().toDateString();
   if(localStorage.getItem("dailyDate") === today){
-    alert("❌ Already claimed");
+    alert("❌ Вже отримано");
     return;
   }
-  coins += 20;
+  balance += 0.5;
   localStorage.setItem("dailyDate", today);
   updateUI();
-  alert("🎁 +20 coins");
+  alert("🎁 +0.5 $");
+};
+
+// ===== WITHDRAW =====
+withdraw.onclick = () => {
+  if(balance < WITHDRAW_MIN){
+    alert("❌ Withdraw will be available after reaching the required level");
+  } else {
+    alert("✅ Withdrawal request received");
+  }
 };
 
 // ===== SHARE =====
 share.onclick = () => {
-  navigator.clipboard.writeText("https://t.me/tapday_clicker");
+  navigator.clipboard.writeText(CHANNEL_LINK);
   coins += 20;
   updateUI();
-  alert("🔗 Link copied +20 coins");
+  alert("🔗 Посилання скопійовано +20 coins");
 };
 
-// ===== ONLINE + BONUS TODAY =====
+// ===== ONLINE =====
 setInterval(()=>{
   onlineCount.textContent = 3000 + Math.floor(Math.random()*500)-250;
 },3000);
