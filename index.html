@@ -57,7 +57,15 @@ body{
   border-radius:16px;
   width:90%;
 }
-.item{padding:10px;margin:6px 0;background:#333;border-radius:10px}
+.item{
+  padding:12px;
+  margin:6px 0;
+  background:#333;
+  border-radius:10px;
+}
+.item.disabled{
+  opacity:.4;
+}
 </style>
 </head>
 
@@ -124,7 +132,7 @@ function update(){
 }
 update();
 
-// hide subscribe forever
+// subscribe button hide forever
 if(localStorage.subscribed){
   subBtn.style.display="none";
 }
@@ -158,35 +166,45 @@ setInterval(()=>{
   localStorage.lastDrop=lastDrop;
 },4000);
 
-// DAILY BONUS REAL
+// DAILY BONUS LOGIC
 function openDaily(){
   dailyModal.style.display="flex";
   days.innerHTML="";
 
-  let last=+localStorage.dailyLast||0;
   let day=+localStorage.dailyDay||1;
+  let last=+localStorage.dailyLast||0;
   let now=Date.now();
 
   for(let i=1;i<=7;i++){
     let reward=i==7?5:0.25*i;
+    let cls="item";
     let text="🔒";
 
-    if(i<day) text="✅ Отримано";
-    else if(i==day && (now-last>=86400000 || last==0)) text="🎁 Забрати";
-    else if(i==day) text="⏳ Зачекай 24г";
+    if(i<day){
+      text="✅ Отримано";
+    }else if(i==day){
+      if(last==0 || now-last>=86400000){
+        text="🎁 Забрати";
+      }else{
+        text="⏳ Через 24г";
+        cls+=" disabled";
+      }
+    }else{
+      cls+=" disabled";
+    }
 
     days.innerHTML+=`
-      <div class="item" onclick="claimDaily(${i},${reward})">
+      <div class="${cls}" onclick="claimDaily(${i},${reward})">
         День ${i}: ${reward.toFixed(2)} $ — ${text}
       </div>`;
   }
 }
+
 function claimDaily(i,reward){
   let day=+localStorage.dailyDay||1;
   let last=+localStorage.dailyLast||0;
-
   if(i!==day) return;
-  if(last && Date.now()-last<86400000) return alert("Ще не пройшло 24 години");
+  if(last && Date.now()-last<86400000) return;
 
   balance+=reward;
   localStorage.dailyDay=day+1;
@@ -206,18 +224,7 @@ function buy(cost,m){
   update();
 }
 
-// WITHDRAW
-function withdraw(){
-  alert("Вивід буде доступний після 500 $");
-}
-
-// SHARE
-function share(){
-  navigator.clipboard.writeText(location.href);
-  alert("Посилання скопійовано");
-}
-
-// SUBSCRIBE BONUS
+// SUBSCRIBE
 function subscribe(){
   if(localStorage.subscribed) return;
   window.open(CHANNEL,"_blank");
@@ -227,7 +234,12 @@ function subscribe(){
   update();
 }
 
-// AD
+// OTHER
+function withdraw(){alert("Вивід буде доступний після 500 $")}
+function share(){
+  navigator.clipboard.writeText(location.href);
+  alert("Посилання скопійовано");
+}
 function showRewardedAd(){
   coins+=20;
   update();
