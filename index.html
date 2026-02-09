@@ -57,15 +57,7 @@ body{
   border-radius:16px;
   width:90%;
 }
-.item{
-  padding:12px;
-  margin:6px 0;
-  background:#333;
-  border-radius:10px;
-}
-.item.disabled{
-  opacity:.4;
-}
+.item{padding:10px;margin:6px 0;background:#333;border-radius:10px}
 </style>
 </head>
 
@@ -124,6 +116,19 @@ const onlineEl=document.getElementById("online");
 const todayEl=document.getElementById("today");
 const subBtn=document.getElementById("subBtn");
 
+// SOUND
+const ctx=new (window.AudioContext||window.webkitAudioContext)();
+function beep(){
+  const o=ctx.createOscillator();
+  const g=ctx.createGain();
+  o.type="sine"; o.frequency.value=700;
+  o.connect(g); g.connect(ctx.destination);
+  o.start();
+  g.gain.exponentialRampToValueAtTime(0.0001,ctx.currentTime+0.15);
+  o.stop(ctx.currentTime+0.15);
+}
+function buzz(){ navigator.vibrate(30); beep(); }
+
 function update(){
   balanceEl.innerText=`💰 Balance: ${balance.toFixed(2)} $`;
   coinsEl.innerText=`🪙 Coins: ${coins}`;
@@ -132,14 +137,14 @@ function update(){
 }
 update();
 
-// subscribe button hide forever
+// hide subscribe forever
 if(localStorage.subscribed){
   subBtn.style.display="none";
 }
 
 // TAP
 coin.onclick=()=>{
-  navigator.vibrate(20);
+  buzz();
   balance+=0.01*mult;
   update();
 }
@@ -166,47 +171,38 @@ setInterval(()=>{
   localStorage.lastDrop=lastDrop;
 },4000);
 
-// DAILY BONUS LOGIC
+// DAILY BONUS
 function openDaily(){
   dailyModal.style.display="flex";
   days.innerHTML="";
 
-  let day=+localStorage.dailyDay||1;
   let last=+localStorage.dailyLast||0;
+  let day=+localStorage.dailyDay||1;
   let now=Date.now();
 
   for(let i=1;i<=7;i++){
     let reward=i==7?5:0.25*i;
-    let cls="item";
     let text="🔒";
 
-    if(i<day){
-      text="✅ Отримано";
-    }else if(i==day){
-      if(last==0 || now-last>=86400000){
-        text="🎁 Забрати";
-      }else{
-        text="⏳ Через 24г";
-        cls+=" disabled";
-      }
-    }else{
-      cls+=" disabled";
-    }
+    if(i<day) text="✅ Отримано";
+    else if(i==day && (now-last>=86400000 || last==0)) text="🎁 Забрати";
+    else if(i==day) text="⏳ Зачекай 24г";
 
     days.innerHTML+=`
-      <div class="${cls}" onclick="claimDaily(${i},${reward})">
+      <div class="item" onclick="claimDaily(${i},${reward})">
         День ${i}: ${reward.toFixed(2)} $ — ${text}
       </div>`;
   }
 }
-
 function claimDaily(i,reward){
   let day=+localStorage.dailyDay||1;
   let last=+localStorage.dailyLast||0;
+
   if(i!==day) return;
-  if(last && Date.now()-last<86400000) return;
+  if(last && Date.now()-last<86400000) return alert("Ще не пройшло 24 години");
 
   balance+=reward;
+  buzz();
   localStorage.dailyDay=day+1;
   localStorage.dailyLast=Date.now();
   update();
@@ -224,24 +220,32 @@ function buy(cost,m){
   update();
 }
 
-// SUBSCRIBE
+// WITHDRAW
+function withdraw(){
+  alert("Вивід буде доступний після 500 $");
+}
+
+// SHARE
+function share(){
+  navigator.clipboard.writeText(location.href);
+  alert("Посилання скопійовано");
+}
+
+// SUBSCRIBE BONUS
 function subscribe(){
   if(localStorage.subscribed) return;
   window.open(CHANNEL,"_blank");
   balance+=10;
+  buzz();
   localStorage.subscribed=1;
   subBtn.style.display="none";
   update();
 }
 
-// OTHER
-function withdraw(){alert("Вивід буде доступний після 500 $")}
-function share(){
-  navigator.clipboard.writeText(location.href);
-  alert("Посилання скопійовано");
-}
+// AD
 function showRewardedAd(){
   coins+=20;
+  buzz();
   update();
 }
 </script>
