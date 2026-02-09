@@ -12,42 +12,51 @@ body {
   font-family: Arial, sans-serif;
   text-align: center;
 }
+
 #top {
   display: flex;
   justify-content: space-between;
   align-items: center;
   padding: 10px;
 }
+
 #online {
   font-size: 12px;
   color: #00ff7f;
 }
+
 #coin {
   margin: 60px auto 10px;
-  width: 180px;
-  height: 180px;
+  width: 200px;
+  height: 200px;
   border-radius: 50%;
   background: radial-gradient(circle, #ffd700, #ff9800);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 32px;
+  font-size: 36px;
   font-weight: bold;
   cursor: pointer;
 }
+
 #balance, #coins {
   font-size: 18px;
   margin-bottom: 6px;
 }
+
 .block {
   margin: 8px auto;
   width: 90%;
-  padding: 12px;
-  border-radius: 12px;
+  padding: 14px;
+  border-radius: 14px;
   background: #333;
   cursor: pointer;
 }
-#withdraw { background: #1f8f4a; }
+
+#withdraw {
+  background: #1f8f4a;
+}
+
 .mult {
   position: fixed;
   top: 55%;
@@ -56,36 +65,9 @@ body {
   border-radius: 12px;
   cursor: pointer;
 }
+
 #x2 { left: 10px; }
 #x5 { right: 10px; }
-
-#shopModal {
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,0.85);
-  display: none;
-  align-items: center;
-  justify-content: center;
-}
-#shopBox {
-  background: #1e1e1e;
-  width: 90%;
-  max-width: 350px;
-  padding: 20px;
-  border-radius: 16px;
-}
-.shopItem {
-  background: #333;
-  padding: 10px;
-  border-radius: 10px;
-  margin: 8px 0;
-  cursor: pointer;
-}
-.closeBtn {
-  margin-top: 10px;
-  color: #ff5555;
-  cursor: pointer;
-}
 </style>
 </head>
 
@@ -94,8 +76,8 @@ body {
 <div id="top">
   <button id="adBtn">🎥 +Coins</button>
   <div id="online">
-    🟢 Online: <span id="onlineCount">3000</span><br>
-    🎁 Bonus today
+    🟢 Online: <span id="onlineCount">2762</span><br>
+    🎁 Bonus today: <span id="bonusToday">260</span>
   </div>
 </div>
 
@@ -109,35 +91,23 @@ body {
 
 <div id="daily" class="block">📅 Денний бонус</div>
 <div id="subscribe" class="block">📢 Бонус 10$ за підписку</div>
-<div id="shop" class="block">🛒 Coin Shop</div>
+<div class="block">🛒 Coin Shop</div>
 <div id="withdraw" class="block">💳 Вивід</div>
-<div id="share" class="block">🔗 Поділитися грою</div>
-
-<div id="shopModal">
-  <div id="shopBox">
-    <h3>🛒 Coin Shop</h3>
-    <div class="shopItem" onclick="buyBoost(2,50)">⚡ x2 Tap (10 хв) — 50 coins</div>
-    <div class="shopItem" onclick="buyBoost(5,120)">🔥 x5 Tap (10 хв) — 120 coins</div>
-    <div class="closeBtn" onclick="closeShop()">Закрити</div>
-  </div>
-</div>
-
-<audio id="sound">
-  <source src="https://assets.mixkit.co/sfx/preview/mixkit-bonus-earned-in-video-game-2058.mp3">
-</audio>
+<div class="block">🔗 Поділитися грою</div>
 
 <script>
-const CHANNEL_SUB = "https://t.me/SECOND_CHANNEL_LINK"; // ← ТУТ ДРУГИЙ КАНАЛ
-const CHANNEL_MAIN = "https://t.me/tapday_clicker";
+const CHANNEL_LINK = "https://t.me/tapday_clicker";
 const WITHDRAW_MIN = 500;
 
 let balance = parseFloat(localStorage.getItem("balance")) || 0;
 let coins = parseInt(localStorage.getItem("coins")) || 0;
 let multiplier = 1;
 
-const sound = document.getElementById("sound");
-const vibrate = ()=>navigator.vibrate && navigator.vibrate(40);
-const playBonus = ()=>{ sound.currentTime=0; sound.play(); vibrate(); };
+const audio = new Audio("https://actions.google.com/sounds/v1/cartoon/coin.ogg");
+
+function vibrate(ms=50){
+  if(navigator.vibrate) navigator.vibrate(ms);
+}
 
 function updateUI(){
   balanceEl.textContent = `💰 Balance: ${balance.toFixed(2)} $`;
@@ -145,87 +115,87 @@ function updateUI(){
   localStorage.setItem("balance", balance);
   localStorage.setItem("coins", coins);
 }
-const balanceEl = balance;
-const coinsEl = coins;
+
+const balanceEl = document.getElementById("balance");
+const coinsEl = document.getElementById("coins");
+
 updateUI();
 
 // TAP
-coin.onclick = ()=>{
-  let gain = 0.01;
-  if(balance > 100) gain = 0.005;
-  if(balance > 300) gain = 0.002;
-  balance += gain * multiplier;
+coin.onclick = () => {
+  vibrate(20);
+  balance += 0.01 * multiplier;
   updateUI();
 };
 
 // MULT
-function activateMult(x){
-  multiplier = x;
-  setTimeout(()=>multiplier=1,600000);
-}
-x2.onclick=()=>activateMult(2);
-x5.onclick=()=>activateMult(5);
+x2.onclick = ()=>multiplier=2;
+x5.onclick = ()=>multiplier=5;
 
 // AD
-adBtn.onclick=()=>{
+adBtn.onclick = ()=>{
   setTimeout(()=>{
-    coins+=10;
+    coins += 20;
+    audio.play();
+    vibrate(100);
     updateUI();
-    playBonus();
   },1000);
 };
 
-// DAILY (РОСТЕ)
-daily.onclick=()=>{
-  const now = Date.now();
-  const last = localStorage.getItem("dailyTime")||0;
-  if(now-last<86400000){ alert("❌ Вже отримано"); return; }
+// DAILY BONUS
+daily.onclick = ()=>{
+  const today = new Date().toDateString();
+  const last = localStorage.getItem("dailyDate");
+  let streak = parseInt(localStorage.getItem("dailyStreak")) || 0;
 
-  let level = parseInt(localStorage.getItem("dailyLevel"))||1;
-  balance += level;
-  localStorage.setItem("dailyLevel",level+1);
-  localStorage.setItem("dailyTime",now);
+  if(last === today){
+    alert("❌ Вже отримано");
+    return;
+  }
+
+  const yesterday = new Date(Date.now()-86400000).toDateString();
+  if(last !== yesterday) streak = 0;
+
+  streak++;
+  if(streak > 7) streak = 1;
+
+  const reward = 0.25 * streak;
+  balance += reward;
+
+  localStorage.setItem("dailyDate", today);
+  localStorage.setItem("dailyStreak", streak);
+
+  audio.play();
+  vibrate(120);
   updateUI();
-  playBonus();
+  alert(`🎁 День ${streak}: +${reward.toFixed(2)} $`);
 };
 
-// SUB
-if(localStorage.getItem("subDone")) subscribe.style.display="none";
-subscribe.onclick=()=>{
-  window.open(CHANNEL_SUB,"_blank");
-  balance+=10;
-  localStorage.setItem("subDone","1");
+// SUBSCRIBE
+if(localStorage.getItem("subBonus")) subscribe.style.display="none";
+subscribe.onclick = ()=>{
+  window.open(CHANNEL_LINK,"_blank");
+  balance += 10;
+  localStorage.setItem("subBonus","1");
   subscribe.style.display="none";
+  audio.play();
+  vibrate(150);
   updateUI();
-  playBonus();
 };
-
-// SHOP
-shop.onclick=()=>shopModal.style.display="flex";
-function closeShop(){shopModal.style.display="none";}
-function buyBoost(x,cost){
-  if(coins<cost){alert("❌ Недостатньо coins");return;}
-  coins-=cost;
-  activateMult(x);
-  updateUI();
-}
 
 // WITHDRAW
 withdraw.onclick=()=>{
-  if(balance<WITHDRAW_MIN) alert("❌ Мінімум 500$");
-  else alert("✅ Запит прийнято");
+  if(balance < WITHDRAW_MIN){
+    alert("❌ Мінімум для виводу: 500 $");
+  } else {
+    alert("✅ Запит на вивід прийнято");
+  }
 };
 
-// SHARE
-share.onclick=()=>{
-  navigator.clipboard.writeText(CHANNEL_MAIN);
-  coins+=20;
-  updateUI();
-};
-
-// ONLINE
+// ONLINE + BONUS TODAY
 setInterval(()=>{
-  onlineCount.textContent=3000+Math.floor(Math.random()*500)-250;
+  onlineCount.textContent = 2600 + Math.floor(Math.random()*300);
+  bonusToday.textContent = parseInt(bonusToday.textContent) + 1;
 },3000);
 </script>
 
