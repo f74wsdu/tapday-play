@@ -124,8 +124,8 @@ function update(){
 }
 update();
 
-// hide subscribe button if already used
-if(localStorage.sub){
+// hide subscribe forever
+if(localStorage.subscribed){
   subBtn.style.display="none";
 }
 
@@ -138,16 +138,15 @@ coin.onclick=()=>{
 x2.onclick=()=>mult=2;
 x5.onclick=()=>mult=5;
 
-// ONLINE ↑↓
+// ONLINE
 setInterval(()=>{
   let o=+onlineEl.innerText;
   onlineEl.innerText=o+(Math.random()>.5?1:-1);
 },3000);
 
-// BONUS TODAY ↑ (↓ раз на 24г)
+// BONUS TODAY
 let lastDrop=+localStorage.lastDrop||Date.now();
 let today=+localStorage.today||273;
-
 setInterval(()=>{
   today++;
   if(Date.now()-lastDrop>86400000){
@@ -159,14 +158,41 @@ setInterval(()=>{
   localStorage.lastDrop=lastDrop;
 },4000);
 
-// DAILY
+// DAILY BONUS REAL
 function openDaily(){
   dailyModal.style.display="flex";
   days.innerHTML="";
+
+  let last=+localStorage.dailyLast||0;
+  let day=+localStorage.dailyDay||1;
+  let now=Date.now();
+
   for(let i=1;i<=7;i++){
-    let reward=i==7?5:(0.25*i);
-    days.innerHTML+=`<div class="item">День ${i}: ${reward.toFixed(2)} $</div>`;
+    let reward=i==7?5:0.25*i;
+    let text="🔒";
+
+    if(i<day) text="✅ Отримано";
+    else if(i==day && (now-last>=86400000 || last==0)) text="🎁 Забрати";
+    else if(i==day) text="⏳ Зачекай 24г";
+
+    days.innerHTML+=`
+      <div class="item" onclick="claimDaily(${i},${reward})">
+        День ${i}: ${reward.toFixed(2)} $ — ${text}
+      </div>`;
   }
+}
+function claimDaily(i,reward){
+  let day=+localStorage.dailyDay||1;
+  let last=+localStorage.dailyLast||0;
+
+  if(i!==day) return;
+  if(last && Date.now()-last<86400000) return alert("Ще не пройшло 24 години");
+
+  balance+=reward;
+  localStorage.dailyDay=day+1;
+  localStorage.dailyLast=Date.now();
+  update();
+  openDaily();
 }
 function closeDaily(){dailyModal.style.display="none"}
 
@@ -191,12 +217,12 @@ function share(){
   alert("Посилання скопійовано");
 }
 
-// SUBSCRIBE
+// SUBSCRIBE BONUS
 function subscribe(){
-  if(localStorage.sub) return;
+  if(localStorage.subscribed) return;
   window.open(CHANNEL,"_blank");
   balance+=10;
-  localStorage.sub=1;
+  localStorage.subscribed=1;
   subBtn.style.display="none";
   update();
 }
