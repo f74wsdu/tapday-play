@@ -118,6 +118,8 @@ let mult=1;
 
 const balanceEl=document.getElementById("balance");
 const coinsEl=document.getElementById("coins");
+const onlineEl=document.getElementById("online");
+const todayEl=document.getElementById("today");
 const subBtn=document.getElementById("subBtn");
 const coin=document.getElementById("coin");
 const x2=document.getElementById("x2");
@@ -126,6 +128,7 @@ const dailyModal=document.getElementById("dailyModal");
 const shopModal=document.getElementById("shopModal");
 const days=document.getElementById("days");
 
+/* ===== UPDATE ===== */
 function update(){
   balanceEl.innerText=`💰 Balance: ${balance.toFixed(2)} $`;
   coinsEl.innerText=`🪙 Coins: ${coins}`;
@@ -134,10 +137,42 @@ function update(){
 }
 update();
 
+/* ===== ONLINE COUNTER ===== */
+setInterval(()=>{
+  let o=+onlineEl.innerText;
+  onlineEl.innerText=o+(Math.random()>.5?1:-1);
+},3000);
+
+/* ===== BONUS TODAY ===== */
+let lastDrop=+localStorage.lastDrop||Date.now();
+let today=+localStorage.today||273;
+
+setInterval(()=>{
+  today++;
+  if(Date.now()-lastDrop>86400000){
+    today-=Math.floor(Math.random()*5);
+    lastDrop=Date.now();
+  }
+  todayEl.innerText=today;
+  localStorage.today=today;
+  localStorage.lastDrop=lastDrop;
+},4000);
+
+/* ===== SUBSCRIBE ===== */
 if(localStorage.subscribed){
   subBtn.style.display="none";
 }
 
+function subscribe(){
+  if(localStorage.subscribed) return;
+  window.open(CHANNEL,"_blank");
+  balance+=10;
+  localStorage.subscribed=1;
+  subBtn.style.display="none";
+  update();
+}
+
+/* ===== TAP ===== */
 coin.onclick=()=>{
   balance+=0.01*mult;
   update();
@@ -146,7 +181,6 @@ x2.onclick=()=>mult=2;
 x5.onclick=()=>mult=5;
 
 /* ===== DAILY BONUS ===== */
-
 function openDaily(){
   dailyModal.style.display="flex";
   days.innerHTML="";
@@ -195,9 +229,9 @@ function claimDaily(i,reward){
 function closeDaily(){dailyModal.style.display="none"}
 
 /* ===== SHOP ===== */
-
 function openShop(){shopModal.style.display="flex"}
 function closeShop(){shopModal.style.display="none"}
+
 function buy(cost,m){
   if(coins<cost) return alert("Недостатньо coins");
   coins-=cost;
@@ -206,31 +240,17 @@ function buy(cost,m){
 }
 
 /* ===== WITHDRAW ===== */
-
 function withdraw(){
   alert("Вивід буде доступний після 500 $");
 }
 
 /* ===== SHARE ===== */
-
 function share(){
   navigator.clipboard.writeText(location.href);
   alert("Посилання скопійовано");
 }
 
-/* ===== SUBSCRIBE BONUS ===== */
-
-function subscribe(){
-  if(localStorage.subscribed) return;
-  window.open(CHANNEL,"_blank");
-  balance+=10;
-  localStorage.subscribed=1;
-  subBtn.style.display="none";
-  update();
-}
-
 /* ===== REWARDED AD ===== */
-
 function showRewardedAd(){
   var s=document.createElement("script");
   s.src="https://pl28736193.effectivegatecpm.com/23/09/fc/2309fc81c1233f8c439b95cb9c68ecee.js";
@@ -240,7 +260,6 @@ function showRewardedAd(){
   coins+=20;
   update();
 }
-
 </script>
 
 </body>
