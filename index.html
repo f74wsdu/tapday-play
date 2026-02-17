@@ -42,7 +42,7 @@ body{
   padding:10px 14px;
   border-radius:12px;
 }
-#x2{left:10px} 
+#x2{left:10px}
 #x5{right:10px}
 
 .modal{
@@ -58,7 +58,12 @@ body{
   border-radius:16px;
   width:90%;
 }
-.item{padding:10px;margin:6px 0;background:#333;border-radius:10px}
+.item{
+  padding:10px;
+  margin:6px 0;
+  background:#333;
+  border-radius:10px;
+}
 </style>
 </head>
 
@@ -113,8 +118,6 @@ let mult=1;
 
 const balanceEl=document.getElementById("balance");
 const coinsEl=document.getElementById("coins");
-const onlineEl=document.getElementById("online");
-const todayEl=document.getElementById("today");
 const subBtn=document.getElementById("subBtn");
 const coin=document.getElementById("coin");
 const x2=document.getElementById("x2");
@@ -122,19 +125,6 @@ const x5=document.getElementById("x5");
 const dailyModal=document.getElementById("dailyModal");
 const shopModal=document.getElementById("shopModal");
 const days=document.getElementById("days");
-
-// SOUND
-const ctx=new (window.AudioContext||window.webkitAudioContext)();
-function beep(){
-  const o=ctx.createOscillator();
-  const g=ctx.createGain();
-  o.type="sine"; o.frequency.value=700;
-  o.connect(g); g.connect(ctx.destination);
-  o.start();
-  g.gain.exponentialRampToValueAtTime(0.0001,ctx.currentTime+0.15);
-  o.stop(ctx.currentTime+0.15);
-}
-function buzz(){ navigator.vibrate(30); beep(); }
 
 function update(){
   balanceEl.innerText=`💰 Balance: ${balance.toFixed(2)} $`;
@@ -149,41 +139,33 @@ if(localStorage.subscribed){
 }
 
 coin.onclick=()=>{
-  buzz();
   balance+=0.01*mult;
   update();
 }
 x2.onclick=()=>mult=2;
 x5.onclick=()=>mult=5;
 
-setInterval(()=>{
-  let o=+onlineEl.innerText;
-  onlineEl.innerText=o+(Math.random()>.5?1:-1);
-},3000);
-
-let lastDrop=+localStorage.lastDrop||Date.now();
-let today=+localStorage.today||273;
-setInterval(()=>{
-  today++;
-  if(Date.now()-lastDrop>86400000){
-    today-=Math.floor(Math.random()*5);
-    lastDrop=Date.now();
-  }
-  todayEl.innerText=today;
-  localStorage.today=today;
-  localStorage.lastDrop=lastDrop;
-},4000);
+/* ===== DAILY BONUS ===== */
 
 function openDaily(){
   dailyModal.style.display="flex";
   days.innerHTML="";
-  let last=+localStorage.dailyLast||0;
+
   let day=+localStorage.dailyDay||1;
+  let last=+localStorage.dailyLast||0;
   let now=Date.now();
 
+  if(last && now-last>172800000){
+    day=1;
+    localStorage.dailyDay=1;
+  }
+
+  const rewards=[0.25,0.5,0.75,1,1.25,1.5,5];
+
   for(let i=1;i<=7;i++){
-    let reward=i==7?5:0.25*i;
+    let reward=rewards[i-1];
     let text="🔒";
+
     if(i<day) text="✅ Отримано";
     else if(i==day && (now-last>=86400000 || last==0)) text="🎁 Забрати";
     else if(i==day) text="⏳ Зачекай 24г";
@@ -198,16 +180,21 @@ function openDaily(){
 function claimDaily(i,reward){
   let day=+localStorage.dailyDay||1;
   let last=+localStorage.dailyLast||0;
+  let now=Date.now();
+
   if(i!==day) return;
-  if(last && Date.now()-last<86400000) return alert("Ще не пройшло 24 години");
+  if(last && now-last<86400000) return alert("Ще не пройшло 24 години");
+
   balance+=reward;
-  buzz();
-  localStorage.dailyDay=day+1;
-  localStorage.dailyLast=Date.now();
+  localStorage.dailyDay=day>=7?1:day+1;
+  localStorage.dailyLast=now;
   update();
   openDaily();
 }
+
 function closeDaily(){dailyModal.style.display="none"}
+
+/* ===== SHOP ===== */
 
 function openShop(){shopModal.style.display="flex"}
 function closeShop(){shopModal.style.display="none"}
@@ -218,43 +205,42 @@ function buy(cost,m){
   update();
 }
 
+/* ===== WITHDRAW ===== */
+
 function withdraw(){
   alert("Вивід буде доступний після 500 $");
 }
+
+/* ===== SHARE ===== */
 
 function share(){
   navigator.clipboard.writeText(location.href);
   alert("Посилання скопійовано");
 }
 
+/* ===== SUBSCRIBE BONUS ===== */
+
 function subscribe(){
   if(localStorage.subscribed) return;
   window.open(CHANNEL,"_blank");
   balance+=10;
-  buzz();
   localStorage.subscribed=1;
   subBtn.style.display="none";
   update();
 }
 
+/* ===== REWARDED AD ===== */
+
 function showRewardedAd(){
+  var s=document.createElement("script");
+  s.src="https://pl28736193.effectivegatecpm.com/23/09/fc/2309fc81c1233f8c439b95cb9c68ecee.js";
+  s.async=true;
+  document.body.appendChild(s);
+
   coins+=20;
-  buzz();
   update();
 }
-</script>
 
-<!-- Adsterra Popunder (Telegram safe) -->
-<script>
-document.addEventListener("click", function () {
-    if (!window.adLoaded) {
-        window.adLoaded = true;
-        var s = document.createElement("script");
-        s.src = "https://pl28736193.effectivegatecpm.com/23/09/fc/2309fc81c1233f8c439b95cb9c68ecee.js";
-        s.async = true;
-        document.body.appendChild(s);
-    }
-}, { once: true });
 </script>
 
 </body>
