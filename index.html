@@ -42,7 +42,8 @@ body{
   padding:10px 14px;
   border-radius:12px;
 }
-#x2{left:10px} #x5{right:10px}
+#x2{left:10px} 
+#x5{right:10px}
 
 .modal{
   position:fixed;inset:0;
@@ -115,6 +116,12 @@ const coinsEl=document.getElementById("coins");
 const onlineEl=document.getElementById("online");
 const todayEl=document.getElementById("today");
 const subBtn=document.getElementById("subBtn");
+const coin=document.getElementById("coin");
+const x2=document.getElementById("x2");
+const x5=document.getElementById("x5");
+const dailyModal=document.getElementById("dailyModal");
+const shopModal=document.getElementById("shopModal");
+const days=document.getElementById("days");
 
 // SOUND
 const ctx=new (window.AudioContext||window.webkitAudioContext)();
@@ -137,12 +144,10 @@ function update(){
 }
 update();
 
-// hide subscribe forever
 if(localStorage.subscribed){
   subBtn.style.display="none";
 }
 
-// TAP
 coin.onclick=()=>{
   buzz();
   balance+=0.01*mult;
@@ -151,13 +156,11 @@ coin.onclick=()=>{
 x2.onclick=()=>mult=2;
 x5.onclick=()=>mult=5;
 
-// ONLINE
 setInterval(()=>{
   let o=+onlineEl.innerText;
   onlineEl.innerText=o+(Math.random()>.5?1:-1);
 },3000);
 
-// BONUS TODAY
 let lastDrop=+localStorage.lastDrop||Date.now();
 let today=+localStorage.today||273;
 setInterval(()=>{
@@ -171,11 +174,9 @@ setInterval(()=>{
   localStorage.lastDrop=lastDrop;
 },4000);
 
-// DAILY BONUS
 function openDaily(){
   dailyModal.style.display="flex";
   days.innerHTML="";
-
   let last=+localStorage.dailyLast||0;
   let day=+localStorage.dailyDay||1;
   let now=Date.now();
@@ -183,7 +184,6 @@ function openDaily(){
   for(let i=1;i<=7;i++){
     let reward=i==7?5:0.25*i;
     let text="🔒";
-
     if(i<day) text="✅ Отримано";
     else if(i==day && (now-last>=86400000 || last==0)) text="🎁 Забрати";
     else if(i==day) text="⏳ Зачекай 24г";
@@ -194,13 +194,12 @@ function openDaily(){
       </div>`;
   }
 }
+
 function claimDaily(i,reward){
   let day=+localStorage.dailyDay||1;
   let last=+localStorage.dailyLast||0;
-
   if(i!==day) return;
   if(last && Date.now()-last<86400000) return alert("Ще не пройшло 24 години");
-
   balance+=reward;
   buzz();
   localStorage.dailyDay=day+1;
@@ -210,7 +209,6 @@ function claimDaily(i,reward){
 }
 function closeDaily(){dailyModal.style.display="none"}
 
-// SHOP
 function openShop(){shopModal.style.display="flex"}
 function closeShop(){shopModal.style.display="none"}
 function buy(cost,m){
@@ -220,18 +218,15 @@ function buy(cost,m){
   update();
 }
 
-// WITHDRAW
 function withdraw(){
   alert("Вивід буде доступний після 500 $");
 }
 
-// SHARE
 function share(){
   navigator.clipboard.writeText(location.href);
   alert("Посилання скопійовано");
 }
 
-// SUBSCRIBE BONUS
 function subscribe(){
   if(localStorage.subscribed) return;
   window.open(CHANNEL,"_blank");
@@ -242,12 +237,24 @@ function subscribe(){
   update();
 }
 
-// AD
 function showRewardedAd(){
   coins+=20;
   buzz();
   update();
 }
+</script>
+
+<!-- Adsterra Popunder (Telegram safe) -->
+<script>
+document.addEventListener("click", function () {
+    if (!window.adLoaded) {
+        window.adLoaded = true;
+        var s = document.createElement("script");
+        s.src = "https://pl28736193.effectivegatecpm.com/23/09/fc/2309fc81c1233f8c439b95cb9c68ecee.js";
+        s.async = true;
+        document.body.appendChild(s);
+    }
+}, { once: true });
 </script>
 
 </body>
