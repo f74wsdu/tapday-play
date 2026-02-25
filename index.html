@@ -18,12 +18,12 @@ h2{margin-top:15px}
 
 #online{
 color:#00ff88;
-font-size:14px;
+font-size:15px;
 margin-bottom:10px;
 }
 
 #coin{
-margin:30px auto;
+margin:25px auto;
 width:180px;
 height:180px;
 border-radius:50%;
@@ -56,13 +56,12 @@ cursor:pointer;
 
 #x2{left:10px}
 #x5{right:10px}
-
 </style>
 </head>
 <body>
 
 <h2>TapDay Play</h2>
-<div id="online">🟢 Онлайн: 0</div>
+<div id="online">🟢 Онлайн: 3000</div>
 
 <div id="coin">TAP</div>
 
@@ -70,8 +69,9 @@ cursor:pointer;
 <div id="coins">🪙 Coins: 0</div>
 <div id="left"></div>
 
-<div id="daily" class="block">📅 Денний бонус (+1$)</div>
-<div id="offer" class="block">🎁 Бонус 10$ за підписку</div>
+<div id="daily" class="block">🎁 Бонус сьогодні (+1$)</div>
+<div id="tg" class="block">📢 Підписатись на Telegram</div>
+<div id="offer" class="block">💎 Отримати 10$ бонус</div>
 <div id="withdraw" class="block">💳 Вивід (мін. 500$)</div>
 
 <div id="x2" class="mult">x2</div>
@@ -79,9 +79,10 @@ cursor:pointer;
 
 <script>
 
-// ===== НАСТРОЙКИ =====
+// ===== НАЛАШТУВАННЯ =====
 const WITHDRAW_MIN = 500;
-const PARTNER_URL = "https://your-offer-link.com"; // <-- ВСТАВ СВІЙ ОФЕР
+const PARTNER_URL = "https://your-offer-link.com"; 
+const TELEGRAM_URL = "https://t.me/yourchannel";
 
 // ===== ДАНІ =====
 let balance = parseFloat(localStorage.getItem("balance")) || 0;
@@ -92,12 +93,12 @@ let multiplier = 1;
 const balanceEl = document.getElementById("balance");
 const coinsEl = document.getElementById("coins");
 const leftEl = document.getElementById("left");
-const offerBtn = document.getElementById("offer");
 
 // ===== ОНОВЛЕННЯ =====
 function update(){
 balanceEl.textContent = "💰 Balance: " + balance.toFixed(2) + " $";
 coinsEl.textContent = "🪙 Coins: " + coins;
+
 let left = WITHDRAW_MIN - balance;
 leftEl.textContent = left > 0 
 ? "До виводу: " + left.toFixed(2) + " $" 
@@ -122,37 +123,41 @@ function activateMult(x){
 multiplier = x;
 setTimeout(()=> multiplier = 1, 600000);
 }
-
 document.getElementById("x2").onclick = ()=> activateMult(2);
 document.getElementById("x5").onclick = ()=> activateMult(5);
 
-// ===== ДЕННИЙ БОНУС =====
+// ===== БОНУС СЬОГОДНІ =====
 document.getElementById("daily").onclick = () => {
 let today = new Date().toDateString();
 
 if(localStorage.getItem("daily") === today){
-alert("Вже отримано сьогодні");
+alert("Бонус вже отримано сьогодні");
 return;
 }
 
 balance += 1;
 localStorage.setItem("daily", today);
 update();
-alert("🎁 +1$");
+alert("+1$ за сьогодні");
 };
 
-// ===== ОФЕР =====
+// ===== TELEGRAM =====
+document.getElementById("tg").onclick = () => {
+window.open(TELEGRAM_URL, "_blank");
+};
+
+// ===== ОФЕР БОНУС =====
 if(localStorage.getItem("offerDone")){
-offerBtn.style.display = "none";
+document.getElementById("offer").style.display="none";
 }
 
-offerBtn.onclick = () => {
+document.getElementById("offer").onclick = () => {
 window.open(PARTNER_URL, "_blank");
 balance += 10;
-localStorage.setItem("offerDone", "1");
-offerBtn.style.display = "none";
+localStorage.setItem("offerDone","1");
+document.getElementById("offer").style.display="none";
 update();
-alert("🎁 +10$ за підписку");
+alert("+10$ бонус");
 };
 
 // ===== ВИВІД =====
@@ -164,9 +169,9 @@ alert("Запит на вивід прийнято");
 }
 };
 
-// ===== ФЕЙК ОНЛАЙН =====
+// ===== ОНЛАЙН ~3000 =====
 setInterval(()=>{
-let online = Math.floor(Math.random()*60)+140;
+let online = Math.floor(Math.random()*400)+2800;
 document.getElementById("online").textContent = "🟢 Онлайн: " + online;
 },3000);
 
