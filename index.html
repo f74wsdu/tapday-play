@@ -2,253 +2,207 @@
 <html lang="uk">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>TapDay Clicker</title>
+<title>TapDay Play</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
 
 <style>
-body{
-  margin:0;
-  font-family:Arial;
-  background:#0f172a;
-  color:white;
-  text-align:center;
-}
-
-.top{
-  padding:15px;
-  background:#111827;
-  font-size:18px;
-}
-
-button{
-  padding:10px 15px;
-  margin:5px;
-  border:none;
-  border-radius:8px;
-  font-size:16px;
-  cursor:pointer;
-}
-
-.main-btn{
-  font-size:60px;
-  background:none;
-}
-
-.green{background:#16a34a;color:white;}
-.blue{background:#2563eb;color:white;}
-.orange{background:#ea580c;color:white;}
-.red{background:#dc2626;color:white;}
-
-.modal{
-  position:fixed;
-  top:0;
-  left:0;
-  width:100%;
-  height:100%;
-  background:rgba(0,0,0,0.8);
-  display:none;
-  justify-content:center;
-  align-items:center;
-}
-
-.modal-box{
-  background:#1f2937;
-  padding:20px;
-  border-radius:10px;
-  width:90%;
-  max-width:400px;
-}
-
-.item{
-  background:#374151;
-  margin:5px 0;
-  padding:8px;
-  border-radius:6px;
-}
+body{margin:0;background:#0b0b0b;color:#fff;font-family:Arial;text-align:center}
+#top{display:flex;justify-content:space-between;align-items:center;padding:10px}
+#online{font-size:12px;color:#00ff7f}
+#coin{margin:60px auto 10px;width:180px;height:180px;border-radius:50%;
+background:radial-gradient(circle,#ffd700,#ff9800);
+display:flex;align-items:center;justify-content:center;
+font-size:32px;font-weight:bold;cursor:pointer}
+#balance,#coins{font-size:18px;margin-bottom:6px}
+.block{margin:8px auto;width:90%;padding:12px;border-radius:12px;background:#333;cursor:pointer}
+#withdraw{background:green;width:fit-content;padding:10px 25px}
+#leftToWithdraw{margin-top:6px;font-size:14px;color:#ffcc00}
+.mult{position:fixed;top:55%;padding:10px 14px;background:#222;border-radius:12px;cursor:pointer}
+#x2{left:10px} #x5{right:10px}
+.mult.active{background:#ff9800}
+#shopModal{position:fixed;inset:0;background:rgba(0,0,0,0.85);
+display:none;align-items:center;justify-content:center;z-index:10}
+#shopBox{background:#1e1e1e;width:90%;max-width:350px;padding:20px;border-radius:16px}
+.shopItem{background:#333;padding:10px;border-radius:10px;margin:8px 0;cursor:pointer}
+.closeBtn{margin-top:10px;color:#ff5555;cursor:pointer}
 </style>
 </head>
+
 <body>
 
-<div class="top">
-  <div id="balance">💰 Balance: 0 $</div>
-  <div id="coins">🪙 Coins: 0</div>
-  <div>🟢 Online: <span id="online">124</span></div>
-  <div>🔥 Bonus today: <span id="today">273</span></div>
+<div id="top">
+<button id="adBtn">🎥 +Coins</button>
+<div id="online">
+🟢 Online: <span id="onlineCount">3000</span><br>
+🎁 Bonus today: <span id="bonusToday">200</span>
+</div>
 </div>
 
-<br>
+<div id="x2" class="mult">x2</div>
+<div id="x5" class="mult">x5</div>
 
-<button id="subBtn" class="green" onclick="subscribe()">📢 Підписатися +10$</button>
-<br>
+<div id="coin">TAP</div>
 
-<button class="main-btn" id="coin">🪙</button>
-<br>
+<div id="balance">💰 Balance: 0.00 $</div>
+<div id="coins">🪙 Coins: 0</div>
 
-<button class="blue" onclick="showRewardedAd()">🎥 +20 Coins</button>
-<br>
+<div id="daily" class="block">📅 Денний бонус</div>
+<div id="subscribe" class="block">📢 Бонус 10$ за підписку</div>
+<div id="shop" class="block">🛒 Coin Shop</div>
 
-<button class="orange" onclick="openDaily()">🎁 Daily Bonus</button>
-<button class="blue" onclick="openShop()">🛒 Shop</button>
-<button class="red" onclick="withdraw()">💸 Withdraw</button>
+<div id="withdraw" class="block">💳 Вивід</div>
+<div id="leftToWithdraw"></div>
 
-<!-- DAILY MODAL -->
-<div class="modal" id="dailyModal">
-  <div class="modal-box">
-    <h3>🎁 Daily Bonus</h3>
-    <div id="days"></div>
-    <button onclick="closeDaily()">Закрити</button>
-  </div>
+<div id="share" class="block">🔗 Поділитися грою</div>
+
+<div id="shopModal">
+<div id="shopBox">
+<h3>🛒 Coin Shop</h3>
+<div class="shopItem" onclick="buyBoost(2,50)">⚡ x2 Tap (10 хв) — 50 coins</div>
+<div class="shopItem" onclick="buyBoost(5,120)">🔥 x5 Tap (10 хв) — 120 coins</div>
+<div class="shopItem" onclick="watchAd(30)">🎁 Отримати coins (реклама)</div>
+<div class="closeBtn" onclick="closeShop()">Закрити</div>
 </div>
-
-<!-- SHOP MODAL -->
-<div class="modal" id="shopModal">
-  <div class="modal-box">
-    <h3>🛒 Shop</h3>
-    <div class="item" onclick="buy(100,2)">x2 — 100 coins</div>
-    <div class="item" onclick="buy(300,5)">x5 — 300 coins</div>
-    <button onclick="closeShop()">Закрити</button>
-  </div>
 </div>
 
 <script>
-const CHANNEL="https://t.me/tapday_clicker";
+const tg = window.Telegram.WebApp;
+tg.expand();
 
-let balance=+localStorage.balance||0;
-let coins=+localStorage.coins||0;
-let mult=1;
+const CHANNEL_LINK = "https://t.me/tapday_clicker";
+const AD_LINK = "ВСТАВ_ТУТ_СВОЮ_РЕКЛАМНУ_ССИЛКУ";
+const WITHDRAW_MIN = 300;
+const DAILY_BONUSES = [0.5,0.75,1,1.5,1.75,2,2.5];
 
-const balanceEl=document.getElementById("balance");
-const coinsEl=document.getElementById("coins");
-const onlineEl=document.getElementById("online");
-const todayEl=document.getElementById("today");
-const subBtn=document.getElementById("subBtn");
-const coin=document.getElementById("coin");
+let balance = parseFloat(localStorage.balance) || 0;
+let coins = parseInt(localStorage.coins) || 0;
+let multiplier = 1;
+let lastAdTime = 0;
 
-function update(){
-  balanceEl.innerText="💰 Balance: "+balance.toFixed(2)+" $";
-  coinsEl.innerText="🪙 Coins: "+coins;
-  localStorage.balance=balance;
-  localStorage.coins=coins;
+/* ===== UI ===== */
+function updateUI(){
+balance = parseFloat(balance);
+coins = parseInt(coins);
+
+balanceEl.textContent = `💰 Balance: ${balance.toFixed(2)} $`;
+coinsEl.textContent = `🪙 Coins: ${coins}`;
+
+localStorage.balance = balance;
+localStorage.coins = coins;
+
+const left = WITHDRAW_MIN - balance;
+leftToWithdraw.textContent =
+left>0 ? `До виводу залишилось: ${left.toFixed(2)} $`
+       : "✅ Вивід доступний";
 }
-update();
+updateUI();
 
-/* ONLINE */
+/* ===== TAP ===== */
+coin.onclick = ()=>{
+balance += 0.01 * multiplier;
+updateUI();
+navigator.vibrate?.(30);
+};
+
+/* ===== MULT ===== */
+function activateMult(x){
+multiplier = x;
+setTimeout(()=> multiplier=1,600000);
+}
+x2.onclick = ()=>activateMult(2);
+x5.onclick = ()=>activateMult(5);
+
+/* ===== SHOP ===== */
+shop.onclick = ()=>shopModal.style.display="flex";
+function closeShop(){shopModal.style.display="none";}
+
+function buyBoost(x,cost){
+if(coins<cost){tg.showAlert("❌ Недостатньо coins");return;}
+coins-=cost;
+activateMult(x);
+updateUI();
+tg.showAlert(`✅ x${x} активовано`);
+}
+
+/* ===== РЕКЛАМА ===== */
+function watchAd(reward){
+let now=Date.now();
+if(now-lastAdTime<30000){
+tg.showAlert("⏳ Зачекай 30 сек");
+return;
+}
+lastAdTime=now;
+
+window.open(AD_LINK,"_blank");
+
+setTimeout(()=>{
+coins+=reward;
+updateUI();
+tg.showAlert(`🎥 +${reward} coins`);
+},5000);
+}
+adBtn.onclick=()=>watchAd(20);
+
+/* ===== DAILY ===== */
+daily.onclick=()=>{
+const today=new Date().toDateString();
+if(localStorage.dailyDate===today){
+tg.showAlert("❌ Вже отримано");
+return;
+}
+let day=parseInt(localStorage.dailyDay)||0;
+let reward=DAILY_BONUSES[day]||0;
+balance+=reward;
+localStorage.dailyDay=day+1;
+localStorage.dailyDate=today;
+updateUI();
+tg.showAlert(`🎁 +${reward.toFixed(2)} $`);
+};
+
+/* ===== SUBSCRIBE ===== */
+if(localStorage.subBonus) subscribe.style.display="none";
+subscribe.onclick=()=>{
+tg.openTelegramLink(CHANNEL_LINK);
+balance+=10;
+localStorage.subBonus=1;
+subscribe.style.display="none";
+updateUI();
+};
+
+/* ===== SHARE ===== */
+share.onclick=()=>{
+navigator.clipboard.writeText(CHANNEL_LINK);
+coins+=20;
+updateUI();
+tg.showAlert("🔗 +20 coins");
+};
+
+/* ===== WITHDRAW ===== */
+withdraw.onclick=()=>{
+if(balance<WITHDRAW_MIN){
+tg.showAlert("❌ Недостатньо для виводу");
+return;
+}
+tg.showPopup({
+title:"💳 Вивід",
+message:"Запит прийнято. Адмін звʼяжеться з вами.",
+buttons:[{type:"ok"}]
+});
+};
+
+/* ===== ONLINE ===== */
 setInterval(()=>{
-  let o=+onlineEl.innerText;
-  onlineEl.innerText=o+(Math.random()>.5?1:-1);
+onlineCount.textContent=3000+Math.floor(Math.random()*500)-250;
 },3000);
 
-/* BONUS TODAY */
-let lastDrop=+localStorage.lastDrop||Date.now();
-let today=+localStorage.today||273;
-
+let bonusTodayValue=parseInt(localStorage.bonusToday)||200;
 setInterval(()=>{
-  today++;
-  if(Date.now()-lastDrop>86400000){
-    today-=Math.floor(Math.random()*5);
-    lastDrop=Date.now();
-  }
-  todayEl.innerText=today;
-  localStorage.today=today;
-  localStorage.lastDrop=lastDrop;
-},4000);
-
-/* SUBSCRIBE */
-if(localStorage.subscribed){
-  subBtn.style.display="none";
+if(Math.random()>0.7){
+bonusTodayValue++;
+localStorage.bonusToday=bonusTodayValue;
 }
-
-function subscribe(){
-  if(localStorage.subscribed) return;
-  window.open(CHANNEL,"_blank");
-  balance+=10;
-  localStorage.subscribed=1;
-  subBtn.style.display="none";
-  update();
-}
-
-/* TAP */
-coin.onclick=()=>{
-  balance+=0.01*mult;
-  update();
-}
-
-/* REWARDED AD */
-function showRewardedAd(){
-  window.open("https://google.com","_blank"); // тут став свою рекламну ссилку
-  coins+=20;
-  update();
-}
-
-/* DAILY */
-function openDaily(){
-  document.getElementById("dailyModal").style.display="flex";
-  let box=document.getElementById("days");
-  box.innerHTML="";
-
-  let day=+localStorage.dailyDay||1;
-  let last=+localStorage.dailyLast||0;
-  let now=Date.now();
-
-  if(last && now-last>172800000){
-    day=1;
-    localStorage.dailyDay=1;
-  }
-
-  const rewards=[0.25,0.5,0.75,1,1.25,1.5,5];
-
-  for(let i=1;i<=7;i++){
-    let reward=rewards[i-1];
-    let text="🔒";
-
-    if(i<day) text="✅";
-    else if(i==day && (now-last>=86400000 || last==0)) text="🎁 Забрати";
-    else if(i==day) text="⏳ 24г";
-
-    box.innerHTML+=
-      `<div class="item" onclick="claimDaily(${i},${reward})">
-      День ${i}: ${reward}$ — ${text}
-      </div>`;
-  }
-}
-
-function claimDaily(i,reward){
-  let day=+localStorage.dailyDay||1;
-  let last=+localStorage.dailyLast||0;
-  let now=Date.now();
-
-  if(i!==day) return;
-  if(last && now-last<86400000) return alert("Ще не пройшло 24 години");
-
-  balance+=reward;
-  localStorage.dailyDay=day>=7?1:day+1;
-  localStorage.dailyLast=now;
-  update();
-  openDaily();
-}
-
-function closeDaily(){
-  document.getElementById("dailyModal").style.display="none";
-}
-
-/* SHOP */
-function openShop(){
-  document.getElementById("shopModal").style.display="flex";
-}
-function closeShop(){
-  document.getElementById("shopModal").style.display="none";
-}
-function buy(cost,m){
-  if(coins<cost) return alert("Недостатньо coins");
-  coins-=cost;
-  mult=m;
-  update();
-}
-
-/* WITHDRAW */
-function withdraw(){
-  alert("Вивід доступний після 500$");
-}
+bonusToday.textContent=bonusTodayValue;
+},6000);
 </script>
 
 </body>
