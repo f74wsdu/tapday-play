@@ -3,120 +3,174 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>TapDay Play - Офери</title>
+<title>TapDay Play</title>
+
 <style>
-body { margin:0; font-family:Arial,sans-serif; background:#0b0b0b; color:white; text-align:center; }
-#coin { margin:50px auto; width:180px; height:180px; border-radius:50%; background:radial-gradient(circle,#ffd700,#ff9800); display:flex; justify-content:center; align-items:center; font-size:32px; font-weight:bold; cursor:pointer; }
-#balance,#coins,#leftToWithdraw { font-size:18px; margin:6px; }
-.block { margin:8px auto; width:90%; padding:12px; border-radius:12px; background:#333; cursor:pointer; }
-.mult { position:fixed; top:55%; padding:10px 14px; background:#222; border-radius:12px; cursor:pointer; }
-#x2 { left:10px; } #x5 { right:10px; } .mult.active { background:#ff9800; }
-#shopModal { position:fixed; inset:0; background:rgba(0,0,0,0.85); display:none; align-items:center; justify-content:center; z-index:10; }
-#shopBox { background:#1e1e1e; width:90%; max-width:350px; padding:20px; border-radius:16px; }
-.shopItem { background:#333; padding:10px; border-radius:10px; margin:8px 0; cursor:pointer; }
-.closeBtn { margin-top:10px; color:#ff5555; cursor:pointer; }
+body{
+margin:0;
+font-family:Arial;
+background:#0f0f0f;
+color:white;
+text-align:center;
+}
+
+h2{margin-top:15px}
+
+#online{
+color:#00ff88;
+font-size:14px;
+margin-bottom:10px;
+}
+
+#coin{
+margin:30px auto;
+width:180px;
+height:180px;
+border-radius:50%;
+background:radial-gradient(circle,#ffd700,#ff9800);
+display:flex;
+align-items:center;
+justify-content:center;
+font-size:30px;
+font-weight:bold;
+cursor:pointer;
+}
+
+.block{
+background:#222;
+margin:8px auto;
+padding:12px;
+border-radius:12px;
+width:90%;
+cursor:pointer;
+}
+
+.mult{
+position:fixed;
+top:55%;
+padding:10px 14px;
+background:#222;
+border-radius:12px;
+cursor:pointer;
+}
+
+#x2{left:10px}
+#x5{right:10px}
+
 </style>
 </head>
 <body>
 
+<h2>TapDay Play</h2>
+<div id="online">🟢 Онлайн: 0</div>
+
 <div id="coin">TAP</div>
+
 <div id="balance">💰 Balance: 0.00 $</div>
 <div id="coins">🪙 Coins: 0</div>
-<div id="leftToWithdraw"></div>
+<div id="left"></div>
 
-<div id="daily" class="block">📅 Денний бонус</div>
-<div id="subscribe" class="block">📢 Бонус за підписку / офер</div>
-<div id="shop" class="block">🛒 Coin Shop</div>
-<div id="withdraw" class="block">💳 Вивід</div>
+<div id="daily" class="block">📅 Денний бонус (+1$)</div>
+<div id="offer" class="block">🎁 Бонус 10$ за підписку</div>
+<div id="withdraw" class="block">💳 Вивід (мін. 500$)</div>
 
 <div id="x2" class="mult">x2</div>
 <div id="x5" class="mult">x5</div>
 
-<!-- Shop Modal -->
-<div id="shopModal">
-  <div id="shopBox">
-    <h3>🛒 Coin Shop</h3>
-    <div class="shopItem" onclick="buyBoost(2,50)">⚡ x2 Tap (10 хв) — 50 coins</div>
-    <div class="shopItem" onclick="buyBoost(5,120)">🔥 x5 Tap (10 хв) — 120 coins</div>
-    <div class="shopItem" onclick="buyCoins()">🎁 Отримати coins</div>
-    <div class="closeBtn" onclick="closeShop()">Закрити</div>
-  </div>
-</div>
-
 <script>
-const WITHDRAW_MIN = 500; // <-- змінив з 300 на 500
-const PARTNER_URL = "https://your-offer-link.com"; // <-- сюди вставляєш свій офер
-const DAILY_REWARDS = [0.5,0.75,1,1.5,1.75,2,2.5];
 
-let balance = parseFloat(localStorage.getItem("balance"))||0;
-let coins = parseInt(localStorage.getItem("coins"))||0;
+// ===== НАСТРОЙКИ =====
+const WITHDRAW_MIN = 500;
+const PARTNER_URL = "https://your-offer-link.com"; // <-- ВСТАВ СВІЙ ОФЕР
+
+// ===== ДАНІ =====
+let balance = parseFloat(localStorage.getItem("balance")) || 0;
+let coins = parseInt(localStorage.getItem("coins")) || 0;
 let multiplier = 1;
 
-const coinEl = document.getElementById("coin");
+// ===== ЕЛЕМЕНТИ =====
 const balanceEl = document.getElementById("balance");
 const coinsEl = document.getElementById("coins");
-const leftToWithdrawEl = document.getElementById("leftToWithdraw");
+const leftEl = document.getElementById("left");
+const offerBtn = document.getElementById("offer");
 
-// ===== UPDATE UI =====
-function updateUI(){
-  balanceEl.textContent = `💰 Balance: ${balance.toFixed(2)} $`;
-  coinsEl.textContent = `🪙 Coins: ${coins}`;
-  const left = WITHDRAW_MIN - balance;
-  leftToWithdrawEl.textContent = left>0 ? `До виводу залишилось: ${left.toFixed(2)} $` : "✅ Вивід доступний";
-  localStorage.setItem("balance",balance);
-  localStorage.setItem("coins",coins);
+// ===== ОНОВЛЕННЯ =====
+function update(){
+balanceEl.textContent = "💰 Balance: " + balance.toFixed(2) + " $";
+coinsEl.textContent = "🪙 Coins: " + coins;
+let left = WITHDRAW_MIN - balance;
+leftEl.textContent = left > 0 
+? "До виводу: " + left.toFixed(2) + " $" 
+: "✅ Вивід доступний";
+
+localStorage.setItem("balance", balance);
+localStorage.setItem("coins", coins);
 }
-updateUI();
+
+update();
 
 // ===== TAP =====
-coinEl.onclick = ()=>{
-  balance += 0.01*multiplier;
-  updateUI();
-  navigator.vibrate?.(30);
-  fetch(`${PARTNER_URL}?action=tap&amount=0.01`).catch(()=>{});
+document.getElementById("coin").onclick = () => {
+balance += 0.01 * multiplier;
+coins += 1;
+update();
+navigator.vibrate?.(30);
 };
 
-// ===== MULT =====
-function activateMult(x){ multiplier = x; setTimeout(()=>multiplier=1,600000); }
-document.getElementById("x2").onclick = ()=>activateMult(2);
-document.getElementById("x5").onclick = ()=>activateMult(5);
+// ===== МНОЖНИКИ =====
+function activateMult(x){
+multiplier = x;
+setTimeout(()=> multiplier = 1, 600000);
+}
 
-// ===== SHOP =====
-document.getElementById("shop").onclick = ()=>document.getElementById("shopModal").style.display="flex";
-function closeShop(){ document.getElementById("shopModal").style.display="none"; }
-function buyBoost(x,cost){ if(coins<cost){alert("Недостатньо coins");return;} coins-=cost; activateMult(x); updateUI(); alert(`✅ x${x} активовано`);}
-function buyCoins(){ coins+=30; updateUI(); alert("🎁 Ви отримали coins");}
+document.getElementById("x2").onclick = ()=> activateMult(2);
+document.getElementById("x5").onclick = ()=> activateMult(5);
 
-// ===== DAILY BONUS =====
-document.getElementById("daily").onclick = ()=>{
-  const today = new Date().toDateString();
-  const lastDate = localStorage.getItem("dailyDate");
-  if(lastDate===today){ alert("❌ Вже отримано"); return; }
-  let day = parseInt(localStorage.getItem("dailyDay"))||0;
-  let reward = DAILY_REWARDS[day]||0;
-  balance += reward;
-  localStorage.setItem("dailyDay",day+1);
-  localStorage.setItem("dailyDate",today);
-  updateUI();
-  alert(`🎁 +${reward.toFixed(2)} $`);
+// ===== ДЕННИЙ БОНУС =====
+document.getElementById("daily").onclick = () => {
+let today = new Date().toDateString();
+
+if(localStorage.getItem("daily") === today){
+alert("Вже отримано сьогодні");
+return;
+}
+
+balance += 1;
+localStorage.setItem("daily", today);
+update();
+alert("🎁 +1$");
 };
 
-// ===== SUBSCRIBE / ОФЕР =====
-const subscribeEl = document.getElementById("subscribe");
-if(localStorage.getItem("subBonus")) subscribeEl.style.display="none";
-subscribeEl.onclick = ()=>{
-  window.open(PARTNER_URL,"_blank");
-  balance += 10;
-  localStorage.setItem("subBonus","1");
-  subscribeEl.style.display="none";
-  updateUI();
+// ===== ОФЕР =====
+if(localStorage.getItem("offerDone")){
+offerBtn.style.display = "none";
+}
+
+offerBtn.onclick = () => {
+window.open(PARTNER_URL, "_blank");
+balance += 10;
+localStorage.setItem("offerDone", "1");
+offerBtn.style.display = "none";
+update();
+alert("🎁 +10$ за підписку");
 };
 
-// ===== WITHDRAW =====
-document.getElementById("withdraw").onclick = ()=>{
-  if(balance<WITHDRAW_MIN){ alert(`Ще не можна вивести, потрібно ${WITHDRAW_MIN}$`); return; }
-  alert("💳 Вивід доступний, гроші будуть зараховані через оферну мережу.");
+// ===== ВИВІД =====
+document.getElementById("withdraw").onclick = () => {
+if(balance < WITHDRAW_MIN){
+alert("Мінімум для виводу 500$");
+}else{
+alert("Запит на вивід прийнято");
+}
 };
+
+// ===== ФЕЙК ОНЛАЙН =====
+setInterval(()=>{
+let online = Math.floor(Math.random()*60)+140;
+document.getElementById("online").textContent = "🟢 Онлайн: " + online;
+},3000);
+
 </script>
+
 </body>
 </html>
