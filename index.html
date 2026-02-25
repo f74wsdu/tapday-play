@@ -4,7 +4,6 @@
 <meta charset="UTF-8">
 <title>TapDay Play</title>
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
-
 <style>
 body{margin:0;background:#0b0b0b;color:#fff;font-family:Arial;text-align:center}
 #top{display:flex;justify-content:space-between;align-items:center;padding:10px}
@@ -27,7 +26,6 @@ display:none;align-items:center;justify-content:center;z-index:10}
 .closeBtn{margin-top:10px;color:#ff5555;cursor:pointer}
 </style>
 </head>
-
 <body>
 
 <div id="top">
@@ -70,7 +68,7 @@ const tg = window.Telegram.WebApp;
 tg.expand();
 
 const CHANNEL_LINK = "https://t.me/tapday_clicker";
-const AD_LINK = "ВСТАВ_ТУТ_СВОЮ_РЕКЛАМНУ_ССИЛКУ";
+const AD_LINK = "https://google.com"; // встав свою рекламу
 const WITHDRAW_MIN = 300;
 const DAILY_BONUSES = [0.5,0.75,1,1.5,1.75,2,2.5];
 
@@ -79,77 +77,47 @@ let coins = parseInt(localStorage.coins) || 0;
 let multiplier = 1;
 let lastAdTime = 0;
 
-/* ===== UI ===== */
-function updateUI(){
-balance = parseFloat(balance);
-coins = parseInt(coins);
+const balanceEl=document.getElementById("balance");
+const coinsEl=document.getElementById("coins");
+const leftToWithdraw=document.getElementById("leftToWithdraw");
+const coin=document.getElementById("coin");
+const x2=document.getElementById("x2");
+const x5=document.getElementById("x5");
+const shop=document.getElementById("shop");
+const shopModal=document.getElementById("shopModal");
+const adBtn=document.getElementById("adBtn");
+const daily=document.getElementById("daily");
+const subscribe=document.getElementById("subscribe");
+const share=document.getElementById("share");
+const withdraw=document.getElementById("withdraw");
+const onlineCount=document.getElementById("onlineCount");
+const bonusToday=document.getElementById("bonusToday");
 
+function updateUI(){
 balanceEl.textContent = `💰 Balance: ${balance.toFixed(2)} $`;
 coinsEl.textContent = `🪙 Coins: ${coins}`;
-
-localStorage.balance = balance;
-localStorage.coins = coins;
-
+localStorage.balance=balance;
+localStorage.coins=coins;
 const left = WITHDRAW_MIN - balance;
-leftToWithdraw.textContent =
-left>0 ? `До виводу залишилось: ${left.toFixed(2)} $`
-       : "✅ Вивід доступний";
+leftToWithdraw.textContent=left>0?`До виводу залишилось: ${left.toFixed(2)} $`:"✅ Вивід доступний";
 }
 updateUI();
 
-/* ===== TAP ===== */
-coin.onclick = ()=>{
-balance += 0.01 * multiplier;
-updateUI();
-navigator.vibrate?.(30);
-};
+coin.onclick = ()=>{balance+=0.01*multiplier;updateUI();navigator.vibrate?.(30);};
 
-/* ===== MULT ===== */
-function activateMult(x){
-multiplier = x;
-setTimeout(()=> multiplier=1,600000);
-}
-x2.onclick = ()=>activateMult(2);
-x5.onclick = ()=>activateMult(5);
+function activateMult(x){multiplier=x;setTimeout(()=>multiplier=1,600000);}
+x2.onclick=()=>activateMult(2);
+x5.onclick=()=>activateMult(5);
 
-/* ===== SHOP ===== */
-shop.onclick = ()=>shopModal.style.display="flex";
+shop.onclick=()=>shopModal.style.display="flex";
 function closeShop(){shopModal.style.display="none";}
-
-function buyBoost(x,cost){
-if(coins<cost){tg.showAlert("❌ Недостатньо coins");return;}
-coins-=cost;
-activateMult(x);
-updateUI();
-tg.showAlert(`✅ x${x} активовано`);
-}
-
-/* ===== РЕКЛАМА ===== */
-function watchAd(reward){
-let now=Date.now();
-if(now-lastAdTime<30000){
-tg.showAlert("⏳ Зачекай 30 сек");
-return;
-}
-lastAdTime=now;
-
-window.open(AD_LINK,"_blank");
-
-setTimeout(()=>{
-coins+=reward;
-updateUI();
-tg.showAlert(`🎥 +${reward} coins`);
-},5000);
-}
+function buyBoost(x,cost){if(coins<cost){tg.showAlert("❌ Недостатньо coins");return;}coins-=cost;activateMult(x);updateUI();tg.showAlert(`✅ x${x} активовано`);}
+function watchAd(reward){let now=Date.now();if(now-lastAdTime<30000){tg.showAlert("⏳ Зачекай 30 сек");return;}lastAdTime=now;window.open(AD_LINK,"_blank");setTimeout(()=>{coins+=reward;updateUI();tg.showAlert(`🎥 +${reward} coins`);},5000);}
 adBtn.onclick=()=>watchAd(20);
 
-/* ===== DAILY ===== */
 daily.onclick=()=>{
 const today=new Date().toDateString();
-if(localStorage.dailyDate===today){
-tg.showAlert("❌ Вже отримано");
-return;
-}
+if(localStorage.dailyDate===today){tg.showAlert("❌ Вже отримано");return;}
 let day=parseInt(localStorage.dailyDay)||0;
 let reward=DAILY_BONUSES[day]||0;
 balance+=reward;
@@ -159,50 +127,16 @@ updateUI();
 tg.showAlert(`🎁 +${reward.toFixed(2)} $`);
 };
 
-/* ===== SUBSCRIBE ===== */
 if(localStorage.subBonus) subscribe.style.display="none";
-subscribe.onclick=()=>{
-tg.openTelegramLink(CHANNEL_LINK);
-balance+=10;
-localStorage.subBonus=1;
-subscribe.style.display="none";
-updateUI();
-};
+subscribe.onclick=()=>{tg.openTelegramLink(CHANNEL_LINK);balance+=10;localStorage.subBonus=1;subscribe.style.display="none";updateUI();};
 
-/* ===== SHARE ===== */
-share.onclick=()=>{
-navigator.clipboard.writeText(CHANNEL_LINK);
-coins+=20;
-updateUI();
-tg.showAlert("🔗 +20 coins");
-};
+share.onclick=()=>{navigator.clipboard.writeText(CHANNEL_LINK);coins+=20;updateUI();tg.showAlert("🔗 +20 coins");};
 
-/* ===== WITHDRAW ===== */
-withdraw.onclick=()=>{
-if(balance<WITHDRAW_MIN){
-tg.showAlert("❌ Недостатньо для виводу");
-return;
-}
-tg.showPopup({
-title:"💳 Вивід",
-message:"Запит прийнято. Адмін звʼяжеться з вами.",
-buttons:[{type:"ok"}]
-});
-};
+withdraw.onclick=()=>{if(balance<WITHDRAW_MIN){tg.showAlert("❌ Недостатньо для виводу");return;}tg.showPopup({title:"💳 Вивід",message:"Запит прийнято. Адмін звʼяжеться з вами.",buttons:[{type:"ok"}]});};
 
-/* ===== ONLINE ===== */
-setInterval(()=>{
-onlineCount.textContent=3000+Math.floor(Math.random()*500)-250;
-},3000);
-
+setInterval(()=>{onlineCount.textContent=3000+Math.floor(Math.random()*500)-250;},3000);
 let bonusTodayValue=parseInt(localStorage.bonusToday)||200;
-setInterval(()=>{
-if(Math.random()>0.7){
-bonusTodayValue++;
-localStorage.bonusToday=bonusTodayValue;
-}
-bonusToday.textContent=bonusTodayValue;
-},6000);
+setInterval(()=>{if(Math.random()>0.7){bonusTodayValue++;localStorage.bonusToday=bonusTodayValue;}bonusToday.textContent=bonusTodayValue;},6000);
 </script>
 
 </body>
