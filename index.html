@@ -3,19 +3,15 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>TapDay Play</title>
+<title>TapDay Play з Offером</title>
 
 <style>
-body{margin:0;font-family:Arial;background:#0f0f0f;color:white;text-align:center}
-h2{margin-top:15px}
-#online{color:#00ff88;font-size:15px;margin-bottom:10px}
-#coin{margin:25px auto;width:180px;height:180px;border-radius:50%;
-background:radial-gradient(circle,#ffd700,#ff9800);
-display:flex;align-items:center;justify-content:center;
-font-size:30px;font-weight:bold;cursor:pointer;}
-.block{background:#222;margin:8px auto;padding:12px;border-radius:12px;width:90%;cursor:pointer}
-.mult{position:fixed;top:55%;padding:10px 14px;background:#222;border-radius:12px;cursor:pointer}
-#x2{left:10px}#x5{right:10px}
+body { margin:0; font-family:Arial, sans-serif; background:#0b0b0b; color:white; text-align:center; }
+#coin { margin:30px auto; width:180px; height:180px; border-radius:50%; background:radial-gradient(circle,#ffd700,#ff9800); display:flex; align-items:center; justify-content:center; font-size:30px; font-weight:bold; cursor:pointer; }
+.block { background:#222; margin:8px auto; padding:12px; border-radius:12px; width:90%; cursor:pointer; }
+.mult { position:fixed; top:55%; padding:10px 14px; background:#222; border-radius:12px; cursor:pointer; }
+#x2{left:10px} #x5{right:10px}
+#online { color:#00ff88; font-size:15px; margin-bottom:10px; }
 </style>
 
 </head>
@@ -30,9 +26,8 @@ font-size:30px;font-weight:bold;cursor:pointer;}
 <div id="coins">🪙 Coins: 0</div>
 <div id="left"></div>
 
-<div id="daily" class="block">🎁 Бонус сьогодні (+1$)</div>
-<div id="tg" class="block">📢 Підписатись на Telegram</div>
-<div id="offer" class="block">💎 Отримати 10$ бонус</div>
+<div id="daily" class="block">🎁 Денний бонус (+1$)</div>
+<div id="offer" class="block">💎 Отримати бонус за покупку</div>
 <div id="withdraw" class="block">💳 Вивід (мін. 500$)</div>
 
 <div id="x2" class="mult">x2</div>
@@ -40,10 +35,9 @@ font-size:30px;font-weight:bold;cursor:pointer;}
 
 <script>
 
-// → НАЛАШТУЙ ТУТ
+// → НАЛАШТУВАННЯ
 const WITHDRAW_MIN = 500;
-const TELEGRAM_URL = "https://t.me/tapday_clicker";
-const PARTNER_URL = "https://t.me/tapday_clicker"; // можна зробити посилання офера замість цього
+const PARTNER_URL = "https://rzekl.com/g/1e8d1144942bea9bcf7116525dc3e8/"; // твоє партнерське посилання
 
 // → ДАНІ
 let balance = parseFloat(localStorage.getItem("balance")) || 0;
@@ -55,33 +49,29 @@ const balanceEl = document.getElementById("balance");
 const coinsEl = document.getElementById("coins");
 const leftEl = document.getElementById("left");
 
-// → ФУНКЦІЯ UPDATE
-function update(){
-  balanceEl.textContent = "💰 Balance: " + balance.toFixed(2) + " $";
-  coinsEl.textContent = "🪙 Coins: " + coins;
-
+// → UPDATE UI
+function updateUI(){
+  balanceEl.textContent = `💰 Balance: ${balance.toFixed(2)} $`;
+  coinsEl.textContent = `🪙 Coins: ${coins}`;
   let left = WITHDRAW_MIN - balance;
-  leftEl.textContent = left > 0 
-    ? "До виводу: " + left.toFixed(2) + " $" 
-    : "✅ Вивід доступний";
-
+  leftEl.textContent = left>0 ? `До виводу: ${left.toFixed(2)} $` : "✅ Вивід доступний";
   localStorage.setItem("balance", balance);
   localStorage.setItem("coins", coins);
 }
-update();
+updateUI();
 
 // → TAP
 document.getElementById("coin").onclick = () => {
-  balance += 0.01*multiplier;
+  balance += 0.01 * multiplier;
   coins += 1;
-  update();
+  updateUI();
   navigator.vibrate?.(30);
 };
 
-// → MULTIPLIERS
+// → МНОЖНИКИ
 function activateMult(x){
   multiplier = x;
-  setTimeout(()=> multiplier = 1, 600000); 
+  setTimeout(()=> multiplier = 1, 600000);
 }
 document.getElementById("x2").onclick = ()=> activateMult(2);
 document.getElementById("x5").onclick = ()=> activateMult(5);
@@ -95,38 +85,26 @@ document.getElementById("daily").onclick = () => {
   }
   balance += 1;
   localStorage.setItem("daily", today);
-  update();
-  alert("🎁 +1$");
+  updateUI();
+  alert("🎁 +1$ (віртуально)");
 };
 
-// → ПІДПИСАТИСЬ
-document.getElementById("tg").onclick = () => {
-  window.open(TELEGRAM_URL, "_blank");
-};
-
-// → БОНУС ЗА ПІДПИСКУ (офер)
-if(localStorage.getItem("offerDone")){
-  document.getElementById("offer").style.display="none";
-}
+// → ОФЕР (ПЕРЕХІД НА AliExpress)
 document.getElementById("offer").onclick = () => {
-  window.open(PARTNER_URL, "_blank");
-  balance += 10;
-  localStorage.setItem("offerDone","1");
-  document.getElementById("offer").style.display="none";
-  update();
-  alert("🎁 +10$");
+  window.open(PARTNER_URL, "_blank");  
+  alert("🔗 Переходь за покупкою — і отримаєш бонус!");
 };
 
 // → ВИВІД
 document.getElementById("withdraw").onclick = () => {
   if(balance < WITHDRAW_MIN){
-    alert(`Поки не можна вивести. Мінімум ${WITHDRAW_MIN}$`);
+    alert(`Ще не можна вивести. Потрібно ${WITHDRAW_MIN}$`);
   } else {
     alert("💳 Вивід доступний (віртуально)");
   }
 };
 
-// → ФЕЙК ОНЛАЙН
+// → ОНЛАЙН ЛІЧИЛЬНИК
 setInterval(()=>{
   let online = Math.floor(Math.random()*400)+2800;
   document.getElementById("online").textContent = "🟢 Онлайн: " + online;
