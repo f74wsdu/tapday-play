@@ -6,57 +6,18 @@
 <title>TapDay Play</title>
 
 <style>
-body{
-margin:0;
-font-family:Arial;
-background:#0f0f0f;
-color:white;
-text-align:center;
-}
-
+body{margin:0;font-family:Arial;background:#0f0f0f;color:white;text-align:center}
 h2{margin-top:15px}
-
-#online{
-color:#00ff88;
-font-size:15px;
-margin-bottom:10px;
-}
-
-#coin{
-margin:25px auto;
-width:180px;
-height:180px;
-border-radius:50%;
+#online{color:#00ff88;font-size:15px;margin-bottom:10px}
+#coin{margin:25px auto;width:180px;height:180px;border-radius:50%;
 background:radial-gradient(circle,#ffd700,#ff9800);
-display:flex;
-align-items:center;
-justify-content:center;
-font-size:30px;
-font-weight:bold;
-cursor:pointer;
-}
-
-.block{
-background:#222;
-margin:8px auto;
-padding:12px;
-border-radius:12px;
-width:90%;
-cursor:pointer;
-}
-
-.mult{
-position:fixed;
-top:55%;
-padding:10px 14px;
-background:#222;
-border-radius:12px;
-cursor:pointer;
-}
-
-#x2{left:10px}
-#x5{right:10px}
+display:flex;align-items:center;justify-content:center;
+font-size:30px;font-weight:bold;cursor:pointer;}
+.block{background:#222;margin:8px auto;padding:12px;border-radius:12px;width:90%;cursor:pointer}
+.mult{position:fixed;top:55%;padding:10px 14px;background:#222;border-radius:12px;cursor:pointer}
+#x2{left:10px}#x5{right:10px}
 </style>
+
 </head>
 <body>
 
@@ -79,100 +40,96 @@ cursor:pointer;
 
 <script>
 
-// ===== НАЛАШТУВАННЯ =====
+// → НАЛАШТУЙ ТУТ
 const WITHDRAW_MIN = 500;
-const PARTNER_URL = "https://your-offer-link.com"; 
-const TELEGRAM_URL = "https://t.me/yourchannel";
+const TELEGRAM_URL = "https://t.me/tapday_clicker";
+const PARTNER_URL = "https://t.me/tapday_clicker"; // можна зробити посилання офера замість цього
 
-// ===== ДАНІ =====
+// → ДАНІ
 let balance = parseFloat(localStorage.getItem("balance")) || 0;
 let coins = parseInt(localStorage.getItem("coins")) || 0;
 let multiplier = 1;
 
-// ===== ЕЛЕМЕНТИ =====
+// → ЕЛЕМЕНТИ
 const balanceEl = document.getElementById("balance");
 const coinsEl = document.getElementById("coins");
 const leftEl = document.getElementById("left");
 
-// ===== ОНОВЛЕННЯ =====
+// → ФУНКЦІЯ UPDATE
 function update(){
-balanceEl.textContent = "💰 Balance: " + balance.toFixed(2) + " $";
-coinsEl.textContent = "🪙 Coins: " + coins;
+  balanceEl.textContent = "💰 Balance: " + balance.toFixed(2) + " $";
+  coinsEl.textContent = "🪙 Coins: " + coins;
 
-let left = WITHDRAW_MIN - balance;
-leftEl.textContent = left > 0 
-? "До виводу: " + left.toFixed(2) + " $" 
-: "✅ Вивід доступний";
+  let left = WITHDRAW_MIN - balance;
+  leftEl.textContent = left > 0 
+    ? "До виводу: " + left.toFixed(2) + " $" 
+    : "✅ Вивід доступний";
 
-localStorage.setItem("balance", balance);
-localStorage.setItem("coins", coins);
+  localStorage.setItem("balance", balance);
+  localStorage.setItem("coins", coins);
 }
-
 update();
 
-// ===== TAP =====
+// → TAP
 document.getElementById("coin").onclick = () => {
-balance += 0.01 * multiplier;
-coins += 1;
-update();
-navigator.vibrate?.(30);
+  balance += 0.01*multiplier;
+  coins += 1;
+  update();
+  navigator.vibrate?.(30);
 };
 
-// ===== МНОЖНИКИ =====
+// → MULTIPLIERS
 function activateMult(x){
-multiplier = x;
-setTimeout(()=> multiplier = 1, 600000);
+  multiplier = x;
+  setTimeout(()=> multiplier = 1, 600000); 
 }
 document.getElementById("x2").onclick = ()=> activateMult(2);
 document.getElementById("x5").onclick = ()=> activateMult(5);
 
-// ===== БОНУС СЬОГОДНІ =====
+// → БОНУС СЬОГОДНІ
 document.getElementById("daily").onclick = () => {
-let today = new Date().toDateString();
-
-if(localStorage.getItem("daily") === today){
-alert("Бонус вже отримано сьогодні");
-return;
-}
-
-balance += 1;
-localStorage.setItem("daily", today);
-update();
-alert("+1$ за сьогодні");
+  let today = new Date().toDateString();
+  if(localStorage.getItem("daily") === today){
+    alert("Бонус вже отримано сьогодні");
+    return;
+  }
+  balance += 1;
+  localStorage.setItem("daily", today);
+  update();
+  alert("🎁 +1$");
 };
 
-// ===== TELEGRAM =====
+// → ПІДПИСАТИСЬ
 document.getElementById("tg").onclick = () => {
-window.open(TELEGRAM_URL, "_blank");
+  window.open(TELEGRAM_URL, "_blank");
 };
 
-// ===== ОФЕР БОНУС =====
+// → БОНУС ЗА ПІДПИСКУ (офер)
 if(localStorage.getItem("offerDone")){
-document.getElementById("offer").style.display="none";
+  document.getElementById("offer").style.display="none";
 }
-
 document.getElementById("offer").onclick = () => {
-window.open(PARTNER_URL, "_blank");
-balance += 10;
-localStorage.setItem("offerDone","1");
-document.getElementById("offer").style.display="none";
-update();
-alert("+10$ бонус");
+  window.open(PARTNER_URL, "_blank");
+  balance += 10;
+  localStorage.setItem("offerDone","1");
+  document.getElementById("offer").style.display="none";
+  update();
+  alert("🎁 +10$");
 };
 
-// ===== ВИВІД =====
+// → ВИВІД
 document.getElementById("withdraw").onclick = () => {
-if(balance < WITHDRAW_MIN){
-alert("Мінімум для виводу 500$");
-}else{
-alert("Запит на вивід прийнято");
-}
+  if(balance < WITHDRAW_MIN){
+    alert(`Поки не можна вивести. Мінімум ${WITHDRAW_MIN}$`);
+  } else {
+    alert("💳 Вивід доступний (віртуально)");
+  }
 };
 
-// ===== ОНЛАЙН ~3000 =====
+// → ФЕЙК ОНЛАЙН
 setInterval(()=>{
-let online = Math.floor(Math.random()*400)+2800;
-document.getElementById("online").textContent = "🟢 Онлайн: " + online;
+  let online = Math.floor(Math.random()*400)+2800;
+  document.getElementById("online").textContent = "🟢 Онлайн: " + online;
 },3000);
 
 </script>
