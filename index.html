@@ -2,115 +2,93 @@
 <html lang="uk">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>TapDay Play з Offером</title>
-
+<title>TapDay Play – Офери</title>
 <style>
-body { margin:0; font-family:Arial, sans-serif; background:#0b0b0b; color:white; text-align:center; }
-#coin { margin:30px auto; width:180px; height:180px; border-radius:50%; background:radial-gradient(circle,#ffd700,#ff9800); display:flex; align-items:center; justify-content:center; font-size:30px; font-weight:bold; cursor:pointer; }
-.block { background:#222; margin:8px auto; padding:12px; border-radius:12px; width:90%; cursor:pointer; }
-.mult { position:fixed; top:55%; padding:10px 14px; background:#222; border-radius:12px; cursor:pointer; }
-#x2{left:10px} #x5{right:10px}
-#online { color:#00ff88; font-size:15px; margin-bottom:10px; }
+body { margin:0; font-family:Arial; background:#0f172a; color:white; text-align:center; }
+#top { padding:10px; background:#111827; }
+button{ padding:10px 20px; margin:5px; border:none; border-radius:8px; cursor:pointer; }
+#coin { margin:30px auto; width:150px; height:150px; border-radius:50%; background:radial-gradient(circle,#ffd700,#ff9800); display:flex; align-items:center; justify-content:center; font-size:32px; cursor:pointer; }
+.block{ margin:10px auto; padding:10px; width:90%; border-radius:10px; background:#222; cursor:pointer; }
 </style>
-
 </head>
 <body>
 
-<h2>TapDay Play</h2>
-<div id="online">🟢 Онлайн: 3000</div>
+<div id="top">
+  <div>🟢 Online: <span id="onlineCount">3000</span></div>
+  <div>🔥 Bonus today: <span id="bonusToday">200</span></div>
+</div>
 
 <div id="coin">TAP</div>
-
 <div id="balance">💰 Balance: 0.00 $</div>
 <div id="coins">🪙 Coins: 0</div>
-<div id="left"></div>
 
-<div id="daily" class="block">🎁 Денний бонус (+1$)</div>
-<div id="offer" class="block">💎 Отримати бонус за покупку</div>
-<div id="withdraw" class="block">💳 Вивід (мін. 500$)</div>
-
-<div id="x2" class="mult">x2</div>
-<div id="x5" class="mult">x5</div>
+<div id="daily" class="block">📅 Денний бонус</div>
+<div id="offer" class="block">🎁 Отримати бонус за покупку</div>
+<div id="subscribe" class="block">📢 Бонус 10$ за підписку</div>
 
 <script>
+let balance = parseFloat(localStorage.getItem("balance"))||0;
+let coins = parseInt(localStorage.getItem("coins"))||0;
 
-// → НАЛАШТУВАННЯ
-const WITHDRAW_MIN = 500;
-const PARTNER_URL = "https://rzekl.com/g/1e8d1144942bea9bcf7116525dc3e8/"; // твоє партнерське посилання
-
-// → ДАНІ
-let balance = parseFloat(localStorage.getItem("balance")) || 0;
-let coins = parseInt(localStorage.getItem("coins")) || 0;
-let multiplier = 1;
-
-// → ЕЛЕМЕНТИ
-const balanceEl = document.getElementById("balance");
-const coinsEl = document.getElementById("coins");
-const leftEl = document.getElementById("left");
-
-// → UPDATE UI
+// ===== Функція оновлення UI =====
 function updateUI(){
-  balanceEl.textContent = `💰 Balance: ${balance.toFixed(2)} $`;
-  coinsEl.textContent = `🪙 Coins: ${coins}`;
-  let left = WITHDRAW_MIN - balance;
-  leftEl.textContent = left>0 ? `До виводу: ${left.toFixed(2)} $` : "✅ Вивід доступний";
+  document.getElementById("balance").innerText=`💰 Balance: ${balance.toFixed(2)} $`;
+  document.getElementById("coins").innerText=`🪙 Coins: ${coins}`;
   localStorage.setItem("balance", balance);
   localStorage.setItem("coins", coins);
 }
 updateUI();
 
-// → TAP
-document.getElementById("coin").onclick = () => {
-  balance += 0.01 * multiplier;
-  coins += 1;
+// ===== Онлайн + бонуси =====
+setInterval(()=>{ document.getElementById("onlineCount").innerText=3000+Math.floor(Math.random()*500-250); },3000);
+
+// ===== TAP =====
+document.getElementById("coin").onclick=()=>{
+  balance+=0.01;
   updateUI();
-  navigator.vibrate?.(30);
 };
 
-// → МНОЖНИКИ
-function activateMult(x){
-  multiplier = x;
-  setTimeout(()=> multiplier = 1, 600000);
-}
-document.getElementById("x2").onclick = ()=> activateMult(2);
-document.getElementById("x5").onclick = ()=> activateMult(5);
-
-// → БОНУС СЬОГОДНІ
-document.getElementById("daily").onclick = () => {
-  let today = new Date().toDateString();
-  if(localStorage.getItem("daily") === today){
-    alert("Бонус вже отримано сьогодні");
-    return;
-  }
-  balance += 1;
-  localStorage.setItem("daily", today);
+// ===== Денний бонус =====
+document.getElementById("daily").onclick=()=>{
+  let today=new Date().toDateString();
+  if(localStorage.getItem("dailyDate")===today){ alert("❌ Вже отримано"); return; }
+  balance+=1; // денний бонус
+  localStorage.setItem("dailyDate",today);
   updateUI();
-  alert("🎁 +1$ (віртуально)");
+  alert("🎁 +1$ денний бонус");
 };
 
-// → ОФЕР (ПЕРЕХІД НА AliExpress)
-document.getElementById("offer").onclick = () => {
-  window.open(PARTNER_URL, "_blank");  
-  alert("🔗 Переходь за покупкою — і отримаєш бонус!");
-};
-
-// → ВИВІД
-document.getElementById("withdraw").onclick = () => {
-  if(balance < WITHDRAW_MIN){
-    alert(`Ще не можна вивести. Потрібно ${WITHDRAW_MIN}$`);
-  } else {
-    alert("💳 Вивід доступний (віртуально)");
+// ===== Підписка на канал =====
+document.getElementById("subscribe").onclick=()=>{
+  window.open("https://t.me/tapday_clicker","_blank");
+  if(!localStorage.getItem("subBonus")){
+    balance+=10;
+    localStorage.setItem("subBonus","1");
+    updateUI();
+    alert("📢 +10$ за підписку");
   }
 };
 
-// → ОНЛАЙН ЛІЧИЛЬНИК
-setInterval(()=>{
-  let online = Math.floor(Math.random()*400)+2800;
-  document.getElementById("online").textContent = "🟢 Онлайн: " + online;
-},3000);
+// ===== Офер/партнерка =====
+document.getElementById("offer").onclick=()=>{
+  // Відкриває твій Beacons/AliExpress
+  window.open("https://rzekl.com/g/1e8d1144942bea9bcf7116525dc3e8/","_blank");
 
+  // Симуляція перевірки покупки через сервер
+  fetch("https://your-server.com/check_purchase?user_id=123") // Твій сервер для перевірки
+    .then(res=>res.json())
+    .then(data=>{
+      if(data.success){
+        coins+=data.coins; 
+        balance+=data.money; 
+        updateUI();
+        alert(`🎁 Отримано бонус: ${data.coins} coins, ${data.money}$`);
+      } else {
+        alert("❌ Бонус поки не підтверджено. Ви отримаєте його після покупки/дії.");
+      }
+    })
+    .catch(()=>alert("❌ Сервер не відповідає"));
+};
 </script>
-
 </body>
 </html>
