@@ -149,17 +149,19 @@ body {
 
     <div class="shopItem" onclick="buyBoost(2,50)">⚡ x2 Tap (10 хв) — 50 coins</div>
     <div class="shopItem" onclick="buyBoost(5,120)">🔥 x5 Tap (10 хв) — 120 coins</div>
-    <div class="shopItem" onclick="buyCoins()">🎁 Отримати coins (офер через Beacons)</div>
+    <div class="shopItem" onclick="buyCoins()">🎁 Отримати coins (офер)</div>
 
     <div class="closeBtn" onclick="closeShop()">Закрити</div>
   </div>
 </div>
 
 <script>
-// ===== ПОСИЛАННЯ =====
-const CHANNEL_LINK = "https://t.me/tapday_clicker"; // твій Telegram канал
-const BEACONS_LINK = "https://beacons.ai/dealspavlo"; // твоє партнерське посилання Beacons
-const WITHDRAW_MIN = 500; // мінімум для виводу
+// ==== КАНАЛ ДЛЯ ПІДПИСКИ ====
+const CHANNEL_SUBSCRIBE = "https://t.me/TabDuyHame";
+// ==== ПОСИЛАННЯ НА ГРУ ДЛЯ SHARE ====
+const GAME_LINK = "https://t.me/TabDuyPlay";
+
+const WITHDRAW_MIN = 300;
 const DAILY_BONUSES = [0.5,0.75,1,1.5,1.75,2,2.5];
 
 let balance = parseFloat(localStorage.getItem("balance")) || 0;
@@ -212,12 +214,10 @@ function buyBoost(x, cost){
   alert(`✅ Активовано x${x}`);
 }
 
-// ===== ПАРТНЕРСЬКЕ ПОСИЛАННЯ =====
 function buyCoins(){
-  window.open(BEACONS_LINK,"_blank");
   coins += 30;
   updateUI();
-  alert("🎁 Ви отримали coins через партнерку Beacons");
+  alert("🎁 Ви отримали coins");
 }
 
 // ===== DAILY BONUS =====
@@ -239,16 +239,16 @@ daily.onclick = () => {
 // ===== SUBSCRIBE =====
 if(localStorage.getItem("subBonus")) subscribe.style.display="none";
 subscribe.onclick = () => {
-  window.open(CHANNEL_LINK,"_blank");
+  window.open(CHANNEL_SUBSCRIBE,"_blank");
   balance += 10;
   localStorage.setItem("subBonus","1");
   subscribe.style.display="none";
   updateUI();
 };
 
-// ===== SHARE =====
+// ===== SHARE GAME LINK =====
 share.onclick = () => {
-  navigator.clipboard.writeText(CHANNEL_LINK);
+  navigator.clipboard.writeText(GAME_LINK);
   coins += 20;
   updateUI();
   alert("🔗 Посилання скопійовано +20 coins");
