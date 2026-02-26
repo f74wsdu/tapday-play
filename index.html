@@ -57,6 +57,10 @@ h1{
     background:#f59e0b;
     color:black;
 }
+.bonus{
+    background:#10b981;
+    color:white;
+}
 .reset{
     background:#ef4444;
     color:white;
@@ -65,6 +69,11 @@ h1{
     margin-top:20px;
     font-size:14px;
     opacity:0.8;
+}
+.online{
+    margin-top:10px;
+    font-size:16px;
+    color:#facc15;
 }
 </style>
 </head>
@@ -80,10 +89,15 @@ h1{
 <button class="tap-btn" onclick="tap()">TAP</button>
 
 <div class="menu">
-<!-- Тут кнопки залишаються як були -->
+<!-- Кнопки повернуті, як було -->
 <button class="partner" onclick="openPartner()">🛍 Отримати бонус (Партнерка)</button>
+<button class="bonus" onclick="dailyBonus()">🎁 Щоденний бонус</button>
 <button class="upgrade" onclick="upgrade()">⬆ Покращити тап (+1)</button>
 <button class="reset" onclick="resetGame()">🔄 Скинути гру</button>
+</div>
+
+<div class="online">
+Онлайн гравців: <span id="online">3000</span>
 </div>
 
 <div class="stats">
@@ -95,11 +109,12 @@ h1{
 </div>
 
 <script>
-// Логіка залишаємо як раніше
+// Зберігаємо все, як було раніше
 let coins = localStorage.getItem("coins") ? parseInt(localStorage.getItem("coins")) : 0;
 let power = localStorage.getItem("power") ? parseInt(localStorage.getItem("power")) : 1;
 let actions = localStorage.getItem("actions") ? parseInt(localStorage.getItem("actions")) : 0;
 let bonus = localStorage.getItem("bonus") ? parseInt(localStorage.getItem("bonus")) : 0;
+let dailyClaimed = localStorage.getItem("dailyClaimed") ? JSON.parse(localStorage.getItem("dailyClaimed")) : false;
 
 updateUI();
 
@@ -122,13 +137,25 @@ function upgrade(){
     }
 }
 
-// Партнерська кнопка — лише вставили твій Beacons лінк
 function openPartner(){
     bonus += 1;
     coins += 50; // бонус гравцю
     save();
     updateUI();
-    window.open("https://beacons.ai/dealspavlo","_blank"); // тут твій партнерський лінк
+    window.open("https://beacons.ai/dealspavlo","_blank"); // твій партнерський лінк
+}
+
+function dailyBonus(){
+    if(!dailyClaimed){
+        coins += 100;
+        bonus += 1;
+        dailyClaimed = true;
+        save();
+        updateUI();
+        alert("Отримано щоденний бонус!");
+    } else {
+        alert("Ви вже отримали бонус сьогодні!");
+    }
 }
 
 function resetGame(){
@@ -143,6 +170,7 @@ function save(){
     localStorage.setItem("power",power);
     localStorage.setItem("actions",actions);
     localStorage.setItem("bonus",bonus);
+    localStorage.setItem("dailyClaimed",dailyClaimed);
 }
 
 function updateUI(){
@@ -150,6 +178,7 @@ function updateUI(){
     document.getElementById("power").innerText = power;
     document.getElementById("actions").innerText = actions;
     document.getElementById("bonus").innerText = bonus;
+    document.getElementById("online").innerText = 3000; // залишаємо постійний онлайн
 }
 </script>
 
