@@ -2,184 +2,271 @@
 <html lang="uk">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>TapDay Play</title>
+
 <style>
-body{
-    margin:0;
-    font-family:Arial, sans-serif;
-    background:#0f172a;
-    color:white;
-    text-align:center;
+body {
+  margin: 0;
+  background: #0b0b0b;
+  color: #fff;
+  font-family: Arial, sans-serif;
+  text-align: center;
 }
-.container{
-    padding:20px;
+
+#top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px;
 }
-h1{
-    font-size:28px;
+
+#online {
+  font-size: 12px;
+  color: #00ff7f;
 }
-.balance{
-    font-size:24px;
-    margin:20px 0;
+
+#coin {
+  margin: 60px auto 10px;
+  width: 180px;
+  height: 180px;
+  border-radius: 50%;
+  background: radial-gradient(circle, #ffd700, #ff9800);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 32px;
+  font-weight: bold;
+  cursor: pointer;
 }
-.tap-btn{
-    width:180px;
-    height:180px;
-    border-radius:50%;
-    border:none;
-    font-size:22px;
-    background:#22c55e;
-    color:white;
-    cursor:pointer;
-    transition:0.1s;
+
+#balance, #coins {
+  font-size: 18px;
+  margin-bottom: 6px;
 }
-.tap-btn:active{
-    transform:scale(0.95);
+
+.block {
+  margin: 8px auto;
+  width: 90%;
+  padding: 12px;
+  border-radius: 12px;
+  background: #333;
+  cursor: pointer;
 }
-.menu{
-    margin-top:30px;
+
+#withdraw {
+  background: green;
+  width: fit-content;
+  padding: 10px 25px;
 }
-.menu button{
-    display:block;
-    width:80%;
-    margin:10px auto;
-    padding:12px;
-    font-size:16px;
-    border:none;
-    border-radius:8px;
-    cursor:pointer;
+
+#leftToWithdraw {
+  margin-top: 6px;
+  font-size: 14px;
+  color: #ffcc00;
 }
-.partner{
-    background:#3b82f6;
-    color:white;
+
+.mult {
+  position: fixed;
+  top: 55%;
+  padding: 10px 14px;
+  background: #222;
+  border-radius: 12px;
+  cursor: pointer;
 }
-.upgrade{
-    background:#f59e0b;
-    color:black;
+
+#x2 { left: 10px; }
+#x5 { right: 10px; }
+.mult.active { background: #ff9800; }
+
+/* ===== SHOP MODAL ===== */
+#shopModal {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.85);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
 }
-.bonus{
-    background:#10b981;
-    color:white;
+
+#shopBox {
+  background: #1e1e1e;
+  width: 90%;
+  max-width: 350px;
+  padding: 20px;
+  border-radius: 16px;
 }
-.reset{
-    background:#ef4444;
-    color:white;
+
+.shopItem {
+  background: #333;
+  padding: 10px;
+  border-radius: 10px;
+  margin: 8px 0;
+  cursor: pointer;
 }
-.stats{
-    margin-top:20px;
-    font-size:14px;
-    opacity:0.8;
-}
-.online{
-    margin-top:10px;
-    font-size:16px;
-    color:#facc15;
+
+.closeBtn {
+  margin-top: 10px;
+  color: #ff5555;
+  cursor: pointer;
 }
 </style>
 </head>
+
 <body>
 
-<div class="container">
-<h1>🔥 TapDay Play</h1>
-
-<div class="balance">
-💰 Coins: <span id="coins">0</span>
+<div id="top">
+  <button id="adBtn">🎥 +Coins</button>
+  <div id="online">
+    🟢 Online: <span id="onlineCount">3000</span><br>
+    🎁 Bonus today: <span id="bonusToday">200</span>
+  </div>
 </div>
 
-<button class="tap-btn" onclick="tap()">TAP</button>
+<div id="x2" class="mult">x2</div>
+<div id="x5" class="mult">x5</div>
 
-<div class="menu">
-<!-- Кнопки повернуті, як було -->
-<button class="partner" onclick="openPartner()">🛍 Отримати бонус (Партнерка)</button>
-<button class="bonus" onclick="dailyBonus()">🎁 Щоденний бонус</button>
-<button class="upgrade" onclick="upgrade()">⬆ Покращити тап (+1)</button>
-<button class="reset" onclick="resetGame()">🔄 Скинути гру</button>
-</div>
+<div id="coin">TAP</div>
 
-<div class="online">
-Онлайн гравців: <span id="online">3000</span>
-</div>
+<div id="balance">💰 Balance: 0.00 $</div>
+<div id="coins">🪙 Coins: 0</div>
 
-<div class="stats">
-<p>Сила тапу: <span id="power">1</span></p>
-<p>Виконано дій: <span id="actions">0</span></p>
-<p>Бонусів отримано: <span id="bonus">0</span></p>
-</div>
+<div id="daily" class="block">📅 Денний бонус</div>
+<div id="bonus30" class="block">⏳ Бонус через 30 днів</div>
+<div id="subscribe" class="block">📢 Бонус 10$ за підписку</div>
 
+<div id="shop" class="block">🛒 Coin Shop</div>
+
+<div id="withdraw" class="block">💳 Вивід</div>
+<div id="leftToWithdraw"></div>
+
+<div id="share" class="block">🔗 Поділитися грою</div>
+
+<!-- SHOP MODAL -->
+<div id="shopModal">
+  <div id="shopBox">
+    <h3>🛒 Coin Shop</h3>
+
+    <div class="shopItem" onclick="buyBoost(2,50)">⚡ x2 Tap (10 хв) — 50 coins</div>
+    <div class="shopItem" onclick="buyBoost(5,120)">🔥 x5 Tap (10 хв) — 120 coins</div>
+    <div class="shopItem" onclick="buyCoins()">🎁 Отримати coins (офер через Beacons)</div>
+
+    <div class="closeBtn" onclick="closeShop()">Закрити</div>
+  </div>
 </div>
 
 <script>
-// Зберігаємо все, як було раніше
-let coins = localStorage.getItem("coins") ? parseInt(localStorage.getItem("coins")) : 0;
-let power = localStorage.getItem("power") ? parseInt(localStorage.getItem("power")) : 1;
-let actions = localStorage.getItem("actions") ? parseInt(localStorage.getItem("actions")) : 0;
-let bonus = localStorage.getItem("bonus") ? parseInt(localStorage.getItem("bonus")) : 0;
-let dailyClaimed = localStorage.getItem("dailyClaimed") ? JSON.parse(localStorage.getItem("dailyClaimed")) : false;
+// ===== ПОСИЛАННЯ =====
+const CHANNEL_LINK = "https://t.me/tapday_clicker"; // твій Telegram канал
+const BEACONS_LINK = "https://beacons.ai/dealspavlo"; // твоє партнерське посилання Beacons
+const WITHDRAW_MIN = 500; // мінімум для виводу
+const DAILY_BONUSES = [0.5,0.75,1,1.5,1.75,2,2.5];
 
+let balance = parseFloat(localStorage.getItem("balance")) || 0;
+let coins = parseInt(localStorage.getItem("coins")) || 0;
+let multiplier = 1;
+
+// ===== UPDATE UI =====
+function updateUI() {
+  document.getElementById("balance").textContent =
+    `💰 Balance: ${balance.toFixed(2)} $`;
+  document.getElementById("coins").textContent =
+    `🪙 Coins: ${coins}`;
+  localStorage.setItem("balance", balance);
+  localStorage.setItem("coins", coins);
+
+  const left = WITHDRAW_MIN - balance;
+  leftToWithdraw.textContent =
+    left > 0 ? `До виводу залишилось: ${left.toFixed(2)} $`
+             : "✅ Вивід доступний";
+}
 updateUI();
 
-function tap(){
-    coins += power;
-    actions++;
-    save();
-    updateUI();
+// ===== TAP =====
+coin.onclick = () => {
+  balance += 0.01 * multiplier;
+  updateUI();
+  navigator.vibrate?.(30);
+};
+
+// ===== MULT =====
+function activateMult(x) {
+  multiplier = x;
+  setTimeout(() => multiplier = 1, 600000);
+}
+x2.onclick = () => activateMult(2);
+x5.onclick = () => activateMult(5);
+
+// ===== SHOP =====
+shop.onclick = () => shopModal.style.display = "flex";
+function closeShop(){ shopModal.style.display="none"; }
+
+function buyBoost(x, cost){
+  if(coins < cost){
+    alert("❌ Недостатньо coins");
+    return;
+  }
+  coins -= cost;
+  activateMult(x);
+  updateUI();
+  alert(`✅ Активовано x${x}`);
 }
 
-function upgrade(){
-    if(coins >= 100){
-        coins -= 100;
-        power++;
-        save();
-        updateUI();
-        alert("Сила тапу збільшена!");
-    } else {
-        alert("Недостатньо монет!");
-    }
+// ===== ПАРТНЕРСЬКЕ ПОСИЛАННЯ =====
+function buyCoins(){
+  window.open(BEACONS_LINK,"_blank");
+  coins += 30;
+  updateUI();
+  alert("🎁 Ви отримали coins через партнерку Beacons");
 }
 
-function openPartner(){
-    bonus += 1;
-    coins += 50; // бонус гравцю
-    save();
-    updateUI();
-    window.open("https://beacons.ai/dealspavlo","_blank"); // твій партнерський лінк
-}
+// ===== DAILY BONUS =====
+daily.onclick = () => {
+  const today = new Date().toDateString();
+  if(localStorage.getItem("dailyDate") === today){
+    alert("❌ Вже отримано");
+    return;
+  }
+  let day = parseInt(localStorage.getItem("dailyDay")) || 0;
+  let reward = DAILY_BONUSES[day] || 0;
+  balance += reward;
+  localStorage.setItem("dailyDay", day+1);
+  localStorage.setItem("dailyDate", today);
+  updateUI();
+  alert(`🎁 +${reward.toFixed(2)} $`);
+};
 
-function dailyBonus(){
-    if(!dailyClaimed){
-        coins += 100;
-        bonus += 1;
-        dailyClaimed = true;
-        save();
-        updateUI();
-        alert("Отримано щоденний бонус!");
-    } else {
-        alert("Ви вже отримали бонус сьогодні!");
-    }
-}
+// ===== SUBSCRIBE =====
+if(localStorage.getItem("subBonus")) subscribe.style.display="none";
+subscribe.onclick = () => {
+  window.open(CHANNEL_LINK,"_blank");
+  balance += 10;
+  localStorage.setItem("subBonus","1");
+  subscribe.style.display="none";
+  updateUI();
+};
 
-function resetGame(){
-    if(confirm("Точно скинути гру?")){
-        localStorage.clear();
-        location.reload();
-    }
-}
+// ===== SHARE =====
+share.onclick = () => {
+  navigator.clipboard.writeText(CHANNEL_LINK);
+  coins += 20;
+  updateUI();
+  alert("🔗 Посилання скопійовано +20 coins");
+};
 
-function save(){
-    localStorage.setItem("coins",coins);
-    localStorage.setItem("power",power);
-    localStorage.setItem("actions",actions);
-    localStorage.setItem("bonus",bonus);
-    localStorage.setItem("dailyClaimed",dailyClaimed);
-}
+// ===== ONLINE + BONUS TODAY =====
+setInterval(()=>{
+  onlineCount.textContent = 3000 + Math.floor(Math.random()*500)-250;
+},3000);
 
-function updateUI(){
-    document.getElementById("coins").innerText = coins;
-    document.getElementById("power").innerText = power;
-    document.getElementById("actions").innerText = actions;
-    document.getElementById("bonus").innerText = bonus;
-    document.getElementById("online").innerText = 3000; // залишаємо постійний онлайн
-}
+let bonusTodayValue = parseInt(localStorage.getItem("bonusToday"))||200;
+setInterval(()=>{
+  if(Math.random()>0.7){
+    bonusTodayValue++;
+    localStorage.setItem("bonusToday",bonusTodayValue);
+  }
+  bonusToday.textContent = bonusTodayValue;
+},6000);
 </script>
 
 </body>
