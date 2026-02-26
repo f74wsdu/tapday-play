@@ -80,6 +80,7 @@ h1{
 <button class="tap-btn" onclick="tap()">TAP</button>
 
 <div class="menu">
+<!-- Тут кнопки залишаються як були -->
 <button class="partner" onclick="openPartner()">🛍 Отримати бонус (Партнерка)</button>
 <button class="upgrade" onclick="upgrade()">⬆ Покращити тап (+1)</button>
 <button class="reset" onclick="resetGame()">🔄 Скинути гру</button>
@@ -94,6 +95,7 @@ h1{
 </div>
 
 <script>
+// Логіка залишаємо як раніше
 let coins = localStorage.getItem("coins") ? parseInt(localStorage.getItem("coins")) : 0;
 let power = localStorage.getItem("power") ? parseInt(localStorage.getItem("power")) : 1;
 let actions = localStorage.getItem("actions") ? parseInt(localStorage.getItem("actions")) : 0;
@@ -120,12 +122,13 @@ function upgrade(){
     }
 }
 
+// Партнерська кнопка — лише вставили твій Beacons лінк
 function openPartner(){
     bonus += 1;
     coins += 50; // бонус гравцю
     save();
     updateUI();
-    window.open("https://beacons.ai/dealspavlo","_blank");
+    window.open("https://beacons.ai/dealspavlo","_blank"); // тут твій партнерський лінк
 }
 
 function resetGame(){
