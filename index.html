@@ -1,15 +1,14 @@
 <!DOCTYPE html>
-<html>
+<html lang="uk">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>TapDay Play</title>
-
+<title>TapDay Play PRO</title>
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
 
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-  import { getFirestore } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+  import { getFirestore, collection, doc, getDoc, setDoc, updateDoc, getDocs, query, orderBy, limit } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
   const firebaseConfig = {
     apiKey: "YOUR_API_KEY",
@@ -24,28 +23,158 @@
   window.db = getFirestore(app);
 </script>
 
-<link rel="stylesheet" href="style.css">
+<style>
+body {
+  margin:0;
+  font-family:Arial, sans-serif;
+  background: radial-gradient(circle at top,#0b0b0b,#1e1e1e);
+  color:white;
+  text-align:center;
+  overflow-x:hidden;
+}
+h1 { margin-top:20px; font-size:28px; color:#ffd700; text-shadow:0 0 10px #ffcc00; }
+#balance { font-size:36px; margin:15px; text-shadow:0 0 8px #00ff7f; }
+#tapBtn {
+  width:180px; height:180px; border-radius:50%;
+  font-size:32px; background:linear-gradient(45deg,#ff9800,#ffd700);
+  border:none; box-shadow:0 0 30px #ffcc00; transition:0.1s;
+}
+#tapBtn:active { transform:scale(0.9); }
+
+button.actionBtn {
+  margin:10px; padding:10px 20px; border:none;
+  border-radius:10px; font-size:16px; background:#222; color:#fff;
+  box-shadow:0 0 10px #00ff7f;
+  cursor:pointer;
+  transition:0.2s;
+}
+button.actionBtn:hover { box-shadow:0 0 15px #00ff7f; }
+
+#leaderboard { margin-top:15px; font-size:14px; color:#ffcc00; text-align:left; max-width:300px; margin-left:auto; margin-right:auto; }
+.particle {
+  position:absolute; width:10px; height:10px;
+  border-radius:50%; background:gold; pointer-events:none;
+  animation:fly 1s forwards;
+}
+@keyframes fly {
+  to { transform:translate(var(--x),var(--y)) scale(0); opacity:0; }
+}
+
+#tournament { margin-top:20px; padding:10px; background:#333; border-radius:12px; max-width:320px; margin-left:auto; margin-right:auto; }
+</style>
 </head>
+
 <body>
+<h1>🔥 TapDay Play PRO</h1>
+<div id="balance">0</div>
+<button id="tapBtn">TAP</button>
 
-<div class="container">
-
-  <h1>🔥 TapDay Play</h1>
-
-  <div id="balance">0</div>
-
-  <button id="tapBtn">TAP</button>
-
-  <div class="buttons">
-    <button id="upgradeBtn">Upgrade</button>
-    <button id="leaderBtn">Leaderboard</button>
-    <button id="premiumBtn">Premium</button>
-  </div>
-
-  <div id="leaderboard"></div>
-
+<div>
+  <button id="upgradeBtn" class="actionBtn">Upgrade (+1 power)</button>
+  <button id="leaderBtn" class="actionBtn">Leaderboard</button>
+  <button id="premiumBtn" class="actionBtn">Premium</button>
 </div>
 
-<script type="module" src="app.js"></script>
+<div id="leaderboard"></div>
+
+<div id="tournament">
+  <strong>🏆 Турнір</strong>
+  <div>Топ гравців за балансом змагаються!</div>
+</div>
+
+<script type="module">
+import {
+  collection, doc, getDoc, setDoc, updateDoc, getDocs, query, orderBy, limit
+} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+const tg = window.Telegram.WebApp;
+tg.expand();
+const user = tg.initDataUnsafe.user;
+const userId = user.id.toString();
+
+let balance = 0;
+let tapPower = 1;
+let lastTap = 0;
+
+const balanceEl = document.getElementById("balance");
+const tapBtn = document.getElementById("tapBtn");
+const upgradeBtn = document.getElementById("upgradeBtn");
+const leaderBtn = document.getElementById("leaderBtn");
+const premiumBtn = document.getElementById("premiumBtn");
+const leaderboardEl = document.getElementById("leaderboard");
+
+async function initUser() {
+  const userRef = doc(window.db,"users",userId);
+  const snap = await getDoc(userRef);
+  if(!snap.exists()){
+    await setDoc(userRef,{balance:0,tapPower:1,premium:false});
+  } else {
+    balance = snap.data().balance;
+    tapPower = snap.data().tapPower;
+  }
+  balanceEl.innerText = balance;
+}
+initUser();
+
+function createParticle(x,y){
+  const p = document.createElement("div");
+  p.className="particle";
+  p.style.left = x+"px";
+  p.style.top = y+"px";
+  p.style.setProperty("--x",(Math.random()*200-100)+"px");
+  p.style.setProperty("--y",(-Math.random()*200-50)+"px");
+  document.body.appendChild(p);
+  setTimeout(()=>p.remove(),1000);
+}
+
+tapBtn.addEventListener("click", async e=>{
+  const now = Date.now();
+  if(now-lastTap<150) return; // антинакрутка
+  lastTap = now;
+
+  balance += tapPower;
+  balanceEl.innerText = balance;
+
+  const rect = tapBtn.getBoundingClientRect();
+  createParticle(rect.left+90,rect.top+90);
+
+  const userRef = doc(window.db,"users",userId);
+  await updateDoc(userRef,{balance:balance});
+});
+
+upgradeBtn.addEventListener("click", async ()=>{
+  if(balance<100){ alert("Need 100 coins"); return;}
+  balance-=100; tapPower+=1;
+  const userRef = doc(window.db,"users",userId);
+  await updateDoc(userRef,{balance:balance,tapPower:tapPower});
+  balanceEl.innerText=balance;
+});
+
+leaderBtn.addEventListener("click", async ()=>{
+  leaderboardEl.innerHTML="Loading...";
+  const q = query(collection(window.db,"users"),orderBy("balance","desc"),limit(10));
+  const snap = await getDocs(q);
+  leaderboardEl.innerHTML="";
+  snap.forEach(doc=>{
+    leaderboardEl.innerHTML+=`<div>${doc.id} - ${doc.data().balance}</div>`;
+  });
+});
+premiumBtn.addEventListener("click", ()=>{
+  tg.showPopup({title:"Premium",message:"x2 tap power",buttons:[{id:"buy",type:"default",text:"Buy"}]},id=>{
+    if(id==="buy") tg.openInvoice("YOUR_PAYMENT_LINK");
+  });
+});
+
+// Турнір оновлюється кожні 5 сек
+setInterval(async ()=>{
+  const q = query(collection(window.db,"users"),orderBy("balance","desc"),limit(3));
+  const snap = await getDocs(q);
+  const tourEl = document.getElementById("tournament");
+  tourEl.innerHTML="<strong>🏆 Турнір</strong>";
+  snap.forEach(doc=>{
+    tourEl.innerHTML+=`<div>${doc.id}: ${doc.data().balance}</div>`;
+  });
+},5000);
+</script>
 </body>
 </html>
