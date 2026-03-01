@@ -3,13 +3,14 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>TapDay Play PRO</title>
-<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<title>TapDay Play PRO - Server Edition</title>
 
+<!-- Firebase -->
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getFirestore, collection, doc, getDoc, setDoc, updateDoc, getDocs, query, orderBy, limit } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { getFirestore, collection, doc, getDoc, setDoc, updateDoc, getDocs, query, orderBy, limit, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
+// ======== FIREBASE CONFIGURE =======
 const firebaseConfig = {
   apiKey: "YOUR_API_KEY",
   authDomain: "YOUR_PROJECT.firebaseapp.com",
@@ -20,191 +21,72 @@ const firebaseConfig = {
 };
 
 const app = initializeApp(firebaseConfig);
-window.db = getFirestore(app);
+const db = getFirestore(app);
+window.db = db; // для зручності в консолі
 </script>
 
 <style>
-body {
-  margin:0; font-family:Arial,sans-serif;
-  background: radial-gradient(circle at top,#0b0b0b,#1e1e1e);
-  color:white; text-align:center; overflow-x:hidden;
-}
-h1 { margin-top:20px; font-size:28px; color:#ffd700; text-shadow:0 0 10px #ffcc00; }
-#balance { font-size:36px; margin:15px; text-shadow:0 0 8px #00ff7f; }
-#tapBtn {
-  width:180px;height:180px;border-radius:50%;
-  font-size:32px;background:linear-gradient(45deg,#ff9800,#ffd700);
-  border:none;box-shadow:0 0 30px #ffcc00;transition:0.1s;position:relative; z-index:1;
-}
-#tapBtn:active { transform:scale(0.9); }
-
-button.actionBtn {
-  margin:10px;padding:10px 20px;border:none;
-  border-radius:10px;font-size:16px;background:#222;color:#fff;
-  box-shadow:0 0 10px #00ff7f; cursor:pointer; transition:0.2s;
-}
-button.actionBtn:hover { box-shadow:0 0 15px #00ff7f; }
-
-#leaderboard { margin-top:15px; font-size:14px; color:#ffcc00; text-align:left; max-width:300px; margin-left:auto; margin-right:auto; }
-.particle {
-  position:absolute;width:10px;height:10px;border-radius:50%; background:gold; pointer-events:none;
-  animation:fly 1s forwards;
-}
-@keyframes fly { to { transform:translate(var(--x),var(--y)) scale(0); opacity:0; } }
-
-#shopModal { position:fixed; inset:0; background: rgba(0,0,0,0.85); display:none; align-items:center; justify-content:center; z-index:10; }
-#shopBox { background:#1e1e1e; width:90%; max-width:350px; padding:20px; border-radius:16px; }
-.shopItem { background:#333; padding:10px; border-radius:10px; margin:8px 0; cursor:pointer; }
-.closeBtn { margin-top:10px; color:#ff5555; cursor:pointer; }
-
-#daily, #bonus30, #subscribe, #withdraw, #share { margin:8px auto; width:90%; padding:12px; border-radius:12px; background:#333; cursor:pointer; }
-
-.mult { position:fixed; top:55%; padding:10px 14px; background:#222; border-radius:12px; cursor:pointer; }
-#x2 { left:10px; } #x5 { right:10px; }
-.mult.active { background:#ff9800; }
-
+body { margin:0; font-family:Arial,sans-serif; background:#0b0b0b; color:white; text-align:center; }
+h1 { margin:20px; color:#ffd700; text-shadow:0 0 10px #ffcc00; }
+#balance { font-size:32px; margin:15px; }
+#tapBtn { width:180px;height:180px;border-radius:50%; font-size:32px; background:linear-gradient(45deg,#ff9800,#ffd700); border:none; box-shadow:0 0 30px #ffcc00; cursor:pointer; }
+button.actionBtn { margin:10px;padding:10px 20px;border:none;border-radius:10px;background:#222;color:white; cursor:pointer; }
+#leaderboard { margin-top:20px; font-size:16px; color:#ffcc00; text-align:left; max-width:300px; margin-left:auto;margin-right:auto; }
 </style>
 </head>
-
 <body>
-<h1>🔥 TapDay Play PRO</h1>
-<div id="balance">0</div>
+<h1>🔥 TapDay Play PRO - Global</h1>
+<div id="balance">💰 Balance: 0</div>
 <button id="tapBtn">TAP</button>
-
-<div>
-  <button id="x2" class="mult">x2</button>
-  <button id="x5" class="mult">x5</button>
-</div>
-
-<div id="daily">📅 Денний бонус</div>
-<div id="bonus30">⏳ Бонус через 30 днів</div>
-<div id="subscribe">📢 Бонус 10$ за підписку</div>
-<div id="shopBtn" class="actionBtn">🛒 Coin Shop</div>
-<div id="withdraw">💳 Вивід</div>
-<div id="share">🔗 Поділитися грою</div>
-<div id="leaderboard"></div>
-
-<!-- SHOP MODAL -->
-<div id="shopModal">
-  <div id="shopBox">
-    <h3>🛒 Coin Shop</h3>
-    <div class="shopItem" onclick="buyBoost(2,50)">⚡ x2 Tap (10 хв) — 50 coins</div>
-    <div class="shopItem" onclick="buyBoost(5,120)">🔥 x5 Tap (10 хв) — 120 coins</div>
-    <div class="shopItem" onclick="buyCoins()">🎁 Отримати coins (офер)</div>
-    <div class="closeBtn" onclick="closeShop()">Закрити</div>
-  </div>
+<div id="leaderboard">
+<h3>🌍 Global Leaderboard</h3>
+<div id="topPlayers">Loading...</div>
 </div>
 
 <script type="module">
-import {
-  collection, doc, getDoc, setDoc, updateDoc, getDocs, query, orderBy, limit
-} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { collection, doc, setDoc, getDoc, updateDoc, query, orderBy, limit, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
-const CHANNEL_LINK = "https://t.me/tapday_clicker"; // підписка
-const GAME_LINK = "https://t.me/tapday_play_bot"; // гра
 let balance = parseFloat(localStorage.getItem("balance"))||0;
-let coins = parseInt(localStorage.getItem("coins"))||0;
-let multiplier = 1;
-
-// ===== UPDATE UI =====
+let playerId = "player_"+Math.floor(Math.random()*1000000); // простий унікальний ID
 const balanceEl = document.getElementById("balance");
 const tapBtn = document.getElementById("tapBtn");
-const x2 = document.getElementById("x2");
-const x5 = document.getElementById("x5");
-const daily = document.getElementById("daily");
-const bonus30 = document.getElementById("bonus30");
-const subscribe = document.getElementById("subscribe");
-const shopBtn = document.getElementById("shopBtn");
-const shopModal = document.getElementById("shopModal");
-const withdraw = document.getElementById("withdraw");
-const share = document.getElementById("share");
-const leaderboardEl = document.getElementById("leaderboard");
+const topPlayers = document.getElementById("topPlayers");
 
 function updateUI(){
   balanceEl.textContent = `💰 Balance: ${balance.toFixed(2)} $`;
   localStorage.setItem("balance",balance);
-  localStorage.setItem("coins",coins);
 }
 updateUI();
 
-// ===== TAP + PARTICLES =====
-function createParticle(x,y){
-  const p=document.createElement("div");
-  p.className="particle";
-  p.style.left=x+"px"; p.style.top=y+"px";
-  p.style.setProperty("--x",(Math.random()*200-100)+"px");
-  p.style.setProperty("--y",(-Math.random()*200-50)+"px");
-  document.body.appendChild(p);
-  setTimeout(()=>p.remove(),1000);
-}
-
+// ===== TAP =====
 tapBtn.onclick=()=>{
-  balance+=0.01*multiplier;
-  coins+=1;
+  balance+=0.01;
   updateUI();
-  const rect = tapBtn.getBoundingClientRect();
-  createParticle(rect.left+90,rect.top+90);
+  sendBalanceToServer();
 }
 
-// ===== MULTIPLIERS =====
-function activateMult(x,mins){
-  multiplier=x;
-  setTimeout(()=>multiplier=1,mins*60000);
-}
-x2.onclick=()=>activateMult(2,10);
-x5.onclick=()=>activateMult(5,8);
-
-// ===== SHOP =====
-shopBtn.onclick=()=>shopModal.style.display="flex";
-function closeShop(){ shopModal.style.display="none"; }
-function buyBoost(x,cost){
-  if(coins<cost){ alert("Недостатньо coins"); return;}
-  coins-=cost; activateMult(x,10); updateUI(); alert(`Активовано x${x} на 10 хв`);
-}
-function buyCoins(){ coins+=30; updateUI(); alert("🎁 Ви отримали coins"); }
-
-// ===== DAILY BONUS =====
-const dailyBonusValues = [0.25,0.5,0.75,1,1.25,1.5,5];
-daily.onclick=()=>{
-  const today = new Date().toDateString();
-  if(localStorage.getItem("dailyDate")===today){ alert("Вже отримано"); return;}
-  let day = parseInt(localStorage.getItem("dailyDay"))||0;
-  balance+=dailyBonusValues[day]; day++; if(day>6) day=0;
-  localStorage.setItem("dailyDay",day);
-  localStorage.setItem("dailyDate",today);
-  updateUI();
-  alert(`🎁 +${dailyBonusValues[day-1].toFixed(2)} $`);
+// ===== SEND BALANCE TO FIRESTORE =====
+async function sendBalanceToServer(){
+  const docRef = doc(db,"players",playerId);
+  const docSnap = await getDoc(docRef);
+  if(docSnap.exists()){
+    await updateDoc(docRef,{balance:balance});
+  } else {
+    await setDoc(docRef,{balance:balance,created:Date.now()});
+  }
 }
 
-// ===== BONUS 30 DAYS =====
-bonus30.onclick=()=>{
-  const last = parseInt(localStorage.getItem("bonus30Date"))||0;
-  if(Date.now()-last<30*24*3600*1000){ alert("Ще не час"); return;}
-  balance+=10;
-  localStorage.setItem("bonus30Date",Date.now());
-  updateUI();
-  alert("🎁 Отримано бонус 10 $");
-}
+// ===== GLOBAL LEADERBOARD =====
+const leaderboardQuery = query(collection(db,"players"),orderBy("balance","desc"),limit(5));
+onSnapshot(leaderboardQuery,(snapshot)=>{
+  topPlayers.innerHTML="";
+  snapshot.forEach(doc=>{
+    topPlayers.innerHTML+=`<div>${doc.id}: ${doc.data().balance.toFixed(2)} $</div>`;
+  });
+});
 
-// ===== SUBSCRIBE =====
-subscribe.onclick=()=>{
-  window.open(CHANNEL_LINK,"_blank");
-  balance+=10; subscribe.style.display="none"; updateUI();
-}
-
-// ===== SHARE =====
-share.onclick=()=>{
-  navigator.clipboard.writeText(GAME_LINK);
-  coins+=20; updateUI();
-  alert("🔗 Посилання скопійовано, друг може перейти +20 coins");
-}
-
-// ===== LEADERBOARD FAKE =====
-function updateLeaderboard(){
-  leaderboardEl.innerHTML="";
-  for(let i=0;i<5;i++){ leaderboardEl.innerHTML+=`<div>Player${i+1}: ${Math.floor(Math.random()*100)} $</div>`; }
-}
-setInterval(updateLeaderboard,5000);
+// ===== AUTO SEND EVERY 5 SEC =====
+setInterval(sendBalanceToServer,5000);
 </script>
 </body>
 </html>
