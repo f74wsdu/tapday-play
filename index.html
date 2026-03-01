@@ -1,300 +1,51 @@
 <!DOCTYPE html>
-<html lang="uk">
+<html>
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>TapDay ULTRA</title>
+<title>TapDay Play</title>
 
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
 
-<style>
-body{
-  margin:0;
-  background:linear-gradient(180deg,#0f0f14,#1b1b2e);
-  font-family:Arial;
-  color:white;
-  text-align:center;
-  overflow-x:hidden;
-}
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+  import { getFirestore } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
-.top{
-  display:flex;
-  justify-content:space-between;
-  padding:12px;
-  font-size:14px;
-}
+  const firebaseConfig = {
+    apiKey: "YOUR_API_KEY",
+    authDomain: "YOUR_PROJECT.firebaseapp.com",
+    projectId: "YOUR_PROJECT",
+    storageBucket: "YOUR_PROJECT.appspot.com",
+    messagingSenderId: "XXXX",
+    appId: "XXXX"
+  };
 
-#username{
-  font-weight:bold;
-  color:#00f2ff;
-}
+  const app = initializeApp(firebaseConfig);
+  window.db = getFirestore(app);
+</script>
 
-.levelbar{
-  width:90%;
-  margin:8px auto;
-  height:14px;
-  background:#222;
-  border-radius:20px;
-  overflow:hidden;
-}
-.progress{
-  height:100%;
-  width:0%;
-  background:linear-gradient(90deg,#00f2ff,#00ff94);
-  transition:.3s;
-}
-
-.coin{
-  margin:25px auto;
-  width:200px;
-  height:200px;
-  border-radius:50%;
-  background:radial-gradient(circle,#ffd700,#ff9800);
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  font-size:30px;
-  font-weight:bold;
-  cursor:pointer;
-  position:relative;
-  box-shadow:0 0 50px rgba(255,170,0,0.6);
-  transition:.1s;
-}
-.coin:active{transform:scale(.95)}
-
-.stats{font-size:15px;margin:8px}
-
-.btn{
-  margin:6px auto;
-  width:90%;
-  padding:12px;
-  border-radius:14px;
-  background:#26263a;
-  cursor:pointer;
-  transition:.2s;
-}
-.btn:hover{background:#33334d}
-
-.premium{
-  background:linear-gradient(90deg,#ffcc00,#ff9800);
-  color:black;
-  font-weight:bold;
-}
-
-.particle{
-  position:absolute;
-  font-size:14px;
-  pointer-events:none;
-  animation:float 1s forwards;
-}
-@keyframes float{
-  from{opacity:1;transform:translateY(0)}
-  to{opacity:0;transform:translateY(-40px)}
-}
-
-.modal{
-  position:fixed;
-  inset:0;
-  background:rgba(0,0,0,.85);
-  display:none;
-  align-items:center;
-  justify-content:center;
-}
-.box{
-  background:#1f1f2e;
-  width:90%;
-  max-width:360px;
-  padding:20px;
-  border-radius:20px;
-}
-.item{
-  background:#2b2b44;
-  padding:10px;
-  margin:6px 0;
-  border-radius:12px;
-  cursor:pointer;
-}
-.close{color:#ff4d4d;margin-top:8px;cursor:pointer}
-</style>
+<link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-<div class="top">
-  <div id="username">Player</div>
-  <div>⚡ <span id="energy">100</span></div>
+<div class="container">
+
+  <h1>🔥 TapDay Play</h1>
+
+  <div id="balance">0</div>
+
+  <button id="tapBtn">TAP</button>
+
+  <div class="buttons">
+    <button id="upgradeBtn">Upgrade</button>
+    <button id="leaderBtn">Leaderboard</button>
+    <button id="premiumBtn">Premium</button>
+  </div>
+
+  <div id="leaderboard"></div>
+
 </div>
 
-<div class="levelbar">
-  <div class="progress" id="progress"></div>
-</div>
-
-<div class="coin" id="tap">TAP</div>
-
-<div class="stats">
-💎 GD: <span id="gd">0</span><br>
-🪙 Coins: <span id="coins">0</span><br>
-🏆 Level: <span id="level">1</span>
-</div>
-
-<div class="btn" id="daily">🎁 Daily</div>
-<div class="btn" id="upgrades">💎 Upgrades</div>
-<div class="btn premium" id="premiumBtn">👑 Premium Pass</div>
-<div class="btn" id="tournament">🏆 Tournament</div>
-
-<div class="modal" id="modal">
-  <div class="box" id="modalBox"></div>
-</div>
-
-<script>
-let gd=+localStorage.gd||0;
-let coins=+localStorage.coins||0;
-let level=+localStorage.level||1;
-let xp=+localStorage.xp||0;
-let energy=+localStorage.energy||100;
-let premium=localStorage.premium==="1";
-let critChance=+localStorage.crit||0;
-let autoTap=localStorage.auto==="1";
-
-const tg=window.Telegram?.WebApp;
-if(tg && tg.initDataUnsafe?.user){
-  username.textContent=tg.initDataUnsafe.user.first_name;
-}
-
-function save(){
-  localStorage.gd=gd;
-  localStorage.coins=coins;
-  localStorage.level=level;
-  localStorage.xp=xp;
-  localStorage.energy=energy;
-  localStorage.premium=premium?"1":"0";
-  localStorage.crit=critChance;
-  localStorage.auto=autoTap?"1":"0";
-}
-
-function update(){
-  gdEl.textContent=gd.toFixed(0);
-  coinsEl.textContent=coins;
-  levelEl.textContent=level;
-  energyEl.textContent=energy;
-  progress.style.width=(xp/(level*100))*100+"%";
-}
-
-const gdEl=gd;
-const coinsEl=document.getElementById("coins");
-const levelEl=document.getElementById("level");
-
-update();
-
-function levelUp(){
-  if(xp>=level*100){
-    xp-=level*100;
-    level++;
-    coins+=100;
-  }
-}
-
-tap.onclick=e=>{
-  if(energy<=0)return;
-  let gain=1;
-
-  if(Math.random()<critChance){
-    gain*=5;
-    showParticle("CRIT x5",e);
-  }
-
-  if(premium) gain*=2;
-
-  gd+=gain;
-  xp+=gain;
-  coins+=0.5;
-  energy--;
-  levelUp();
-  showParticle("+"+gain,e);
-  save();
-  update();
-};
-
-function showParticle(text,e){
-  let p=document.createElement("div");
-  p.className="particle";
-  p.style.left=e.offsetX+"px";
-  p.style.top=e.offsetY+"px";
-  p.textContent=text;
-  tap.appendChild(p);
-  setTimeout(()=>p.remove(),1000);
-}
-
-setInterval(()=>{
-  if(energy<100) energy++;
-  if(autoTap) gd+=0.5;
-  save();
-  update();
-},2000);
-
-daily.onclick=()=>{
-  let today=new Date().toDateString();
-  if(localStorage.lastDaily===today) return alert("Already claimed");
-  let reward=100+level*10;
-  coins+=reward;
-  localStorage.lastDaily=today;
-  save();
-  update();
-  alert("+"+reward+" coins");
-};
-
-premiumBtn.onclick=()=>{
-  if(premium) return alert("Already active");
-  if(coins<1000) return alert("Need 1000 coins");
-  coins-=1000;
-  premium=true;
-  save();
-  update();
-};
-
-upgrades.onclick=()=>{
-  modal.style.display="flex";
-  modalBox.innerHTML=`
-  <h3>Upgrades</h3>
-  <div class="item" onclick="buyCrit()">🎯 Crit шанс +5% (300 coins)</div>
-  <div class="item" onclick="buyAuto()">🤖 AutoTap (800 coins)</div>
-  <div class="close" onclick="closeModal()">Close</div>
-  `;
-};
-
-function buyCrit(){
-  if(coins<300) return alert("Need 300 coins");
-  coins-=300;
-  critChance+=0.05;
-  save();update();closeModal();
-}
-function buyAuto(){
-  if(coins<800) return alert("Need 800 coins");
-  coins-=800;
-  autoTap=true;
-  save();update();closeModal();
-}
-
-tournament.onclick=()=>{
-  modal.style.display="flex";
-  let fakePlayers=[];
-  for(let i=0;i<5;i++){
-    fakePlayers.push(Math.floor(Math.random()*10000));
-  }
-  fakePlayers.push(gd);
-  fakePlayers.sort((a,b)=>b-a);
-
-  let html="<h3>Top Players</h3>";
-  fakePlayers.slice(0,5).forEach((p,i)=>{
-    html+=`<div class="item">#${i+1} — ${p} GD</div>`;
-  });
-  html+=`<div class="close" onclick="closeModal()">Close</div>`;
-  modalBox.innerHTML=html;
-};
-
-function closeModal(){modal.style.display="none";}
-
-update();
-</script>
-
+<script type="module" src="app.js"></script>
 </body>
 </html>
