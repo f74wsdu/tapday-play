@@ -7,60 +7,62 @@
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
 
 <script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-  import { getFirestore, collection, doc, getDoc, setDoc, updateDoc, getDocs, query, orderBy, limit } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getFirestore, collection, doc, getDoc, setDoc, updateDoc, getDocs, query, orderBy, limit } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
-  const firebaseConfig = {
-    apiKey: "YOUR_API_KEY",
-    authDomain: "YOUR_PROJECT.firebaseapp.com",
-    projectId: "YOUR_PROJECT",
-    storageBucket: "YOUR_PROJECT.appspot.com",
-    messagingSenderId: "XXXX",
-    appId: "XXXX"
-  };
+const firebaseConfig = {
+  apiKey: "YOUR_API_KEY",
+  authDomain: "YOUR_PROJECT.firebaseapp.com",
+  projectId: "YOUR_PROJECT",
+  storageBucket: "YOUR_PROJECT.appspot.com",
+  messagingSenderId: "XXXX",
+  appId: "XXXX"
+};
 
-  const app = initializeApp(firebaseConfig);
-  window.db = getFirestore(app);
+const app = initializeApp(firebaseConfig);
+window.db = getFirestore(app);
 </script>
 
 <style>
 body {
-  margin:0;
-  font-family:Arial, sans-serif;
+  margin:0; font-family:Arial,sans-serif;
   background: radial-gradient(circle at top,#0b0b0b,#1e1e1e);
-  color:white;
-  text-align:center;
-  overflow-x:hidden;
+  color:white; text-align:center; overflow-x:hidden;
 }
 h1 { margin-top:20px; font-size:28px; color:#ffd700; text-shadow:0 0 10px #ffcc00; }
 #balance { font-size:36px; margin:15px; text-shadow:0 0 8px #00ff7f; }
 #tapBtn {
-  width:180px; height:180px; border-radius:50%;
-  font-size:32px; background:linear-gradient(45deg,#ff9800,#ffd700);
-  border:none; box-shadow:0 0 30px #ffcc00; transition:0.1s;
+  width:180px;height:180px;border-radius:50%;
+  font-size:32px;background:linear-gradient(45deg,#ff9800,#ffd700);
+  border:none;box-shadow:0 0 30px #ffcc00;transition:0.1s;position:relative; z-index:1;
 }
 #tapBtn:active { transform:scale(0.9); }
 
 button.actionBtn {
-  margin:10px; padding:10px 20px; border:none;
-  border-radius:10px; font-size:16px; background:#222; color:#fff;
-  box-shadow:0 0 10px #00ff7f;
-  cursor:pointer;
-  transition:0.2s;
+  margin:10px;padding:10px 20px;border:none;
+  border-radius:10px;font-size:16px;background:#222;color:#fff;
+  box-shadow:0 0 10px #00ff7f; cursor:pointer; transition:0.2s;
 }
 button.actionBtn:hover { box-shadow:0 0 15px #00ff7f; }
 
 #leaderboard { margin-top:15px; font-size:14px; color:#ffcc00; text-align:left; max-width:300px; margin-left:auto; margin-right:auto; }
 .particle {
-  position:absolute; width:10px; height:10px;
-  border-radius:50%; background:gold; pointer-events:none;
+  position:absolute;width:10px;height:10px;border-radius:50%; background:gold; pointer-events:none;
   animation:fly 1s forwards;
 }
-@keyframes fly {
-  to { transform:translate(var(--x),var(--y)) scale(0); opacity:0; }
-}
+@keyframes fly { to { transform:translate(var(--x),var(--y)) scale(0); opacity:0; } }
 
-#tournament { margin-top:20px; padding:10px; background:#333; border-radius:12px; max-width:320px; margin-left:auto; margin-right:auto; }
+#shopModal { position:fixed; inset:0; background: rgba(0,0,0,0.85); display:none; align-items:center; justify-content:center; z-index:10; }
+#shopBox { background:#1e1e1e; width:90%; max-width:350px; padding:20px; border-radius:16px; }
+.shopItem { background:#333; padding:10px; border-radius:10px; margin:8px 0; cursor:pointer; }
+.closeBtn { margin-top:10px; color:#ff5555; cursor:pointer; }
+
+#daily, #bonus30, #subscribe, #withdraw, #share { margin:8px auto; width:90%; padding:12px; border-radius:12px; background:#333; cursor:pointer; }
+
+.mult { position:fixed; top:55%; padding:10px 14px; background:#222; border-radius:12px; cursor:pointer; }
+#x2 { left:10px; } #x5 { right:10px; }
+.mult.active { background:#ff9800; }
+
 </style>
 </head>
 
@@ -70,16 +72,27 @@ button.actionBtn:hover { box-shadow:0 0 15px #00ff7f; }
 <button id="tapBtn">TAP</button>
 
 <div>
-  <button id="upgradeBtn" class="actionBtn">Upgrade (+1 power)</button>
-  <button id="leaderBtn" class="actionBtn">Leaderboard</button>
-  <button id="premiumBtn" class="actionBtn">Premium</button>
+  <button id="x2" class="mult">x2</button>
+  <button id="x5" class="mult">x5</button>
 </div>
 
+<div id="daily">📅 Денний бонус</div>
+<div id="bonus30">⏳ Бонус через 30 днів</div>
+<div id="subscribe">📢 Бонус 10$ за підписку</div>
+<div id="shopBtn" class="actionBtn">🛒 Coin Shop</div>
+<div id="withdraw">💳 Вивід</div>
+<div id="share">🔗 Поділитися грою</div>
 <div id="leaderboard"></div>
 
-<div id="tournament">
-  <strong>🏆 Турнір</strong>
-  <div>Топ гравців за балансом змагаються!</div>
+<!-- SHOP MODAL -->
+<div id="shopModal">
+  <div id="shopBox">
+    <h3>🛒 Coin Shop</h3>
+    <div class="shopItem" onclick="buyBoost(2,50)">⚡ x2 Tap (10 хв) — 50 coins</div>
+    <div class="shopItem" onclick="buyBoost(5,120)">🔥 x5 Tap (10 хв) — 120 coins</div>
+    <div class="shopItem" onclick="buyCoins()">🎁 Отримати coins (офер)</div>
+    <div class="closeBtn" onclick="closeShop()">Закрити</div>
+  </div>
 </div>
 
 <script type="module">
@@ -87,94 +100,111 @@ import {
   collection, doc, getDoc, setDoc, updateDoc, getDocs, query, orderBy, limit
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
-const tg = window.Telegram.WebApp;
-tg.expand();
-const user = tg.initDataUnsafe.user;
-const userId = user.id.toString();
+const CHANNEL_LINK = "https://t.me/tapday_clicker"; // підписка
+const GAME_LINK = "https://t.me/tapday_play_bot"; // гра
+let balance = parseFloat(localStorage.getItem("balance"))||0;
+let coins = parseInt(localStorage.getItem("coins"))||0;
+let multiplier = 1;
 
-let balance = 0;
-let tapPower = 1;
-let lastTap = 0;
-
+// ===== UPDATE UI =====
 const balanceEl = document.getElementById("balance");
 const tapBtn = document.getElementById("tapBtn");
-const upgradeBtn = document.getElementById("upgradeBtn");
-const leaderBtn = document.getElementById("leaderBtn");
-const premiumBtn = document.getElementById("premiumBtn");
+const x2 = document.getElementById("x2");
+const x5 = document.getElementById("x5");
+const daily = document.getElementById("daily");
+const bonus30 = document.getElementById("bonus30");
+const subscribe = document.getElementById("subscribe");
+const shopBtn = document.getElementById("shopBtn");
+const shopModal = document.getElementById("shopModal");
+const withdraw = document.getElementById("withdraw");
+const share = document.getElementById("share");
 const leaderboardEl = document.getElementById("leaderboard");
 
-async function initUser() {
-  const userRef = doc(window.db,"users",userId);
-  const snap = await getDoc(userRef);
-  if(!snap.exists()){
-    await setDoc(userRef,{balance:0,tapPower:1,premium:false});
-  } else {
-    balance = snap.data().balance;
-    tapPower = snap.data().tapPower;
-  }
-  balanceEl.innerText = balance;
+function updateUI(){
+  balanceEl.textContent = `💰 Balance: ${balance.toFixed(2)} $`;
+  localStorage.setItem("balance",balance);
+  localStorage.setItem("coins",coins);
 }
-initUser();
+updateUI();
 
+// ===== TAP + PARTICLES =====
 function createParticle(x,y){
-  const p = document.createElement("div");
+  const p=document.createElement("div");
   p.className="particle";
-  p.style.left = x+"px";
-  p.style.top = y+"px";
+  p.style.left=x+"px"; p.style.top=y+"px";
   p.style.setProperty("--x",(Math.random()*200-100)+"px");
   p.style.setProperty("--y",(-Math.random()*200-50)+"px");
   document.body.appendChild(p);
   setTimeout(()=>p.remove(),1000);
 }
 
-tapBtn.addEventListener("click", async e=>{
-  const now = Date.now();
-  if(now-lastTap<150) return; // антинакрутка
-  lastTap = now;
-
-  balance += tapPower;
-  balanceEl.innerText = balance;
-
+tapBtn.onclick=()=>{
+  balance+=0.01*multiplier;
+  coins+=1;
+  updateUI();
   const rect = tapBtn.getBoundingClientRect();
   createParticle(rect.left+90,rect.top+90);
+}
 
-  const userRef = doc(window.db,"users",userId);
-  await updateDoc(userRef,{balance:balance});
-});
+// ===== MULTIPLIERS =====
+function activateMult(x,mins){
+  multiplier=x;
+  setTimeout(()=>multiplier=1,mins*60000);
+}
+x2.onclick=()=>activateMult(2,10);
+x5.onclick=()=>activateMult(5,8);
 
-upgradeBtn.addEventListener("click", async ()=>{
-  if(balance<100){ alert("Need 100 coins"); return;}
-  balance-=100; tapPower+=1;
-  const userRef = doc(window.db,"users",userId);
-  await updateDoc(userRef,{balance:balance,tapPower:tapPower});
-  balanceEl.innerText=balance;
-});
+// ===== SHOP =====
+shopBtn.onclick=()=>shopModal.style.display="flex";
+function closeShop(){ shopModal.style.display="none"; }
+function buyBoost(x,cost){
+  if(coins<cost){ alert("Недостатньо coins"); return;}
+  coins-=cost; activateMult(x,10); updateUI(); alert(`Активовано x${x} на 10 хв`);
+}
+function buyCoins(){ coins+=30; updateUI(); alert("🎁 Ви отримали coins"); }
 
-leaderBtn.addEventListener("click", async ()=>{
-  leaderboardEl.innerHTML="Loading...";
-  const q = query(collection(window.db,"users"),orderBy("balance","desc"),limit(10));
-  const snap = await getDocs(q);
+// ===== DAILY BONUS =====
+const dailyBonusValues = [0.25,0.5,0.75,1,1.25,1.5,5];
+daily.onclick=()=>{
+  const today = new Date().toDateString();
+  if(localStorage.getItem("dailyDate")===today){ alert("Вже отримано"); return;}
+  let day = parseInt(localStorage.getItem("dailyDay"))||0;
+  balance+=dailyBonusValues[day]; day++; if(day>6) day=0;
+  localStorage.setItem("dailyDay",day);
+  localStorage.setItem("dailyDate",today);
+  updateUI();
+  alert(`🎁 +${dailyBonusValues[day-1].toFixed(2)} $`);
+}
+
+// ===== BONUS 30 DAYS =====
+bonus30.onclick=()=>{
+  const last = parseInt(localStorage.getItem("bonus30Date"))||0;
+  if(Date.now()-last<30*24*3600*1000){ alert("Ще не час"); return;}
+  balance+=10;
+  localStorage.setItem("bonus30Date",Date.now());
+  updateUI();
+  alert("🎁 Отримано бонус 10 $");
+}
+
+// ===== SUBSCRIBE =====
+subscribe.onclick=()=>{
+  window.open(CHANNEL_LINK,"_blank");
+  balance+=10; subscribe.style.display="none"; updateUI();
+}
+
+// ===== SHARE =====
+share.onclick=()=>{
+  navigator.clipboard.writeText(GAME_LINK);
+  coins+=20; updateUI();
+  alert("🔗 Посилання скопійовано, друг може перейти +20 coins");
+}
+
+// ===== LEADERBOARD FAKE =====
+function updateLeaderboard(){
   leaderboardEl.innerHTML="";
-  snap.forEach(doc=>{
-    leaderboardEl.innerHTML+=`<div>${doc.id} - ${doc.data().balance}</div>`;
-  });
-});
-premiumBtn.addEventListener("click", ()=>{
-  tg.showPopup({title:"Premium",message:"x2 tap power",buttons:[{id:"buy",type:"default",text:"Buy"}]},id=>{
-    if(id==="buy") tg.openInvoice("YOUR_PAYMENT_LINK");
-  });
-});
-
-// Турнір оновлюється кожні 5 сек
-setInterval(async ()=>{
-  const q = query(collection(window.db,"users"),orderBy("balance","desc"),limit(3));
-  const snap = await getDocs(q);
-  const tourEl = document.getElementById("tournament");
-  tourEl.innerHTML="<strong>🏆 Турнір</strong>";
-  snap.forEach(doc=>{
-    tourEl.innerHTML+=`<div>${doc.id}: ${doc.data().balance}</div>`;
-  });
-},5000);
+  for(let i=0;i<5;i++){ leaderboardEl.innerHTML+=`<div>Player${i+1}: ${Math.floor(Math.random()*100)} $</div>`; }
+}
+setInterval(updateLeaderboard,5000);
 </script>
 </body>
 </html>
