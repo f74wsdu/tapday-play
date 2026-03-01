@@ -3,14 +3,16 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>TapDay Play PRO - Server Edition</title>
+<title>TapDay PRO 2026 – Telegram Edition</title>
 
-<!-- Firebase -->
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getFirestore, collection, doc, getDoc, setDoc, updateDoc, getDocs, query, orderBy, limit, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { 
+  getFirestore, collection, doc, setDoc, getDoc, updateDoc,
+  query, orderBy, limit, onSnapshot, serverTimestamp
+} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
-// ======== FIREBASE CONFIGURE =======
+/* ================== FIREBASE CONFIG ================== */
 const firebaseConfig = {
   apiKey: "YOUR_API_KEY",
   authDomain: "YOUR_PROJECT.firebaseapp.com",
@@ -22,71 +24,224 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
-window.db = db; // для зручності в консолі
-</script>
 
-<style>
-body { margin:0; font-family:Arial,sans-serif; background:#0b0b0b; color:white; text-align:center; }
-h1 { margin:20px; color:#ffd700; text-shadow:0 0 10px #ffcc00; }
-#balance { font-size:32px; margin:15px; }
-#tapBtn { width:180px;height:180px;border-radius:50%; font-size:32px; background:linear-gradient(45deg,#ff9800,#ffd700); border:none; box-shadow:0 0 30px #ffcc00; cursor:pointer; }
-button.actionBtn { margin:10px;padding:10px 20px;border:none;border-radius:10px;background:#222;color:white; cursor:pointer; }
-#leaderboard { margin-top:20px; font-size:16px; color:#ffcc00; text-align:left; max-width:300px; margin-left:auto;margin-right:auto; }
-</style>
-</head>
-<body>
-<h1>🔥 TapDay Play PRO - Global</h1>
-<div id="balance">💰 Balance: 0</div>
-<button id="tapBtn">TAP</button>
-<div id="leaderboard">
-<h3>🌍 Global Leaderboard</h3>
-<div id="topPlayers">Loading...</div>
-</div>
+/* ================== TELEGRAM AUTH ================== */
+const TELEGRAM_BOT = "tapday_play_bot"; // твій бот
+let telegramUser = JSON.parse(localStorage.getItem("telegramUser")) || null;
 
-<script type="module">
-import { collection, doc, setDoc, getDoc, updateDoc, query, orderBy, limit, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+async function telegramLogin() {
+  if (telegramUser) return;
+  // Telegram Login Widget
+  const tg = window.Telegram.WebApp || {};
+  tg.expand();
+  window.TelegramLoginWidget = {
+    dataOnauth: function(user){
+      telegramUser = user;
+      localStorage.setItem("telegramUser",JSON.stringify(user));
+      alert(`Привіт ${user.first_name}!`);
+      initPlayer();
+    }
+  };
+}
+
+telegramLogin();
+
+/* ================== PLAYER INIT ================== */
+let playerId = localStorage.getItem("playerId");
+if(!playerId){
+  playerId = "player_"+Math.floor(Math.random()*9999999);
+  localStorage.setItem("playerId",playerId);
+}
 
 let balance = parseFloat(localStorage.getItem("balance"))||0;
-let playerId = "player_"+Math.floor(Math.random()*1000000); // простий унікальний ID
+let multiplier = 1;
+let premium = localStorage.getItem("premium")==="true";
+
 const balanceEl = document.getElementById("balance");
 const tapBtn = document.getElementById("tapBtn");
-const topPlayers = document.getElementById("topPlayers");
+const leaderboardEl = document.getElementById("leaderboard");
+const tournamentEl = document.getElementById("tournament");
 
 function updateUI(){
-  balanceEl.textContent = `💰 Balance: ${balance.toFixed(2)} $`;
+  balanceEl.textContent = `💰 ${balance.toFixed(2)} $`;
   localStorage.setItem("balance",balance);
 }
 updateUI();
 
-// ===== TAP =====
-tapBtn.onclick=()=>{
-  balance+=0.01;
+/* ================== TAP ================== */
+tapBtn.onclick = async ()=>{
+  balance += 0.01 * multiplier * (premium?2:1);
   updateUI();
-  sendBalanceToServer();
+  createParticle();
+  await sendToServer();
+};
+
+/* ================== PARTICLES ================== */
+function createParticle(){
+  const p=document.createElement("div");
+  p.className="particle";
+  p.style.left=Math.random()*window.innerWidth+"px";
+  p.style.top="60%";
+  document.body.appendChild(p);
+  setTimeout(()=>p.remove(),800);
 }
 
-// ===== SEND BALANCE TO FIRESTORE =====
-async function sendBalanceToServer(){
-  const docRef = doc(db,"players",playerId);
-  const docSnap = await getDoc(docRef);
-  if(docSnap.exists()){
-    await updateDoc(docRef,{balance:balance});
-  } else {
-    await setDoc(docRef,{balance:balance,created:Date.now()});
-  }
+/* ================== SERVER SYNC ================== */
+async function sendToServer(){
+  if(!telegramUser) return;
+  const ref = doc(db,"players",playerId);
+  await setDoc(ref,{
+    balance:balance,
+    premium:premium,
+    telegramId:telegramUser.id,
+    updated:serverTimestamp()
+  },{merge:true});
 }
 
-// ===== GLOBAL LEADERBOARD =====
-const leaderboardQuery = query(collection(db,"players"),orderBy("balance","desc"),limit(5));
-onSnapshot(leaderboardQuery,(snapshot)=>{
-  topPlayers.innerHTML="";
-  snapshot.forEach(doc=>{
-    topPlayers.innerHTML+=`<div>${doc.id}: ${doc.data().balance.toFixed(2)} $</div>`;
+/* ================== GLOBAL LEADERBOARD ================== */
+const q = query(collection(db,"players"),orderBy("balance","desc"),limit(5));
+onSnapshot(q,(snap)=>{
+  leaderboardEl.innerHTML="<h3>🌍 ТОП 5</h3>";
+  snap.forEach(d=>{
+    leaderboardEl.innerHTML+=`<div>${d.data().telegramId || d.id} — ${d.data().balance.toFixed(2)} $</div>`;
   });
 });
 
-// ===== AUTO SEND EVERY 5 SEC =====
-setInterval(sendBalanceToServer,5000);
+/* ================== TOURNAMENT SYSTEM ================== */
+const tournamentRef = doc(db,"system","tournament");
+
+async function checkTournament(){
+  const snap = await getDoc(tournamentRef);
+  let data = snap.data();
+  let now = Date.now();
+
+  if(!data || now > data.end){
+    await setDoc(tournamentRef,{
+      start:now,
+      end:now + 10*60*1000,
+      prize:50,
+      players:[]
+    });
+  }
+}
+
+async function joinTournament(){
+  const snap = await getDoc(tournamentRef);
+  let data = snap.data();
+  if(!data.players.includes(playerId)){
+    data.players.push(playerId);
+    await updateDoc(tournamentRef,{players:data.players});
+    alert("Ви приєдналися до турніру!");
+  }
+}
+
+async function updateTournamentUI(){
+  const snap = await getDoc(tournamentRef);
+  const data = snap.data();
+  let timeLeft = Math.max(0, data.end - Date.now());
+  tournamentEl.innerHTML = `
+  🏆 Турнір (10 хв)<br>
+  Приз: ${data.prize}$<br>
+  Час: ${Math.floor(timeLeft/1000)} сек<br>
+  <button onclick="joinTournament()">Вступити</button>
+  `;
+}
+
+setInterval(updateTournamentUI,1000);
+checkTournament();
+
+/* ================== MULTIPLIERS ================== */
+window.activateX2=()=>activateMult(2,10);
+window.activateX5=()=>activateMult(5,5);
+
+function activateMult(x,min){
+  multiplier=x;
+  setTimeout(()=>multiplier=1,min*60000);
+}
+
+/* ================== DAILY BONUS ================== */
+window.dailyBonus=()=>{
+  const today=new Date().toDateString();
+  if(localStorage.getItem("daily")==today){alert("Вже отримано");return;}
+  balance+=1;
+  localStorage.setItem("daily",today);
+  updateUI();
+};
+
+/* ================== PREMIUM PAY ================== */
+window.buyPremium=()=>{
+  if(!telegramUser){alert("Спочатку авторизуйтесь через Telegram"); return;}
+  // Відкриваємо Telegram Payment
+  const invoice = {
+    title: "TapDay PRO Premium",
+    description: "Отримайте x2 бонус назавжди",
+    payload: "premium_"+playerId,
+    provider_token: "YOUR_TELEGRAM_PROVIDER_TOKEN",
+    currency: "USD",
+    prices: [{label:"Premium Pass",amount:1000}] // $10
+  };
+  Telegram.WebApp.sendInvoice(invoice); // WebApp API
+};
+
+/* ================== ANTI-CHEAT ================== */
+// Тут можна додати Cloud Functions для валідації balance/taps
+// Для прикладу, balance не може зростати > 0.05$/сек
 </script>
+
+<style>
+body{
+  margin:0;
+  background:linear-gradient(180deg,#000,#111);
+  font-family:Arial;
+  color:white;
+  text-align:center;
+}
+h1{color:#ffd700;}
+#balance{font-size:34px;margin:20px;}
+#tapBtn{
+  width:200px;height:200px;border-radius:50%;
+  background:linear-gradient(45deg,#ff9800,#ffd700);
+  border:none;font-size:30px;
+  box-shadow:0 0 40px gold;
+}
+button{
+  margin:8px;padding:10px 18px;
+  border-radius:10px;border:none;
+  background:#222;color:white;
+}
+#leaderboard,#tournament{
+  margin-top:20px;
+  background:#111;padding:10px;
+}
+.particle{
+  position:fixed;
+  width:8px;height:8px;
+  background:gold;
+  border-radius:50%;
+  animation:fly 0.8s linear forwards;
+}
+@keyframes fly{
+  to{transform:translateY(-200px);opacity:0;}
+}
+</style>
+</head>
+
+<body>
+
+<h1>🔥 TapDay PRO 2026 – Telegram</h1>
+<div id="balance">0</div>
+<button id="tapBtn">TAP</button>
+
+<br><br>
+
+<button onclick="activateX2()">⚡ X2 (10 хв)</button>
+<button onclick="activateX5()">🔥 X5 (5 хв)</button>
+<button onclick="dailyBonus()">🎁 Денний бонус</button>
+<button onclick="buyPremium()">💎 Premium Pass через Telegram</button>
+
+<div id="tournament"></div>
+<div id="leaderboard"></div>
+
+<script async src="https://telegram.org/js/telegram-web-app.js"></script>
 </body>
 </html>
