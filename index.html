@@ -2,39 +2,127 @@
 <html lang="uk">
 <head>
 <meta charset="UTF-8">
-<title>TapDay PRO 2026 - Турніри & Преміум</title>
+<title>TapDay PRO 2026</title>
 <style>
-body{margin:0;background:#0b0b0b;color:#fff;font-family:Arial,sans-serif;text-align:center;overflow-x:hidden;}
-#top{display:flex;justify-content:space-between;align-items:center;padding:10px;}
-#online{font-size:12px;color:#00ff7f;}
-#coin{margin:60px auto 10px;width:180px;height:180px;border-radius:50%;background:radial-gradient(circle,#ffd700,#ff9800);display:flex;align-items:center;justify-content:center;font-size:32px;font-weight:bold;cursor:pointer;transition:transform 0.1s;}
-#balance,#coins{font-size:18px;margin-bottom:6px;}
-.block{margin:8px auto;width:90%;padding:12px;border-radius:12px;background:#333;cursor:pointer;}
-#withdraw{background:green;width:fit-content;padding:10px 25px;}
-#leftToWithdraw{margin-top:6px;font-size:14px;color:#ffcc00;}
-.mult{position:fixed;top:55%;padding:10px 14px;background:#222;border-radius:12px;cursor:pointer;}
-#x2{left:10px;}#x5{right:10px;}
+body {
+  margin:0;
+  background:#0b0b0b;
+  color:#fff;
+  font-family:Arial,sans-serif;
+  text-align:center;
+  overflow-x:hidden;
+}
+#top{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  padding:10px;
+}
+#online{
+  font-size:12px;
+  color:#00ff7f;
+}
+#coin{
+  margin:60px auto 10px;
+  width:180px;
+  height:180px;
+  border-radius:50%;
+  background:radial-gradient(circle,#ffd700,#ff9800);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:32px;
+  font-weight:bold;
+  cursor:pointer;
+  transition: transform 0.1s;
+}
+#balance,#coins{
+  font-size:18px;
+  margin-bottom:6px;
+}
+.block{
+  margin:8px auto;
+  width:90%;
+  padding:12px;
+  border-radius:12px;
+  background:#333;
+  cursor:pointer;
+}
+#withdraw{
+  background:green;
+  width:fit-content;
+  padding:10px 25px;
+}
+#leftToWithdraw{
+  margin-top:6px;
+  font-size:14px;
+  color:#ffcc00;
+}
+.mult{
+  position:fixed;
+  top:55%;
+  padding:10px 14px;
+  background:#222;
+  border-radius:12px;
+  cursor:pointer;
+}
+#x2{left:10px;}
+#x5{right:10px;}
 .mult.active{background:#ff9800;}
-#shopModal{position:fixed;inset:0;background:rgba(0,0,0,0.85);display:none;align-items:center;justify-content:center;z-index:10;}
-#shopBox{background:#1e1e1e;width:90%;max-width:350px;padding:20px;border-radius:16px;}
-.shopItem{background:#333;padding:10px;border-radius:10px;margin:8px 0;cursor:pointer;}
-.closeBtn{margin-top:10px;color:#ff5555;cursor:pointer;}
+#shopModal{
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,0.85);
+  display:none;
+  align-items:center;
+  justify-content:center;
+  z-index:10;
+}
+#shopBox{
+  background:#1e1e1e;
+  width:90%;
+  max-width:350px;
+  padding:20px;
+  border-radius:16px;
+}
+.shopItem{
+  background:#333;
+  padding:10px;
+  border-radius:10px;
+  margin:8px 0;
+  cursor:pointer;
+}
 /* Преміум ефекти */
-@keyframes glow{0%{box-shadow:0 0 5px #fff;}50%{box-shadow:0 0 25px #ff0;}100%{box-shadow:0 0 5px #fff;}}
-@keyframes rareEffect{0%{transform:scale(1);background:#ff0;}50%{transform:scale(1.2);background:#0ff;}100%{transform:scale(1);background:#ff0;}}
-.premiumGlow{animation:glow 1.5s infinite;}
-.rarePremium{animation:rareEffect 2s infinite;}
+@keyframes glow{
+  0%{box-shadow:0 0 5px #fff;}
+  50%{box-shadow:0 0 25px #ff0;}
+  100%{box-shadow:0 0 5px #fff;}
+}
+.premiumGlow{
+  animation: glow 1.5s infinite;
+}
+/* Частинки */
+.particle{
+  position:absolute;
+  border-radius:50%;
+  pointer-events:none;
+  z-index:999;
+}
 </style>
 </head>
 <body>
 
 <div id="top">
   <button id="adBtn">🎥 +Coins</button>
-  <div id="online">🟢 Онлайн: <span id="onlineCount">3000</span><br>🎁 Бонус сьогодні: <span id="bonusToday">200</span></div>
+  <div id="online">
+    🟢 Онлайн: <span id="onlineCount">3000</span><br>
+    🎁 Бонус сьогодні: <span id="bonusToday">200</span>
+  </div>
 </div>
 
 <div id="x2" class="mult">x2</div>
 <div id="x5" class="mult">x5</div>
+
 <div id="coin">TAP</div>
 
 <div id="balance">💰 Баланс: 0.00 $</div>
@@ -43,12 +131,16 @@ body{margin:0;background:#0b0b0b;color:#fff;font-family:Arial,sans-serif;text-al
 <div id="daily" class="block">📅 Денний бонус</div>
 <div id="bonus30" class="block">⏳ Бонус через 30 днів</div>
 <div id="subscribe" class="block">📢 Підписка +10$</div>
+
 <div id="shop" class="block">🛒 Coin Shop</div>
+
 <div id="premiumPass" class="block premiumGlow">🌟 Преміум Pass</div>
-<div id="donate" class="block">💎 Донат</div>
+
 <div id="tournament" class="block">🏆 Турнір 10 хвилин</div>
+
 <div id="withdraw" class="block">💳 Вивід</div>
 <div id="leftToWithdraw"></div>
+
 <div id="share" class="block">🔗 Поділитися грою</div>
 
 <!-- SHOP MODAL -->
@@ -66,47 +158,77 @@ body{margin:0;background:#0b0b0b;color:#fff;font-family:Arial,sans-serif;text-al
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 
 <script>
-// ===== Налаштування =====
-const CHANNEL_LINK="https://t.me/tapday_clicker";
-const GAME_LINK="https://t.me/tapday_play_bot";
-const WITHDRAW_MIN=320;
-const DAILY_BONUSES=[0.25,0.5,0.75,1,1.25,1.5,5];
-const firebaseConfig={apiKey:"YOUR_FIREBASE_API_KEY",authDomain:"YOUR_FIREBASE_PROJECT.firebaseapp.com",databaseURL:"https://YOUR_FIREBASE_PROJECT.firebaseio.com",projectId:"YOUR_FIREBASE_PROJECT",storageBucket:"YOUR_FIREBASE_PROJECT.appspot.com",messagingSenderId:"YOUR_MESSAGING_ID",appId:"YOUR_APP_ID"};
+const CHANNEL_LINK = "https://t.me/tapday_clicker";
+const GAME_LINK = "https://t.me/tapday_play_bot";
+const WITHDRAW_MIN = 320;
+const DAILY_BONUSES = [0.25,0.5,0.75,1,1.25,1.5,5];
+const firebaseConfig = {
+  apiKey: "YOUR_FIREBASE_API_KEY",
+  authDomain: "YOUR_FIREBASE_PROJECT.firebaseapp.com",
+  databaseURL: "https://YOUR_FIREBASE_PROJECT.firebaseio.com",
+  projectId: "YOUR_FIREBASE_PROJECT",
+  storageBucket: "YOUR_FIREBASE_PROJECT.appspot.com",
+  messagingSenderId: "YOUR_MESSAGING_ID",
+  appId: "YOUR_APP_ID"
+};
 firebase.initializeApp(firebaseConfig);
-const db=firebase.database();
+const db = firebase.database();
 
-// ===== Локальні дані =====
-let balance=parseFloat(localStorage.getItem("balance"))||0;
-let coins=parseInt(localStorage.getItem("coins"))||0;
-let multiplier=1;
-let tournamentActive=false;
+let balance = parseFloat(localStorage.getItem("balance"))||0;
+let coins = parseInt(localStorage.getItem("coins"))||0;
+let multiplier = 1;
 
-// ===== UI =====
+// ===== UTILS =====
+function createParticle(x,y,color){
+  const p = document.createElement("div");
+  p.classList.add("particle");
+  p.style.left=x+"px";
+  p.style.top=y+"px";
+  p.style.width="8px";
+  p.style.height="8px";
+  p.style.background=color;
+  document.body.appendChild(p);
+  let dx=(Math.random()-0.5)*20;
+  let dy=(Math.random()-0.5)*20;
+  let life=30;
+  let interval=setInterval(()=>{
+    p.style.left=parseFloat(p.style.left)+dx+"px";
+    p.style.top=parseFloat(p.style.top)+dy+"px";
+    life--;
+    if(life<=0){p.remove(); clearInterval(interval);}
+  },16);
+}
+
+// ===== UPDATE UI =====
 function updateUI(){
-  document.getElementById("balance").textContent=`💰 Баланс: ${balance.toFixed(2)} $`;
-  document.getElementById("coins").textContent=`🪙 Coins: ${coins}`;
+  document.getElementById("balance").textContent = `💰 Баланс: ${balance.toFixed(2)} $`;
+  document.getElementById("coins").textContent = `🪙 Coins: ${coins}`;
   localStorage.setItem("balance",balance);
   localStorage.setItem("coins",coins);
-  const left=WITHDRAW_MIN-balance;
-  leftToWithdraw.textContent=left>0?`До виводу залишилось: ${left.toFixed(2)} $`:"✅ Вивід доступний";
+  const left = WITHDRAW_MIN - balance;
+  leftToWithdraw.textContent = left>0?`До виводу залишилось: ${left.toFixed(2)} $`:"✅ Вивід доступний";
 }
 updateUI();
 
 // ===== TAP =====
 coin.onclick=()=>{
   balance+=0.01*multiplier;
+  coins+=1;
   updateUI();
   coin.style.transform="scale(1.1)";
   setTimeout(()=>coin.style.transform="scale(1)",100);
   navigator.vibrate?.(30);
-  if(tournamentActive) addTournamentScore(coinScore=1);
-  syncFirebase();
+  for(let i=0;i<5;i++) createParticle(Math.random()*window.innerWidth,Math.random()*window.innerHeight,"#ffd700");
 };
 
 // ===== MULT =====
 function activateMult(x,duration){
   multiplier=x;
-  setTimeout(()=>multiplier=1,duration*60000);
+  document.getElementById(`x${x}`).classList.add("active");
+  setTimeout(()=>{
+    multiplier=1;
+    document.getElementById(`x${x}`).classList.remove("active");
+  },duration*60000);
 }
 x2.onclick=()=>activateMult(2,10);
 x5.onclick=()=>activateMult(5,8);
@@ -123,7 +245,7 @@ function buyBoost(x,cost,duration){
 }
 function buyOffer(){
   window.open("https://beacons.ai/dealspavlo","_blank");
-  alert("🎁 Перейдіть на AliExpress через ваш партнерський лінк!");
+  alert("🎁 Перейдіть на AliExpress та зробіть покупку!");
 }
 
 // ===== DAILY BONUS =====
@@ -171,58 +293,29 @@ share.onclick=()=>{
 // ===== PREMIUM PASS =====
 premiumPass.onclick=()=>{
   if(localStorage.getItem("premium")){alert("Вже куплено"); return;}
-  premiumPass.classList.add("rarePremium");
   alert("💎 Купіть преміум через Telegram Payment!");
   localStorage.setItem("premium","1");
-  coins+=500; // бонус преміум
-  updateUI();
-};
-
-// ===== DONATE =====
-donate.onclick=()=>{
-  alert("💰 Донат поки що симуляція. Реальні платежі підключимо пізніше.");
-  coins+=50; // бонус за донат для тесту
+  coins+=500;
   updateUI();
 };
 
 // ===== TOURNAMENT =====
-let tournamentScores={};
 tournament.onclick=()=>{
-  if(tournamentActive){alert("🏆 Турнір вже йде!"); return;}
-  alert("🏆 Турнір стартував! 10 хвилин рахунку. Переможець отримає бонус!");
-  tournamentActive=true;
-  tournamentScores={};
-  const start=Date.now();
-  const duration=10*60*1000;
-  const interval=setInterval(()=>{
-    const elapsed=Date.now()-start;
-    if(elapsed>=duration){
-      clearInterval(interval);
-      tournamentActive=false;
-      const winner=Object.keys(tournamentScores).reduce((a,b)=>tournamentScores[a]>tournamentScores[b]?a:b,"player1");
-      const prize=Math.floor(Math.random()*50)+50;
-      balance+=prize;
-      updateUI();
-      alert(`🏆 Турнір закінчився! Переможець: ${winner}, +${prize} $`);
-      syncFirebase();
-    }
-  },1000);
+  alert("🏆 Турнір розпочато! 10 хвилин рахунку. Переможець отримає бонус!");
+  // Firebase логіка синхронізації лідерборду
 };
-function addTournamentScore(val){
-  const user="player1";
-  tournamentScores[user]=(tournamentScores[user]||0)+val;
-}
 
 // ===== ONLINE + BONUS TODAY =====
-setInterval(()=>{onlineCount.textContent=3000+Math.floor(Math.random()*500)-250;},3000);
-let bonusTodayValue=parseInt(localStorage.getItem("bonusToday"))||200;
-setInterval(()=>{if(Math.random()>0.7){bonusTodayValue++;localStorage.setItem("bonusToday",bonusTodayValue);}bonusToday.textContent=bonusTodayValue;},6000);
+setInterval(()=>{
+  onlineCount.textContent=3000+Math.floor(Math.random()*500)-250;
+},3000);
 
-// ===== FIREBASE SYNC =====
-function syncFirebase(){
-  const userId="player1";
-  db.ref("players/"+userId).set({balance:balance,coins:coins,lastTap:Date.now()});
-}
+let bonusTodayValue=parseInt(localStorage.getItem("bonusToday"))||200;
+setInterval(()=>{
+  if(Math.random()>0.7){bonusTodayValue++; localStorage.setItem("bonusToday",bonusTodayValue);}
+  bonusToday.textContent=bonusTodayValue;
+},6000);
+
 </script>
 </body>
 </html>
