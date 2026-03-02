@@ -3,143 +3,165 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>TapDay Ultra</title>
+<title>TapDay Infinity</title>
+
 <style>
 body{
     margin:0;
-    background:linear-gradient(135deg,#0f2027,#203a43,#2c5364);
-    color:white;
     font-family:Arial;
+    background:radial-gradient(circle at top,#1e1e2f,#0f0f18);
+    color:white;
     text-align:center;
+    overflow-x:hidden;
 }
 h1{margin-top:20px;}
+.stats{margin-top:10px;}
 #tapBtn{
-    width:200px;
-    height:200px;
+    width:220px;
+    height:220px;
     border-radius:50%;
-    font-size:28px;
     border:none;
-    background:cyan;
-    color:black;
-    margin-top:30px;
-    box-shadow:0 0 30px cyan;
+    font-size:30px;
+    color:white;
+    background:linear-gradient(45deg,#ff00cc,#3333ff);
+    box-shadow:0 0 40px #ff00cc;
+    margin-top:40px;
     transition:0.1s;
 }
 #tapBtn:active{transform:scale(0.9);}
 .panel{
-    margin-top:20px;
+    margin-top:30px;
 }
 button{
+    padding:10px 15px;
     margin:5px;
-    padding:10px;
+    border:none;
+    border-radius:8px;
+    cursor:pointer;
+}
+.card{
+    background:#1a1a2e;
+    margin:10px auto;
+    padding:15px;
+    border-radius:12px;
+    width:90%;
+    max-width:400px;
+}
+.leaderboard-entry{
+    display:flex;
+    justify-content:space-between;
+}
+.progress{
+    width:80%;
+    height:10px;
+    background:#333;
+    margin:10px auto;
+    border-radius:5px;
+}
+.progress-bar{
+    height:100%;
+    background:linear-gradient(90deg,cyan,purple);
+    width:0%;
+    border-radius:5px;
 }
 </style>
 </head>
 <body>
 
-<h1>🔥 TapDay ULTRA 🔥</h1>
+<h1>🔥 TapDay Infinity 🔥</h1>
 
-<div>Coins: <span id="coins">0</span></div>
-<div>Level: <span id="level">1</span></div>
-<div>XP: <span id="xp">0</span></div>
-<div>Prestige: <span id="prestige">0</span></div>
+<div class="stats">
+Coins: <span id="coins">0</span> |
+Level: <span id="level">1</span> |
+Prestige: <span id="prestige">0</span>
+</div>
 
 <button id="tapBtn">TAP</button>
 
-<div class="panel">
-    <button onclick="activatePrestige()">Prestige</button>
-    <button onclick="startPvP()">PvP</button>
-    <button onclick="watchAd()">Watch Ad</button>
+<div class="progress">
+<div class="progress-bar" id="xpBar"></div>
+</div>
+
+<div class="card">
+<h3>🎟 Battle Pass (Season 1)</h3>
+XP: <span id="bpXP">0</span> / 100
 </div>
 
 <div class="panel">
-    <button onclick="buySkin('gold')">Gold Skin</button>
-    <button onclick="buySkin('galaxy')">Galaxy Skin</button>
+<button onclick="activatePrestige()">Prestige</button>
+<button onclick="buySkin('gold')">Gold Skin</button>
+<button onclick="buySkin('galaxy')">Galaxy Skin</button>
+<button onclick="watchAd()">Reward Ad</button>
 </div>
 
-<audio id="bgMusic" loop>
-<source src="https://cdn.pixabay.com/audio/2022/03/15/audio_5b3d1df9c5.mp3">
-</audio>
+<div class="card">
+<h3>🏆 Leaderboard (Local)</h3>
+<div id="leaderboard"></div>
+</div>
 
-<audio id="tapSound">
-<source src="https://cdn.pixabay.com/audio/2022/03/15/audio_c8b3a.mp3">
-</audio>
+<audio id="tapSound" src="https://assets.mixkit.co/sfx/preview/mixkit-game-click-1114.mp3"></audio>
+<audio id="bonusSound" src="https://assets.mixkit.co/sfx/preview/mixkit-bonus-earned-2065.mp3"></audio>
+<audio id="bgMusic" src="https://assets.mixkit.co/music/preview/mixkit-arcade-game-opener-222.mp3" loop></audio>
 
 <script>
 
-// ==========================
-// PLAYER DATA
-// ==========================
+// ================= DATA =================
 
-let player = JSON.parse(localStorage.getItem("tapday")) || {
+let player = JSON.parse(localStorage.getItem("tapdayInfinity")) || {
     coins:0,
-    level:1,
     xp:0,
+    level:1,
     prestige:0,
-    skin:"default",
-    missions:{tap:0},
     battleXP:0,
-    antiCheat:0
+    skin:"default"
 };
 
-let tapCounter = 0;
-let maxTap = 20;
+let leaderboard = JSON.parse(localStorage.getItem("leaderboard")) || [];
 
-setInterval(()=>{tapCounter=0;},1000);
+const coinsEl = document.getElementById("coins");
+const levelEl = document.getElementById("level");
+const prestigeEl = document.getElementById("prestige");
+const bpXPEl = document.getElementById("bpXP");
+const xpBar = document.getElementById("xpBar");
+const tapSound = document.getElementById("tapSound");
+const bonusSound = document.getElementById("bonusSound");
+const bgMusic = document.getElementById("bgMusic");
 
-// ==========================
-// UI UPDATE
-// ==========================
+document.body.onclick=()=>bgMusic.play();
 
-function updateUI(){
-    document.getElementById("coins").innerText=player.coins;
-    document.getElementById("level").innerText=player.level;
-    document.getElementById("xp").innerText=player.xp;
-    document.getElementById("prestige").innerText=player.prestige;
-}
-
-function save(){
-    localStorage.setItem("tapday",JSON.stringify(player));
-}
-
-// ==========================
-// TAP SYSTEM
-// ==========================
+// ================= TAP =================
 
 document.getElementById("tapBtn").onclick=function(){
 
-    tapCounter++;
-    if(tapCounter>maxTap){
-        player.antiCheat++;
-        alert("Cheat detected!");
-        return;
+    tapSound.play();
+
+    let bonus = Math.random()<0.1 ? 5 : 1;
+    player.coins += bonus;
+    player.xp += bonus;
+    player.battleXP += bonus;
+
+    if(bonus>1){
+        bonusSound.play();
     }
 
-    document.getElementById("tapSound").play();
-
-    player.coins+=1;
-    player.xp+=1;
-    player.missions.tap+=1;
-
-    if(player.xp>=player.level*100){
-        player.xp=0;
+    if(player.xp >= player.level*100){
+        player.xp = 0;
         player.level++;
         alert("LEVEL UP!");
     }
 
-    if(player.missions.tap>=200){
-        player.coins+=200;
-        player.missions.tap=0;
-        alert("Mission Complete +200!");
+    if(player.battleXP>=100){
+        player.battleXP=0;
+        player.coins+=500;
+        alert("Battle Pass Reward!");
     }
 
+    updateLeaderboard();
     updateUI();
     save();
 };
 
-// ==========================
-// PRESTIGE
-// ==========================
+// ================= PRESTIGE =================
 
 function activatePrestige(){
     if(player.level>=10){
@@ -152,67 +174,67 @@ function activatePrestige(){
     }
 }
 
-// ==========================
-// SKINS
-// ==========================
+// ================= SKINS =================
 
 function buySkin(type){
-
     if(type==="gold" && player.coins>=500){
         player.coins-=500;
         document.getElementById("tapBtn").style.background="gold";
     }
-
     if(type==="galaxy" && player.coins>=1000){
         player.coins-=1000;
         document.getElementById("tapBtn").style.background="linear-gradient(45deg,purple,black)";
     }
-
-    updateUI();
     save();
+    updateUI();
 }
 
-// ==========================
-// PVP
-// ==========================
-
-function startPvP(){
-
-    let opponent=Math.floor(Math.random()*500);
-
-    if(player.coins>opponent){
-        player.coins+=300;
-        alert("You WON PvP!");
-    }else{
-        alert("You LOST PvP!");
-    }
-
-    updateUI();
-    save();
-}
-
-// ==========================
-// AD REWARD
-// ==========================
+// ================= AD =================
 
 function watchAd(){
     alert("Watching Ad...");
     setTimeout(()=>{
         player.coins+=200;
-        alert("Ad Complete +200!");
         updateUI();
         save();
     },3000);
 }
 
-// ==========================
-// MUSIC AUTO START
-// ==========================
+// ================= LEADERBOARD =================
 
-document.body.onclick=function(){
-    document.getElementById("bgMusic").play();
-};
+function updateLeaderboard(){
+    leaderboard.push({score:player.coins,date:Date.now()});
+    leaderboard.sort((a,b)=>b.score-a.score);
+    leaderboard=leaderboard.slice(0,5);
+    localStorage.setItem("leaderboard",JSON.stringify(leaderboard));
+    renderLeaderboard();
+}
 
+function renderLeaderboard(){
+    document.getElementById("leaderboard").innerHTML=
+    leaderboard.map((p,i)=>
+    `<div class="leaderboard-entry">
+        <span>#${i+1}</span>
+        <span>${p.score}</span>
+    </div>`).join("");
+}
+
+// ================= UI =================
+
+function updateUI(){
+    coinsEl.innerText=player.coins;
+    levelEl.innerText=player.level;
+    prestigeEl.innerText=player.prestige;
+    bpXPEl.innerText=player.battleXP;
+    xpBar.style.width=(player.xp/(player.level*100))*100+"%";
+}
+
+function save(){
+    localStorage.setItem("tapdayInfinity",JSON.stringify(player));
+}
+
+// INIT
+renderLeaderboard();
 updateUI();
 
 </script>
