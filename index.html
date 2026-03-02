@@ -6,63 +6,99 @@
 <title>TapDay Infinity</title>
 
 <style>
+*{
+    -webkit-tap-highlight-color: transparent;
+    outline: none;
+}
+
 body{
     margin:0;
-    font-family:Arial;
+    font-family:Arial, sans-serif;
     background:radial-gradient(circle at top,#1e1e2f,#0f0f18);
     color:white;
     text-align:center;
-    overflow-x:hidden;
+    overflow:hidden;
 }
-h1{margin-top:20px;}
-.stats{margin-top:10px;}
+
+h1{
+    margin-top:20px;
+}
+
+.stats{
+    margin-top:10px;
+    font-size:18px;
+}
+
 #tapBtn{
-    width:220px;
-    height:220px;
+    width:230px;
+    height:230px;
     border-radius:50%;
     border:none;
-    font-size:30px;
+    font-size:28px;
     color:white;
     background:linear-gradient(45deg,#ff00cc,#3333ff);
-    box-shadow:0 0 40px #ff00cc;
+    box-shadow:0 0 50px #ff00cc;
     margin-top:40px;
-    transition:0.1s;
+    cursor:pointer;
+    transition:transform 0.08s ease;
+    user-select:none;
 }
-#tapBtn:active{transform:scale(0.9);}
-.panel{
-    margin-top:30px;
+
+#tapBtn:active{
+    transform:scale(0.92);
 }
+
+.progress{
+    width:80%;
+    height:12px;
+    background:#333;
+    margin:20px auto;
+    border-radius:6px;
+}
+
+.progress-bar{
+    height:100%;
+    background:linear-gradient(90deg,cyan,purple);
+    width:0%;
+    border-radius:6px;
+    transition:0.2s;
+}
+
+.card{
+    background:#1a1a2e;
+    margin:15px auto;
+    padding:15px;
+    border-radius:14px;
+    width:90%;
+    max-width:400px;
+}
+
 button{
     padding:10px 15px;
     margin:5px;
     border:none;
     border-radius:8px;
     cursor:pointer;
+    background:#2e2e4d;
+    color:white;
 }
-.card{
-    background:#1a1a2e;
-    margin:10px auto;
-    padding:15px;
-    border-radius:12px;
-    width:90%;
-    max-width:400px;
-}
+
 .leaderboard-entry{
     display:flex;
     justify-content:space-between;
+    margin:5px 0;
 }
-.progress{
-    width:80%;
-    height:10px;
-    background:#333;
-    margin:10px auto;
-    border-radius:5px;
+
+.floating{
+    position:absolute;
+    font-weight:bold;
+    pointer-events:none;
+    animation:floatUp 0.8s forwards;
 }
-.progress-bar{
-    height:100%;
-    background:linear-gradient(90deg,cyan,purple);
-    width:0%;
-    border-radius:5px;
+
+@keyframes floatUp{
+    0%{opacity:1;transform:translateY(0);}
+    100%{opacity:0;transform:translateY(-60px);}
 }
 </style>
 </head>
@@ -87,15 +123,15 @@ Prestige: <span id="prestige">0</span>
 XP: <span id="bpXP">0</span> / 100
 </div>
 
-<div class="panel">
+<div>
 <button onclick="activatePrestige()">Prestige</button>
-<button onclick="buySkin('gold')">Gold Skin</button>
-<button onclick="buySkin('galaxy')">Galaxy Skin</button>
+<button onclick="buySkin('gold')">Gold Skin (500)</button>
+<button onclick="buySkin('galaxy')">Galaxy Skin (1000)</button>
 <button onclick="watchAd()">Reward Ad</button>
 </div>
 
 <div class="card">
-<h3>🏆 Leaderboard (Local)</h3>
+<h3>🏆 Leaderboard (Top 5)</h3>
 <div id="leaderboard"></div>
 </div>
 
@@ -105,15 +141,12 @@ XP: <span id="bpXP">0</span> / 100
 
 <script>
 
-// ================= DATA =================
-
 let player = JSON.parse(localStorage.getItem("tapdayInfinity")) || {
     coins:0,
     xp:0,
     level:1,
     prestige:0,
-    battleXP:0,
-    skin:"default"
+    battleXP:0
 };
 
 let leaderboard = JSON.parse(localStorage.getItem("leaderboard")) || [];
@@ -123,16 +156,19 @@ const levelEl = document.getElementById("level");
 const prestigeEl = document.getElementById("prestige");
 const bpXPEl = document.getElementById("bpXP");
 const xpBar = document.getElementById("xpBar");
+const tapBtn = document.getElementById("tapBtn");
+
 const tapSound = document.getElementById("tapSound");
 const bonusSound = document.getElementById("bonusSound");
 const bgMusic = document.getElementById("bgMusic");
 
-document.body.onclick=()=>bgMusic.play();
+document.body.addEventListener("click",()=>bgMusic.play(),{once:true});
 
 // ================= TAP =================
 
-document.getElementById("tapBtn").onclick=function(){
+tapBtn.addEventListener("click",(e)=>{
 
+    tapSound.currentTime=0;
     tapSound.play();
 
     let bonus = Math.random()<0.1 ? 5 : 1;
@@ -142,10 +178,13 @@ document.getElementById("tapBtn").onclick=function(){
 
     if(bonus>1){
         bonusSound.play();
+        createFloating("+5 BONUS!",e);
+    }else{
+        createFloating("+1",e);
     }
 
     if(player.xp >= player.level*100){
-        player.xp = 0;
+        player.xp=0;
         player.level++;
         alert("LEVEL UP!");
     }
@@ -153,13 +192,25 @@ document.getElementById("tapBtn").onclick=function(){
     if(player.battleXP>=100){
         player.battleXP=0;
         player.coins+=500;
-        alert("Battle Pass Reward!");
+        alert("Battle Pass Reward +500!");
     }
 
     updateLeaderboard();
     updateUI();
     save();
-};
+});
+
+// ================= FLOATING TEXT =================
+
+function createFloating(text,e){
+    const div=document.createElement("div");
+    div.className="floating";
+    div.innerText=text;
+    div.style.left=e.clientX+"px";
+    div.style.top=e.clientY+"px";
+    document.body.appendChild(div);
+    setTimeout(()=>div.remove(),800);
+}
 
 // ================= PRESTIGE =================
 
@@ -169,8 +220,8 @@ function activatePrestige(){
         player.prestige++;
         player.coins+=1000;
         alert("Prestige Activated!");
-        save();
         updateUI();
+        save();
     }
 }
 
@@ -179,14 +230,14 @@ function activatePrestige(){
 function buySkin(type){
     if(type==="gold" && player.coins>=500){
         player.coins-=500;
-        document.getElementById("tapBtn").style.background="gold";
+        tapBtn.style.background="gold";
     }
     if(type==="galaxy" && player.coins>=1000){
         player.coins-=1000;
-        document.getElementById("tapBtn").style.background="linear-gradient(45deg,purple,black)";
+        tapBtn.style.background="linear-gradient(45deg,purple,black)";
     }
-    save();
     updateUI();
+    save();
 }
 
 // ================= AD =================
@@ -203,7 +254,7 @@ function watchAd(){
 // ================= LEADERBOARD =================
 
 function updateLeaderboard(){
-    leaderboard.push({score:player.coins,date:Date.now()});
+    leaderboard.push({score:player.coins});
     leaderboard.sort((a,b)=>b.score-a.score);
     leaderboard=leaderboard.slice(0,5);
     localStorage.setItem("leaderboard",JSON.stringify(leaderboard));
@@ -233,11 +284,9 @@ function save(){
     localStorage.setItem("tapdayInfinity",JSON.stringify(player));
 }
 
-// INIT
 renderLeaderboard();
 updateUI();
 
 </script>
-
 </body>
 </html>
