@@ -1,22 +1,15 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>TapDay Online</title>
-
-<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js"></script>
-
-<script src="https://telegram.org/js/telegram-web-app.js"></script>
-
+<title>TapDay Ultra</title>
 <style>
 body{
     margin:0;
-    font-family:Arial;
-    background:linear-gradient(135deg,#1f1c2c,#928dab);
+    background:linear-gradient(135deg,#0f2027,#203a43,#2c5364);
     color:white;
+    font-family:Arial;
     text-align:center;
 }
 h1{margin-top:20px;}
@@ -24,184 +17,203 @@ h1{margin-top:20px;}
     width:200px;
     height:200px;
     border-radius:50%;
-    border:none;
     font-size:28px;
+    border:none;
     background:cyan;
+    color:black;
+    margin-top:30px;
     box-shadow:0 0 30px cyan;
+    transition:0.1s;
 }
 #tapBtn:active{transform:scale(0.9);}
-.panel{margin-top:20px;}
-.leaderboard{
+.panel{
     margin-top:20px;
-    background:rgba(0,0,0,0.3);
-    padding:10px;
-    border-radius:10px;
 }
-button{margin:5px;padding:8px;}
+button{
+    margin:5px;
+    padding:10px;
+}
 </style>
 </head>
 <body>
 
-<h1>🔥 TapDay SEASON 1 🔥</h1>
+<h1>🔥 TapDay ULTRA 🔥</h1>
 
-<div id="userName">Connecting...</div>
 <div>Coins: <span id="coins">0</span></div>
 <div>Level: <span id="level">1</span></div>
-<div>Battle Pass: <span id="battleXP">0</span>/100</div>
+<div>XP: <span id="xp">0</span></div>
+<div>Prestige: <span id="prestige">0</span></div>
 
 <button id="tapBtn">TAP</button>
 
 <div class="panel">
-    <button onclick="watchAd()">Reward Ad</button>
-    <button onclick="requestWithdraw()">Withdraw</button>
+    <button onclick="activatePrestige()">Prestige</button>
+    <button onclick="startPvP()">PvP</button>
+    <button onclick="watchAd()">Watch Ad</button>
 </div>
 
-<div class="leaderboard">
-<h3>🏆 Leaderboard</h3>
-<div id="leaderboard"></div>
+<div class="panel">
+    <button onclick="buySkin('gold')">Gold Skin</button>
+    <button onclick="buySkin('galaxy')">Galaxy Skin</button>
 </div>
 
-<script type="module">
+<audio id="bgMusic" loop>
+<source src="https://cdn.pixabay.com/audio/2022/03/15/audio_5b3d1df9c5.mp3">
+</audio>
 
-// =======================
-// FIREBASE CONFIG (ЗАМІНИ НА СВОЄ)
-// =======================
+<audio id="tapSound">
+<source src="https://cdn.pixabay.com/audio/2022/03/15/audio_c8b3a.mp3">
+</audio>
 
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-import { getFirestore, doc, setDoc, getDoc, updateDoc, collection, getDocs, query, orderBy, limit } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+<script>
 
-const firebaseConfig = {
-  apiKey: "YOUR_API_KEY",
-  authDomain: "YOUR_AUTH_DOMAIN",
-  projectId: "YOUR_PROJECT_ID"
-};
-
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-const db = getFirestore(app);
-
-// =======================
-// TELEGRAM LOGIN
-// =======================
-
-let tg = window.Telegram.WebApp;
-tg.expand();
-
-let username = tg.initDataUnsafe?.user?.username || "Guest_"+Math.floor(Math.random()*9999);
-document.getElementById("userName").innerText = "👤 "+username;
-
-// =======================
+// ==========================
 // PLAYER DATA
-// =======================
+// ==========================
 
-let player = {
+let player = JSON.parse(localStorage.getItem("tapday")) || {
     coins:0,
     level:1,
-    battleXP:0
+    xp:0,
+    prestige:0,
+    skin:"default",
+    missions:{tap:0},
+    battleXP:0,
+    antiCheat:0
 };
 
-async function loadPlayer(){
-    const snap = await getDoc(doc(db,"players",username));
-    if(snap.exists()){
-        player = snap.data();
-    }
-    updateUI();
+let tapCounter = 0;
+let maxTap = 20;
+
+setInterval(()=>{tapCounter=0;},1000);
+
+// ==========================
+// UI UPDATE
+// ==========================
+
+function updateUI(){
+    document.getElementById("coins").innerText=player.coins;
+    document.getElementById("level").innerText=player.level;
+    document.getElementById("xp").innerText=player.xp;
+    document.getElementById("prestige").innerText=player.prestige;
 }
 
-async function savePlayer(){
-    await setDoc(doc(db,"players",username),player);
+function save(){
+    localStorage.setItem("tapday",JSON.stringify(player));
 }
 
-// =======================
+// ==========================
 // TAP SYSTEM
-// =======================
+// ==========================
 
-document.getElementById("tapBtn").onclick = async function(){
+document.getElementById("tapBtn").onclick=function(){
+
+    tapCounter++;
+    if(tapCounter>maxTap){
+        player.antiCheat++;
+        alert("Cheat detected!");
+        return;
+    }
+
+    document.getElementById("tapSound").play();
 
     player.coins+=1;
-    player.battleXP+=1;
+    player.xp+=1;
+    player.missions.tap+=1;
 
-    if(player.battleXP>=100){
-        player.coins+=500;
-        player.battleXP=0;
-        alert("🎟 Battle Pass Level Up!");
+    if(player.xp>=player.level*100){
+        player.xp=0;
+        player.level++;
+        alert("LEVEL UP!");
     }
 
-    if(player.coins%100===0){
-        player.level++;
+    if(player.missions.tap>=200){
+        player.coins+=200;
+        player.missions.tap=0;
+        alert("Mission Complete +200!");
     }
 
     updateUI();
-    await savePlayer();
-    loadLeaderboard();
+    save();
 };
 
-// =======================
-// LEADERBOARD
-// =======================
+// ==========================
+// PRESTIGE
+// ==========================
 
-async function loadLeaderboard(){
-    const q = query(collection(db,"players"), orderBy("coins","desc"), limit(10));
-    const querySnapshot = await getDocs(q);
-
-    let html="";
-    querySnapshot.forEach(doc=>{
-        html += `<div>${doc.id} - ${doc.data().coins} coins</div>`;
-    });
-
-    document.getElementById("leaderboard").innerHTML = html;
+function activatePrestige(){
+    if(player.level>=10){
+        player.level=1;
+        player.prestige++;
+        player.coins+=1000;
+        alert("Prestige Activated!");
+        save();
+        updateUI();
+    }
 }
 
-// =======================
-// REWARD AD (заготовка)
-// =======================
+// ==========================
+// SKINS
+// ==========================
+
+function buySkin(type){
+
+    if(type==="gold" && player.coins>=500){
+        player.coins-=500;
+        document.getElementById("tapBtn").style.background="gold";
+    }
+
+    if(type==="galaxy" && player.coins>=1000){
+        player.coins-=1000;
+        document.getElementById("tapBtn").style.background="linear-gradient(45deg,purple,black)";
+    }
+
+    updateUI();
+    save();
+}
+
+// ==========================
+// PVP
+// ==========================
+
+function startPvP(){
+
+    let opponent=Math.floor(Math.random()*500);
+
+    if(player.coins>opponent){
+        player.coins+=300;
+        alert("You WON PvP!");
+    }else{
+        alert("You LOST PvP!");
+    }
+
+    updateUI();
+    save();
+}
+
+// ==========================
+// AD REWARD
+// ==========================
 
 function watchAd(){
     alert("Watching Ad...");
     setTimeout(()=>{
         player.coins+=200;
+        alert("Ad Complete +200!");
         updateUI();
-        savePlayer();
+        save();
     },3000);
 }
 
-// =======================
-// WITHDRAW REQUEST
-// =======================
+// ==========================
+// MUSIC AUTO START
+// ==========================
 
-async function requestWithdraw(){
-    if(player.coins>=1000){
-        player.coins-=1000;
-        await setDoc(doc(db,"withdraws",username+"_"+Date.now()),{
-            user:username,
-            amount:1000,
-            status:"pending"
-        });
-        alert("Withdraw request sent!");
-        savePlayer();
-    }else{
-        alert("Not enough coins");
-    }
-}
+document.body.onclick=function(){
+    document.getElementById("bgMusic").play();
+};
 
-// =======================
-// UI
-// =======================
-
-function updateUI(){
-    document.getElementById("coins").innerText=player.coins;
-    document.getElementById("level").innerText=player.level;
-    document.getElementById("battleXP").innerText=player.battleXP;
-}
-
-// =======================
-// START
-// =======================
-
-await signInAnonymously(auth);
-await loadPlayer();
-loadLeaderboard();
+updateUI();
 
 </script>
 
