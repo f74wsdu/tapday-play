@@ -2,155 +2,38 @@
 <html lang="uk">
 <head>
 <meta charset="UTF-8">
-<title>TapDay PRO 2026 - Advanced</title>
+<title>TapDay PRO 2026</title>
 <style>
-body {
-  margin:0;
-  background:#0b0b0b;
-  color:#fff;
-  font-family:Arial,sans-serif;
-  text-align:center;
-  overflow-x:hidden;
-}
-#top{
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  padding:10px;
-}
-#langSwitch{
-  cursor:pointer;
-  padding:5px 10px;
-  background:#222;
-  border-radius:8px;
-}
-#online{
-  font-size:12px;
-  color:#00ff7f;
-}
-#coin{
-  margin:60px auto 10px;
-  width:180px;
-  height:180px;
-  border-radius:50%;
-  background:radial-gradient(circle,#ffd700,#ff9800);
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  font-size:32px;
-  font-weight:bold;
-  cursor:pointer;
-  transition: transform 0.1s;
-  position:relative;
-}
-.particle{
-  position:absolute;
-  width:6px;
-  height:6px;
-  background:#ff0;
-  border-radius:50%;
-  pointer-events:none;
-  animation: floatUp 0.6s ease-out forwards;
-}
-@keyframes floatUp{
-  0%{opacity:1; transform:translateY(0);}
-  100%{opacity:0; transform:translateY(-60px);}
-}
-#balance,#coins{
-  font-size:18px;
-  margin-bottom:6px;
-}
-.block{
-  margin:8px auto;
-  width:90%;
-  padding:12px;
-  border-radius:12px;
-  background:#333;
-  cursor:pointer;
-}
-#withdraw{
-  background:green;
-  width:fit-content;
-  padding:10px 25px;
-}
-#leftToWithdraw{
-  margin-top:6px;
-  font-size:14px;
-  color:#ffcc00;
-}
-.mult{
-  position:fixed;
-  top:55%;
-  padding:10px 14px;
-  background:#222;
-  border-radius:12px;
-  cursor:pointer;
-}
-#x2{left:10px;}
-#x5{right:10px;}
+body {margin:0; background:#0b0b0b; color:#fff; font-family:Arial,sans-serif; text-align:center; overflow-x:hidden;}
+#top{display:flex; justify-content:space-between; align-items:center; padding:10px;}
+#online{font-size:12px; color:#00ff7f;}
+#coin{margin:60px auto 10px; width:180px; height:180px; border-radius:50%; background:radial-gradient(circle,#ffd700,#ff9800); display:flex; align-items:center; justify-content:center; font-size:32px; font-weight:bold; cursor:pointer; transition: transform 0.1s;}
+#balance,#coins{font-size:18px; margin-bottom:6px;}
+.block{margin:8px auto; width:90%; padding:12px; border-radius:12px; background:#333; cursor:pointer; transition:0.3s;}
+.block:hover{background:#444;}
+#withdraw{background:green; width:fit-content; padding:10px 25px;}
+#leftToWithdraw{margin-top:6px; font-size:14px; color:#ffcc00;}
+.mult{position:fixed; top:55%; padding:10px 14px; background:#222; border-radius:12px; cursor:pointer; transition:0.3s;}
+#x2{left:10px;} #x5{right:10px;}
 .mult.active{background:#ff9800;}
-#shopModal{
-  position:fixed;
-  inset:0;
-  background:rgba(0,0,0,0.85);
-  display:none;
-  align-items:center;
-  justify-content:center;
-  z-index:10;
-}
-#shopBox{
-  background:#1e1e1e;
-  width:90%;
-  max-width:350px;
-  padding:20px;
-  border-radius:16px;
-}
-.shopItem{
-  background:#333;
-  padding:10px;
-  border-radius:10px;
-  margin:8px 0;
-  cursor:pointer;
-}
-.closeBtn{
-  margin-top:10px;
-  color:#ff5555;
-  cursor:pointer;
-}
-@keyframes glow{
-  0%{box-shadow:0 0 5px #fff;}
-  50%{box-shadow:0 0 25px #ff0;}
-  100%{box-shadow:0 0 5px #fff;}
-}
-.premiumGlow{
-  animation: glow 1.5s infinite;
-}
-#leaderboard{
-  margin:20px auto;
-  width:90%;
-  max-width:350px;
-  background:#222;
-  border-radius:12px;
-  padding:12px;
-}
-#leaderboard h4{
-  margin:4px 0;
-  color:#ffcc00;
-}
-#tournamentTimer{
-  margin-top:5px;
-  font-size:14px;
-  color:#0ff;
-}
+#shopModal{position:fixed; inset:0; background:rgba(0,0,0,0.85); display:none; align-items:center; justify-content:center; z-index:10;}
+#shopBox{background:#1e1e1e; width:90%; max-width:350px; padding:20px; border-radius:16px;}
+.shopItem{background:#333; padding:10px; border-radius:10px; margin:8px 0; cursor:pointer; transition:0.3s;}
+.shopItem:hover{background:#555;}
+.closeBtn{margin-top:10px; color:#ff5555; cursor:pointer;}
+@keyframes glow{0%{box-shadow:0 0 5px #fff;}50%{box-shadow:0 0 25px #ff0;}100%{box-shadow:0 0 5px #fff;}}
+.premiumGlow{animation: glow 1.5s infinite;}
+#leaderboard{margin:10px auto; padding:10px; width:90%; max-width:350px; background:#222; border-radius:12px; text-align:left;}
+.leaderItem{display:flex; justify-content:space-between; padding:4px 0; border-bottom:1px solid #444;}
+.leaderItem.top1{color:#ffd700;font-weight:bold;}
+.leaderItem.top2{color:#c0c0c0;font-weight:bold;}
+.leaderItem.top3{color:#cd7f32;font-weight:bold;}
 </style>
 </head>
 <body>
 
 <div id="top">
   <button id="adBtn">🎥 +Coins</button>
-  <div>
-    <span id="langSwitch">🇺🇦</span>
-  </div>
   <div id="online">
     🟢 Онлайн: <span id="onlineCount">3000</span><br>
     🎁 Бонус сьогодні: <span id="bonusToday">200</span>
@@ -168,22 +51,21 @@ body {
 <div id="daily" class="block">📅 Денний бонус</div>
 <div id="bonus30" class="block">⏳ Бонус через 30 днів</div>
 <div id="subscribe" class="block">📢 Підписка +10$</div>
+
 <div id="shop" class="block">🛒 Coin Shop</div>
+
 <div id="premiumPass" class="block premiumGlow">🌟 Преміум Pass</div>
+
 <div id="tournament" class="block">🏆 Турнір 10 хвилин</div>
-<div id="tournamentTimer"></div>
+
 <div id="withdraw" class="block">💳 Вивід</div>
 <div id="leftToWithdraw"></div>
+
 <div id="share" class="block">🔗 Поділитися грою</div>
 
 <div id="leaderboard">
   <h4>🏆 Топ 10 гравців</h4>
-  <ol id="topPlayers">
-    <li>Гравець1 - 500$</li>
-    <li>Гравець2 - 450$</li>
-    <li>Гравець3 - 400$</li>
-    <li>...</li>
-  </ol>
+  <div id="leaderList"></div>
 </div>
 
 <div id="shopModal">
@@ -198,8 +80,9 @@ body {
 
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+
 <script>
-const CHANNEL_LINK = "https://t.me/tapday_clicker";
+const CHANNEL_LINK = "https://t.me/dealspavlo";
 const GAME_LINK = "https://t.me/tapday_play_bot";
 const ALI_LINK = "https://beacons.ai/dealspavlo";
 const WITHDRAW_MIN = 320;
@@ -220,35 +103,8 @@ const db = firebase.database();
 let balance = parseFloat(localStorage.getItem("balance"))||0;
 let coins = parseInt(localStorage.getItem("coins"))||0;
 let multiplier = 1;
-let lang='uk';
-
-// ===== LANG SWITCH =====
-const langSwitch=document.getElementById('langSwitch');
-langSwitch.onclick=()=>{
-  lang=lang==='uk'?'en':'uk';
-  langSwitch.textContent=lang==='uk'?'🇺🇦':'🇬🇧';
-  updateText();
-};
-function updateText(){
-  const txt={
-    daily:lang==='uk'?'📅 Денний бонус':'📅 Daily Bonus',
-    bonus30:lang==='uk'?'⏳ Бонус через 30 днів':'⏳ Bonus 30 Days',
-    subscribe:lang==='uk'?'📢 Підписка +10$':'📢 Subscribe +10$',
-    shop:lang==='uk'?'🛒 Coin Shop':'🛒 Coin Shop',
-    premium:'🌟 Преміум Pass',
-    tournament:'🏆 Турнір 10 хвилин',
-    withdraw:'💳 Вивід',
-    share:'🔗 Поділитися грою'
-  };
-  daily.textContent=txt.daily;
-  bonus30.textContent=txt.bonus30;
-  subscribe.textContent=txt.subscribe;
-  shop.textContent=txt.shop;
-  premiumPass.textContent=txt.premium;
-  tournament.textContent=txt.tournament;
-  withdraw.textContent=txt.withdraw;
-  share.textContent=txt.share;
-}
+const userID = 'user_'+Math.floor(Math.random()*1000000);
+const userName = "Гравець_"+Math.floor(Math.random()*1000);
 
 // ===== UPDATE UI =====
 function updateUI(){
@@ -261,29 +117,18 @@ function updateUI(){
 }
 updateUI();
 
-// ===== TAP + PARTICLES =====
+// ===== TAP =====
 coin.onclick=()=>{
   balance+=0.01*multiplier;
   updateUI();
   coin.style.transform="scale(1.1)";
   setTimeout(()=>coin.style.transform="scale(1)",100);
   navigator.vibrate?.(30);
-  createParticle();
-  pushLeaderboard();
+  updateTournamentScore();
 };
-function createParticle(){
-  const p=document.createElement('div');
-  p.className='particle';
-  p.style.left=Math.random()*160+'px';
-  coin.appendChild(p);
-  setTimeout(()=>coin.removeChild(p),600);
-}
 
 // ===== MULT =====
-function activateMult(x,duration){
-  multiplier=x;
-  setTimeout(()=>multiplier=1,duration*60000);
-}
+function activateMult(x,duration){ multiplier=x; setTimeout(()=>multiplier=1,duration*60000);}
 x2.onclick=()=>activateMult(2,10);
 x5.onclick=()=>activateMult(5,8);
 
@@ -292,15 +137,9 @@ shop.onclick=()=>shopModal.style.display="flex";
 function closeShop(){shopModal.style.display="none";}
 function buyBoost(x,cost,duration){
   if(coins<cost){alert("❌ Недостатньо coins"); return;}
-  coins-=cost;
-  activateMult(x,duration);
-  updateUI();
-  alert(`✅ Активовано x${x} на ${duration} хвилин`);
+  coins-=cost; activateMult(x,duration); updateUI(); alert(`✅ Активовано x${x} на ${duration} хвилин`);
 }
-function buyOffer(){
-  window.open(ALI_LINK,"_blank");
-  alert("🎁 Перейдіть на AliExpress та зробіть покупку!");
-}
+function buyOffer(){ window.open(ALI_LINK,"_blank"); alert("🎁 Перейдіть на AliExpress та зробіть покупку!");}
 
 // ===== DAILY BONUS =====
 daily.onclick=()=>{
@@ -311,8 +150,7 @@ daily.onclick=()=>{
   balance+=reward;
   localStorage.setItem("dailyDay",day+1);
   localStorage.setItem("dailyDate",today);
-  updateUI();
-  alert(`🎁 +${reward.toFixed(2)} $`);
+  updateUI(); alert(`🎁 +${reward.toFixed(2)} $`);
 };
 
 // ===== BONUS 30 DAYS =====
@@ -322,82 +160,68 @@ bonus30.onclick=()=>{
   if(last && now-parseInt(last)<30*24*60*60*1000){alert("❌ Ще не доступно"); return;}
   balance+=10;
   localStorage.setItem("bonus30Date",now.toString());
-  updateUI();
-  alert("🎁 +10 $ за 30 днів!");
+  updateUI(); alert("🎁 +10 $ за 30 днів!");
 };
 
 // ===== SUBSCRIBE =====
 if(localStorage.getItem("subBonus")) subscribe.style.display="none";
-subscribe.onclick=()=>{
-  window.open(CHANNEL_LINK,"_blank");
-  balance+=10;
-  localStorage.setItem("subBonus","1");
-  subscribe.style.display="none";
-  updateUI();
-};
+subscribe.onclick=()=>{ window.open(CHANNEL_LINK,"_blank"); balance+=10; localStorage.setItem("subBonus","1"); subscribe.style.display="none"; updateUI();};
 
 // ===== SHARE =====
-share.onclick=()=>{
-  navigator.clipboard.writeText(GAME_LINK);
-  coins+=20;
-  updateUI();
-  alert("🔗 Посилання скопійовано, друг може перейти у гру +20 coins");
-};
+share.onclick=()=>{ navigator.clipboard.writeText(GAME_LINK); coins+=20; updateUI(); alert("🔗 Посилання скопійовано, друг може перейти у гру +20 coins");};
 
 // ===== PREMIUM PASS =====
-premiumPass.onclick=()=>{
-  if(localStorage.getItem("premium")){alert("Вже куплено"); return;}
-  alert("💎 Купіть преміум через Telegram Payment!");
-  localStorage.setItem("premium","1");
-  coins+=500;
-  updateUI();
-};
+premiumPass.onclick=()=>{ if(localStorage.getItem("premium")){alert("Вже куплено"); return;} alert("💎 Купіть преміум через Telegram Payment!"); localStorage.setItem("premium","1"); coins+=500; updateUI();};
 
-// ===== TOURNAMENT =====
-let tournamentTime=10*60;
-let tournamentInterval;
+// ===== TOURNAMENT REAL TIME =====
+function updateTournamentScore(){ db.ref('tournament/current/'+userID).set({name:userName, score:balance,lastUpdate:Date.now()}); }
+
 tournament.onclick=()=>{
-  if(tournamentInterval){alert("Турнір вже йде"); return;}
   alert("🏆 Турнір розпочато! 10 хвилин рахунку. Переможець отримає бонус!");
-  tournamentInterval=setInterval(()=>{
-    tournamentTime--;
-    const min=Math.floor(tournamentTime/60);
-    const sec=tournamentTime%60;
-    tournamentTimer.textContent=`Таймер турніру: ${min}:${sec<10?'0'+sec:sec}`;
-    if(tournamentTime<=0){
-      clearInterval(tournamentInterval);
-      tournamentInterval=null;
-      tournamentTime=10*60;
-      tournamentTimer.textContent="";
-      alert("🏆 Турнір завершено!");
-    }
-  },1000);
-};
+  // Автоматичне завершення через 10 хв
+  setTimeout(()=>{ endTournament(); },10*60*1000);
+}
 
-// ===== ONLINE + BONUS TODAY =====
-setInterval(()=>{onlineCount.textContent=3000+Math.floor(Math.random()*500)-250;},3000);
-let bonusTodayValue=parseInt(localStorage.getItem("bonusToday"))||200;
-setInterval(()=>{if(Math.random()>0.7){bonusTodayValue++; localStorage.setItem("bonusToday",bonusTodayValue);} bonusToday.textContent=bonusTodayValue;},6000);
+// ===== END TOURNAMENT & AUTO PRIZES =====
+function endTournament(){
+  db.ref('tournament/current').once('value').then(snapshot=>{
+    const data = snapshot.val();
+    if(!data) return;
+    const sorted = Object.entries(data).sort((a,b)=>b[1].score-a[1].score);
+    sorted.forEach(([key,val],i)=>{
+      if(i===0){balance+=5; coins+=500; alert(`🥇 ${val.name} виграв перше місце: +5$ і 500 coins!`);}
+      if(i===1){balance+=3; coins+=300; alert(`🥈 ${val.name} виграв друге місце: +3$ і 300 coins!`);}
+      if(i===2){balance+=2; coins+=200; alert(`🥉 ${val.name} виграв третє місце: +2$ і 200 coins!`);}
+    });
+    db.ref('tournament/current').remove(); // скидаємо турнір
+    updateUI(); updateLeaderboard();
+  });
+}
 
 // ===== LEADERBOARD =====
-function pushLeaderboard(){
-  db.ref('leaderboard/player_'+Math.floor(Math.random()*1000)).set({balance:balance.toFixed(2),timestamp:Date.now()});
-}
-function fetchLeaderboard(){
-  db.ref('leaderboard').orderByChild('balance').limitToLast(10).on('value',(snapshot)=>{
-    const topList=document.getElementById('topPlayers');
-    topList.innerHTML="";
-    const arr=[];
-    snapshot.forEach(child=>{arr.push({name:child.key,balance:parseFloat(child.val().balance)});});
-    arr.sort((a,b)=>b.balance-a.balance);
-    arr.forEach(p=>{
-      const li=document.createElement('li');
-      li.textContent=`${p.name} - ${p.balance}$`;
-      topList.appendChild(li);
+function updateLeaderboard(){
+  db.ref('tournament/current').orderByChild('score').limitToLast(10).on('value',snapshot=>{
+    const data = snapshot.val();
+    const sorted = data ? Object.entries(data).sort((a,b)=>b[1].score-a[1].score) : [];
+    const leaderList = document.getElementById('leaderList');
+    leaderList.innerHTML = "";
+    sorted.forEach(([key,val],i)=>{
+      const div = document.createElement('div');
+      div.className = 'leaderItem';
+      if(i==0) div.classList.add('top1');
+      else if(i==1) div.classList.add('top2');
+      else if(i==2) div.classList.add('top3');
+      div.textContent = `${i+1}. ${val.name}: ${val.score.toFixed(2)} $`;
+      leaderList.appendChild(div);
     });
   });
 }
-fetchLeaderboard();
+updateLeaderboard();
+
+// ===== ONLINE + BONUS TODAY =====
+setInterval(()=>{ onlineCount.textContent=3000+Math.floor(Math.random()*500)-250; },3000);
+let bonusTodayValue=parseInt(localStorage.getItem("bonusToday"))||200;
+setInterval(()=>{ if(Math.random()>0.7){bonusTodayValue++; localStorage.setItem("bonusToday",bonusTodayValue);} bonusToday.textContent=bonusTodayValue; },6000);
 
 </script>
 </body>
