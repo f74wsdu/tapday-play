@@ -79,8 +79,9 @@ body {margin:0;background:#0b0b0b;color:#fff;font-family:Arial,sans-serif;text-a
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 
 <script>
-const CHANNEL_LINK = "https://t.me/tapday_clicker";
+const CHANNEL_LINK = "https://t.me/dealspavlo"; // Твій Telegram канал
 const GAME_LINK = "https://t.me/tapday_play_bot";
+const ALI_LINK = "https://beacons.ai/dealspavlo"; // Твоє AliExpress партнерське посилання
 const WITHDRAW_MIN = 320;
 const DAILY_BONUSES = [0.25,0.5,0.75,1,1.25,1.5,5];
 
@@ -100,13 +101,11 @@ let balance = parseFloat(localStorage.getItem("balance"))||0;
 let coins = parseInt(localStorage.getItem("coins"))||0;
 let multiplier = 1;
 
-// ===== INIT USER =====
 let userId = localStorage.getItem("userId");
 if(!userId){
   userId = "user_" + Math.random().toString(36).substr(2,9);
   localStorage.setItem("userId", userId);
 }
-
 let playerRef = db.ref("players/" + userId);
 playerRef.once("value").then(snap=>{
   if(!snap.exists()){
@@ -114,7 +113,6 @@ playerRef.once("value").then(snap=>{
   }
 });
 
-// ===== UPDATE UI =====
 function updateUI(){
   document.getElementById("balance").textContent = `💰 Баланс: ${balance.toFixed(2)} $`;
   document.getElementById("coins").textContent = `🪙 Coins: ${coins}`;
@@ -125,15 +123,10 @@ function updateUI(){
 }
 updateUI();
 
-// ===== TAP =====
 coin.onclick=()=>{
   const add = 0.01*multiplier;
   playerRef.transaction(player=>{
-    if(player){
-      player.balance += add;
-      player.totalTaps += 1;
-      player.tournamentScore += 1;
-    }
+    if(player){ player.balance += add; player.totalTaps += 1; player.tournamentScore += 1; }
     return player;
   });
   coin.style.transform="scale(1.1)";
@@ -141,12 +134,10 @@ coin.onclick=()=>{
   navigator.vibrate?.(30);
 };
 
-// ===== MULT =====
 function activateMult(x,duration){ multiplier=x; setTimeout(()=>multiplier=1,duration*60000);}
 x2.onclick=()=>activateMult(2,10);
 x5.onclick=()=>activateMult(5,8);
 
-// ===== SHOP =====
 shop.onclick=()=>shopModal.style.display="flex";
 function closeShop(){shopModal.style.display="none";}
 function buyBoost(x,cost,duration){
@@ -156,12 +147,8 @@ function buyBoost(x,cost,duration){
   updateUI();
   alert(`✅ Активовано x${x} на ${duration} хвилин`);
 }
-function buyOffer(){
-  window.open("https://www.aliexpress.com/?affiliate=YOUR_LINK","_blank");
-  alert("🎁 Перейдіть на AliExpress та зробіть покупку!");
-}
+function buyOffer(){window.open(ALI_LINK,"_blank"); alert("🎁 Перейдіть на AliExpress та зробіть покупку!");}
 
-// ===== DAILY BONUS =====
 daily.onclick=()=>{
   const today=new Date().toDateString();
   if(localStorage.getItem("dailyDate")===today){alert("❌ Вже отримано"); return;}
@@ -174,7 +161,6 @@ daily.onclick=()=>{
   alert(`🎁 +${reward.toFixed(2)} $`);
 };
 
-// ===== BONUS 30 DAYS =====
 bonus30.onclick=()=>{
   const last=localStorage.getItem("bonus30Date");
   const now=Date.now();
@@ -185,7 +171,6 @@ bonus30.onclick=()=>{
   alert("🎁 +10 $ за 30 днів!");
 };
 
-// ===== SUBSCRIBE =====
 if(localStorage.getItem("subBonus")) subscribe.style.display="none";
 subscribe.onclick=()=>{
   window.open(CHANNEL_LINK,"_blank");
@@ -195,7 +180,6 @@ subscribe.onclick=()=>{
   updateUI();
 };
 
-// ===== SHARE =====
 share.onclick=()=>{
   navigator.clipboard.writeText(GAME_LINK);
   coins+=20;
@@ -203,7 +187,6 @@ share.onclick=()=>{
   alert("🔗 Посилання скопійовано, друг може перейти у гру +20 coins");
 };
 
-// ===== PREMIUM PASS =====
 premiumPass.onclick=()=>{
   if(localStorage.getItem("premium")){alert("Вже куплено"); return;}
   alert("💎 Купіть преміум через Telegram Payment!");
@@ -212,7 +195,6 @@ premiumPass.onclick=()=>{
   updateUI();
 };
 
-// ===== TOURNAMENT =====
 tournament.onclick=()=>{
   alert("🏆 Турнір розпочато! 10 хвилин рахунку. Переможець отримає бонус!");
   const endTime = Date.now() + 10*60*1000;
@@ -232,9 +214,7 @@ db.ref("tournaments/current").on("value",snap=>{
 
 function finishTournament(){
   db.ref("players").orderByChild("tournamentScore").limitToLast(1).once("value",snap=>{
-    snap.forEach(child=>{
-      db.ref("players/"+child.key+"/coins").transaction(c=>(c||0)+500);
-    });
+    snap.forEach(child=>{db.ref("players/"+child.key+"/coins").transaction(c=>(c||0)+500);});
   });
   db.ref("players").once("value",snap=>{
     snap.forEach(child=>db.ref("players/"+child.key+"/tournamentScore").set(0));
@@ -242,7 +222,6 @@ function finishTournament(){
   db.ref("tournaments/current").set({active:false});
 }
 
-// ===== LEADERBOARD =====
 db.ref("players").orderByChild("tournamentScore").limitToLast(10).on("value",snap=>{
   const players=[];
   snap.forEach(child=>players.push(child.val()));
@@ -256,14 +235,9 @@ db.ref("players").orderByChild("tournamentScore").limitToLast(10).on("value",sna
   });
 });
 
-// ===== ONLINE + BONUS TODAY =====
 setInterval(()=>{onlineCount.textContent=3000+Math.floor(Math.random()*500)-250;},3000);
 let bonusTodayValue=parseInt(localStorage.getItem("bonusToday"))||200;
-setInterval(()=>{
-  if(Math.random()>0.7){bonusTodayValue++; localStorage.setItem("bonusToday",bonusTodayValue);}
-  bonusToday.textContent=bonusTodayValue;
-},6000);
-
+setInterval(()=>{if(Math.random()>0.7){bonusTodayValue++; localStorage.setItem("bonusToday",bonusTodayValue);} bonusToday.textContent=bonusTodayValue;},6000);
 </script>
 </body>
 </html>
