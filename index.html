@@ -1,253 +1,186 @@
 <!DOCTYPE html>
-<html lang="uk">
+<html>
 <head>
 <meta charset="UTF-8">
-<title>TapDay PRO 2026 – Ultra Version</title>
+<title>TapDay X</title>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js"></script>
 <style>
-body {
-  margin:0;
-  background:#0b0b0b;
-  color:#fff;
-  font-family:Arial,sans-serif;
-  text-align:center;
-  overflow-x:hidden;
+body{
+    margin:0;
+    background:#0f0f1a;
+    color:white;
+    font-family:Arial;
+    text-align:center;
+    overflow:hidden;
 }
-#top{
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  padding:10px;
+
+#score{
+    font-size:40px;
+    margin-top:20px;
 }
-#online{
-  font-size:12px;
-  color:#00ff7f;
+
+#tapBtn{
+    margin-top:50px;
+    width:200px;
+    height:200px;
+    border-radius:50%;
+    border:none;
+    font-size:30px;
+    background:linear-gradient(45deg,#ff00cc,#3333ff);
+    color:white;
+    cursor:pointer;
+    transition:0.1s;
 }
-#coin{
-  margin:60px auto 10px;
-  width:180px;
-  height:180px;
-  border-radius:50%;
-  background:radial-gradient(circle,#ffd700,#ff9800);
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  font-size:32px;
-  font-weight:bold;
-  cursor:pointer;
-  transition: transform 0.1s;
+
+#tapBtn:active{
+    transform:scale(0.9);
 }
-#balance,#coins{
-  font-size:18px;
-  margin-bottom:6px;
+
+#leaderboard{
+    position:absolute;
+    right:10px;
+    top:10px;
+    width:200px;
+    background:#1a1a2e;
+    padding:10px;
+    border-radius:10px;
 }
-.block{
-  margin:8px auto;
-  width:90%;
-  padding:12px;
-  border-radius:12px;
-  background:#333;
-  cursor:pointer;
-  transition:0.2s;
+
+.popup{
+    position:absolute;
+    font-size:30px;
+    animation:float 1s forwards;
 }
-.block:hover{background:#444;}
-#withdraw{background:green;width:fit-content;padding:10px 25px;}
-#leftToWithdraw{margin-top:6px;font-size:14px;color:#ffcc00;}
-.mult{position:fixed;top:55%;padding:10px 14px;background:#222;border-radius:12px;cursor:pointer;}
-#x2{left:10px;}
-#x5{right:10px;}
-.mult.active{background:#ff9800;}
-#shopModal{position:fixed;inset:0;background:rgba(0,0,0,0.85);display:none;align-items:center;justify-content:center;z-index:10;}
-#shopBox{background:#1e1e1e;width:90%;max-width:400px;padding:20px;border-radius:16px;}
-.shopItem{background:#333;padding:10px;border-radius:10px;margin:8px 0;cursor:pointer;transition:0.2s;}
-.shopItem:hover{background:#555;}
-.closeBtn{margin-top:10px;color:#ff5555;cursor:pointer;}
-.premiumGlow{animation: glow 1.5s infinite;}
-@keyframes glow{0%{box-shadow:0 0 5px #fff;}50%{box-shadow:0 0 25px #ff0;}100%{box-shadow:0 0 5px #fff;}}
-.leaderboard{background:#222;padding:10px;margin:10px auto;border-radius:12px;max-width:300px;}
+
+@keyframes float{
+    0%{opacity:1; transform:translateY(0);}
+    100%{opacity:0; transform:translateY(-100px);}
+}
+
+.particle{
+    position:absolute;
+    width:5px;
+    height:5px;
+    background:gold;
+    border-radius:50%;
+    animation:particle 1s forwards;
+}
+
+@keyframes particle{
+    to{
+        transform:translate(var(--x),var(--y));
+        opacity:0;
+    }
+}
 </style>
 </head>
 <body>
 
-<div id="top">
-  <button id="adBtn">🎥 +Coins</button>
-  <div id="online">
-    🟢 Онлайн: <span id="onlineCount">3000</span><br>
-    🎁 Бонус сьогодні: <span id="bonusToday">200</span>
-  </div>
+<div id="score">0</div>
+<button id="tapBtn">TAP</button>
+
+<div id="leaderboard">
+<h3>TOP 3</h3>
+<div id="topList"></div>
 </div>
 
-<div id="x2" class="mult">x2</div>
-<div id="x5" class="mult">x5</div>
+<audio id="tapSound" src="https://assets.mixkit.co/sfx/preview/mixkit-game-click-1114.mp3"></audio>
+<audio id="bonusSound" src="https://assets.mixkit.co/sfx/preview/mixkit-bonus-earned-2065.mp3"></audio>
+<audio id="bgMusic" src="https://assets.mixkit.co/music/preview/mixkit-arcade-game-opener-222.mp3" loop></audio>
 
-<div id="coin">TAP</div>
+<script type="module">
 
-<div id="balance">💰 Баланс: 0.00 $</div>
-<div id="coins">🪙 Coins: 0</div>
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getFirestore, doc, setDoc, updateDoc, getDoc, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
-<div id="daily" class="block">📅 Денний бонус</div>
-<div id="bonus30" class="block">⏳ Бонус через 30 днів</div>
-<div id="subscribe" class="block">📢 Підписка +10$</div>
-
-<div id="shop" class="block">🛒 Coin Shop</div>
-<div id="premiumPass" class="block premiumGlow">🌟 Преміум Pass</div>
-<div id="tournament" class="block">🏆 Турнір 10 хвилин</div>
-
-<div id="withdraw" class="block">💳 Вивід</div>
-<div id="leftToWithdraw"></div>
-<div id="share" class="block">🔗 Поділитися грою</div>
-
-<div class="leaderboard">
-<h4>🌐 Глобальний Лідерборд</h4>
-<ol id="leaderboardList"></ol>
-</div>
-
-<!-- SHOP MODAL -->
-<div id="shopModal">
-  <div id="shopBox">
-    <h3>🛒 Coin Shop</h3>
-    <div class="shopItem" onclick="buyBoost(2,200,10)">⚡ x2 Tap — 10 хв — 200 coins</div>
-    <div class="shopItem" onclick="buyBoost(5,1000,8)">🔥 x5 Tap — 8 хв — 1000 coins</div>
-    <div class="shopItem" onclick="buyOffer()">🎁 Офер AliExpress</div>
-    <div class="closeBtn" onclick="closeShop()">Закрити</div>
-  </div>
-</div>
-
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-
-<script>
-// === КОНФІГ Firebase ===
 const firebaseConfig = {
-  apiKey: "YOUR_FIREBASE_API_KEY",
-  authDomain: "YOUR_FIREBASE_PROJECT.firebaseapp.com",
-  databaseURL: "https://YOUR_FIREBASE_PROJECT.firebaseio.com",
-  projectId: "YOUR_FIREBASE_PROJECT",
-  storageBucket: "YOUR_FIREBASE_PROJECT.appspot.com",
-  messagingSenderId: "YOUR_MESSAGING_ID",
-  appId: "YOUR_APP_ID"
+    apiKey: "YOUR_API_KEY",
+    authDomain: "YOUR_DOMAIN",
+    projectId: "YOUR_PROJECT_ID",
 };
-firebase.initializeApp(firebaseConfig);
-const db = firebase.database();
 
-// === КЛІЄНТ ===
-let balance = parseFloat(localStorage.getItem("balance"))||0;
-let coins = parseInt(localStorage.getItem("coins"))||0;
-let multiplier = 1;
-let uid = localStorage.getItem("uid");
-if(!uid){uid='u'+Math.floor(Math.random()*9999999); localStorage.setItem("uid",uid);}
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
 
-// ===== UPDATE UI =====
-function updateUI(){
-  document.getElementById("balance").textContent = `💰 Баланс: ${balance.toFixed(2)} $`;
-  document.getElementById("coins").textContent = `🪙 Coins: ${coins}`;
-  localStorage.setItem("balance",balance);
-  localStorage.setItem("coins",coins);
-  const left = 1 - balance;
-  leftToWithdraw.textContent = left>0?`До виводу залишилось: ${left.toFixed(2)} $`:"✅ Вивід доступний";
-}
-updateUI();
+let score = 0;
+let username = "user_" + Math.floor(Math.random()*9999);
 
-// ===== TAP =====
-coin.onclick=()=>{
-  // Античит: max 50 тапів/сек
-  const now=Date.now();
-  const lastTap=localStorage.getItem("lastTap")||0;
-  if(now-lastTap<20){return;}
-  localStorage.setItem("lastTap",now);
-  // Відправляємо на Firebase
-  const tapValue = 0.01*multiplier;
-  const userRef=db.ref('players/'+uid);
-  userRef.transaction(player=>{
-    if(player){
-      player.balance=(player.balance||0)+tapValue;
-      player.coins=(player.coins||0)+1;
-      player.lastTap=Date.now();
-    } else {
-      player={balance:tapValue,coins:1,lastTap:Date.now()};
+const scoreEl = document.getElementById("score");
+const tapBtn = document.getElementById("tapBtn");
+const tapSound = document.getElementById("tapSound");
+const bonusSound = document.getElementById("bonusSound");
+const bgMusic = document.getElementById("bgMusic");
+
+bgMusic.volume = 0.3;
+bgMusic.play();
+
+tapBtn.onclick = async () => {
+
+    let multiplier = Math.random() < 0.1 ? 5 : 1;
+    score += multiplier;
+
+    if(multiplier > 1){
+        bonusSound.play();
+        showPopup("x5 BONUS!");
     }
-    return player;
-  });
-  balance+=tapValue;
-  coins+=1;
-  updateUI();
-  coin.style.transform="scale(1.1)";
-  setTimeout(()=>coin.style.transform="scale(1)",100);
-  navigator.vibrate?.(30);
+
+    tapSound.play();
+    scoreEl.innerText = score;
+
+    createParticles();
+
+    await setDoc(doc(db,"players",username),{
+        score:score
+    });
+
+    updateLeaderboard();
 };
 
-// ===== MULT =====
-function activateMult(x,duration){
-  multiplier=x;
-  setTimeout(()=>multiplier=1,duration*60000);
-}
-x2.onclick=()=>activateMult(2,10);
-x5.onclick=()=>activateMult(5,8);
-
-// ===== SHOP =====
-shop.onclick=()=>shopModal.style.display="flex";
-function closeShop(){shopModal.style.display="none";}
-function buyBoost(x,cost,duration){
-  if(coins<cost){alert("❌ Недостатньо coins"); return;}
-  coins-=cost;
-  activateMult(x,duration);
-  updateUI();
-  alert(`✅ Активовано x${x} на ${duration} хвилин`);
-}
-function buyOffer(){
-  window.open("https://www.aliexpress.com/?affiliate=YOUR_PARTNER_LINK","_blank");
-  alert("🎁 Перейдіть на AliExpress та зробіть покупку!");
+function showPopup(text){
+    let el = document.createElement("div");
+    el.className="popup";
+    el.innerText=text;
+    el.style.left="50%";
+    el.style.top="40%";
+    document.body.appendChild(el);
+    setTimeout(()=>el.remove(),1000);
 }
 
-// ===== DAILY BONUS =====
-daily.onclick=()=>{
-  const today=new Date().toDateString();
-  if(localStorage.getItem("dailyDate")===today){alert("❌ Вже отримано"); return;}
-  let day=parseInt(localStorage.getItem("dailyDay"))||0;
-  let reward=[0.25,0.5,0.75,1,1.25,1.5,5][day]||0;
-  balance+=reward;
-  localStorage.setItem("dailyDay",day+1);
-  localStorage.setItem("dailyDate",today);
-  updateUI();
-  alert(`🎁 +${reward.toFixed(2)} $`);
-};
+function createParticles(){
+    for(let i=0;i<10;i++){
+        let p = document.createElement("div");
+        p.className="particle";
+        p.style.left="50%";
+        p.style.top="50%";
+        p.style.setProperty("--x",(Math.random()*200-100)+"px");
+        p.style.setProperty("--y",(Math.random()*200-100)+"px");
+        document.body.appendChild(p);
+        setTimeout(()=>p.remove(),1000);
+    }
+}
 
-// ===== PREMIUM PASS =====
-premiumPass.onclick=()=>{
-  if(localStorage.getItem("premium")){alert("Вже куплено"); return;}
-  alert("💎 Купіть преміум через Telegram Payment!");
-  localStorage.setItem("premium","1");
-  coins+=500;
-  updateUI();
-};
+async function updateLeaderboard(){
+    const querySnapshot = await getDocs(collection(db,"players"));
+    let arr=[];
+    querySnapshot.forEach(doc=>{
+        arr.push({name:doc.id,score:doc.data().score});
+    });
 
-// ===== TOURNAMENT =====
-tournament.onclick=()=>{
-  alert("🏆 Турнір розпочато! 10 хвилин!");
-  // Відправка початкових очок на Firebase
-  const tourRef=db.ref('tournaments/current/'+uid);
-  tourRef.set({score:0,timestamp:Date.now()});
-};
+    arr.sort((a,b)=>b.score-a.score);
 
-// ===== LEADERBOARD =====
-const leaderboardRef=db.ref('players');
-leaderboardRef.on('value',snap=>{
-  const data=snap.val();
-  if(!data) return;
-  const arr=[];
-  for(let k in data){arr.push({uid:k,balance:data[k].balance||0});}
-  arr.sort((a,b)=>b.balance-a.balance);
-  const list=arr.slice(0,10);
-  const lb=document.getElementById("leaderboardList");
-  lb.innerHTML="";
-  list.forEach(p=>{
-    const li=document.createElement("li");
-    li.textContent=`${p.uid}: ${p.balance.toFixed(2)} $`;
-    lb.appendChild(li);
-  });
-});
+    let html="";
+    for(let i=0;i<3;i++){
+        if(arr[i]){
+            html += `<div>${i+1}. ${arr[i].name} - ${arr[i].score}</div>`;
+        }
+    }
 
-// ===== ONLINE + BONUS TODAY =====
-setInterval(()=>{onlineCount.textContent=3000+Math.floor(Math.random()*500)-250;},3000);
+    document.getElementById("topList").innerHTML=html;
+}
+
+setInterval(updateLeaderboard,5000);
+
 </script>
 </body>
 </html>
