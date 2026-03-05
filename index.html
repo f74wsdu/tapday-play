@@ -1,292 +1,270 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="uk">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>TapDay Infinity</title>
+<title>TapDay Play</title>
 
 <style>
-*{
-    -webkit-tap-highlight-color: transparent;
-    outline: none;
+body {
+  margin: 0;
+  background: #0b0b0b;
+  color: #fff;
+  font-family: Arial, sans-serif;
+  text-align: center;
 }
 
-body{
-    margin:0;
-    font-family:Arial, sans-serif;
-    background:radial-gradient(circle at top,#1e1e2f,#0f0f18);
-    color:white;
-    text-align:center;
-    overflow:hidden;
+#top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px;
 }
 
-h1{
-    margin-top:20px;
+#online {
+  font-size: 12px;
+  color: #00ff7f;
 }
 
-.stats{
-    margin-top:10px;
-    font-size:18px;
+#coin {
+  margin: 60px auto 10px;
+  width: 180px;
+  height: 180px;
+  border-radius: 50%;
+  background: radial-gradient(circle, #ffd700, #ff9800);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 32px;
+  font-weight: bold;
+  cursor: pointer;
 }
 
-#tapBtn{
-    width:230px;
-    height:230px;
-    border-radius:50%;
-    border:none;
-    font-size:28px;
-    color:white;
-    background:linear-gradient(45deg,#ff00cc,#3333ff);
-    box-shadow:0 0 50px #ff00cc;
-    margin-top:40px;
-    cursor:pointer;
-    transition:transform 0.08s ease;
-    user-select:none;
+#balance, #coins {
+  font-size: 18px;
+  margin-bottom: 6px;
 }
 
-#tapBtn:active{
-    transform:scale(0.92);
+.block {
+  margin: 8px auto;
+  width: 90%;
+  padding: 12px;
+  border-radius: 12px;
+  background: #333;
+  cursor: pointer;
 }
 
-.progress{
-    width:80%;
-    height:12px;
-    background:#333;
-    margin:20px auto;
-    border-radius:6px;
+#withdraw {
+  background: green;
+  width: fit-content;
+  padding: 10px 25px;
 }
 
-.progress-bar{
-    height:100%;
-    background:linear-gradient(90deg,cyan,purple);
-    width:0%;
-    border-radius:6px;
-    transition:0.2s;
+#leftToWithdraw {
+  margin-top: 6px;
+  font-size: 14px;
+  color: #ffcc00;
 }
 
-.card{
-    background:#1a1a2e;
-    margin:15px auto;
-    padding:15px;
-    border-radius:14px;
-    width:90%;
-    max-width:400px;
+.mult {
+  position: fixed;
+  top: 55%;
+  padding: 10px 14px;
+  background: #222;
+  border-radius: 12px;
+  cursor: pointer;
 }
 
-button{
-    padding:10px 15px;
-    margin:5px;
-    border:none;
-    border-radius:8px;
-    cursor:pointer;
-    background:#2e2e4d;
-    color:white;
+#x2 { left: 10px; }
+#x5 { right: 10px; }
+.mult.active { background: #ff9800; }
+
+/* ===== SHOP MODAL ===== */
+#shopModal {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.85);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
 }
 
-.leaderboard-entry{
-    display:flex;
-    justify-content:space-between;
-    margin:5px 0;
+#shopBox {
+  background: #1e1e1e;
+  width: 90%;
+  max-width: 350px;
+  padding: 20px;
+  border-radius: 16px;
 }
 
-.floating{
-    position:absolute;
-    font-weight:bold;
-    pointer-events:none;
-    animation:floatUp 0.8s forwards;
+.shopItem {
+  background: #333;
+  padding: 10px;
+  border-radius: 10px;
+  margin: 8px 0;
+  cursor: pointer;
 }
 
-@keyframes floatUp{
-    0%{opacity:1;transform:translateY(0);}
-    100%{opacity:0;transform:translateY(-60px);}
+.closeBtn {
+  margin-top: 10px;
+  color: #ff5555;
+  cursor: pointer;
 }
 </style>
 </head>
+
 <body>
 
-<h1>🔥 TapDay Infinity 🔥</h1>
-
-<div class="stats">
-Coins: <span id="coins">0</span> |
-Level: <span id="level">1</span> |
-Prestige: <span id="prestige">0</span>
+<div id="top">
+  <button id="adBtn">🎥 +Coins</button>
+  <div id="online">
+    🟢 Online: <span id="onlineCount">3000</span><br>
+    🎁 Bonus today: <span id="bonusToday">200</span>
+  </div>
 </div>
 
-<button id="tapBtn">TAP</button>
+<div id="x2" class="mult">x2</div>
+<div id="x5" class="mult">x5</div>
 
-<div class="progress">
-<div class="progress-bar" id="xpBar"></div>
+<div id="coin">TAP</div>
+
+<div id="balance">💰 Balance: 0.00 $</div>
+<div id="coins">🪙 Coins: 0</div>
+
+<div id="daily" class="block">📅 Денний бонус</div>
+<div id="bonus30" class="block">⏳ Бонус через 30 днів</div>
+<div id="subscribe" class="block">📢 Бонус 10$ за підписку</div>
+
+<div id="shop" class="block">🛒 Coin Shop</div>
+
+<div id="withdraw" class="block">💳 Вивід</div>
+<div id="leftToWithdraw"></div>
+
+<div id="share" class="block">🔗 Поділитися грою</div>
+
+<!-- SHOP MODAL -->
+<div id="shopModal">
+  <div id="shopBox">
+    <h3>🛒 Coin Shop</h3>
+
+    <div class="shopItem" onclick="buyBoost(2,50)">⚡ x2 Tap (10 хв) — 50 coins</div>
+    <div class="shopItem" onclick="buyBoost(5,120)">🔥 x5 Tap (10 хв) — 120 coins</div>
+    <div class="shopItem" onclick="buyCoins()">🎁 Отримати coins (офер)</div>
+
+    <div class="closeBtn" onclick="closeShop()">Закрити</div>
+  </div>
 </div>
-
-<div class="card">
-<h3>🎟 Battle Pass (Season 1)</h3>
-XP: <span id="bpXP">0</span> / 100
-</div>
-
-<div>
-<button onclick="activatePrestige()">Prestige</button>
-<button onclick="buySkin('gold')">Gold Skin (500)</button>
-<button onclick="buySkin('galaxy')">Galaxy Skin (1000)</button>
-<button onclick="watchAd()">Reward Ad</button>
-</div>
-
-<div class="card">
-<h3>🏆 Leaderboard (Top 5)</h3>
-<div id="leaderboard"></div>
-</div>
-
-<audio id="tapSound" src="https://assets.mixkit.co/sfx/preview/mixkit-game-click-1114.mp3"></audio>
-<audio id="bonusSound" src="https://assets.mixkit.co/sfx/preview/mixkit-bonus-earned-2065.mp3"></audio>
-<audio id="bgMusic" src="https://assets.mixkit.co/music/preview/mixkit-arcade-game-opener-222.mp3" loop></audio>
 
 <script>
+const CHANNEL_LINK = "https://t.me/tapday_clicker"; // підписка
+const GAME_LINK = "https://t.me/tapday_play_bot"; // гра
+const WITHDRAW_MIN = 300;
+const DAILY_BONUSES = [0.5,0.75,1,1.5,1.75,2,2.5];
 
-let player = JSON.parse(localStorage.getItem("tapdayInfinity")) || {
-    coins:0,
-    xp:0,
-    level:1,
-    prestige:0,
-    battleXP:0
-};
+let balance = parseFloat(localStorage.getItem("balance")) || 0;
+let coins = parseInt(localStorage.getItem("coins")) || 0;
+let multiplier = 1;
 
-let leaderboard = JSON.parse(localStorage.getItem("leaderboard")) || [];
+// ===== UPDATE UI =====
+function updateUI() {
+  document.getElementById("balance").textContent =
+    `💰 Balance: ${balance.toFixed(2)} $`;
+  document.getElementById("coins").textContent =
+    `🪙 Coins: ${coins}`;
+  localStorage.setItem("balance", balance);
+  localStorage.setItem("coins", coins);
 
-const coinsEl = document.getElementById("coins");
-const levelEl = document.getElementById("level");
-const prestigeEl = document.getElementById("prestige");
-const bpXPEl = document.getElementById("bpXP");
-const xpBar = document.getElementById("xpBar");
-const tapBtn = document.getElementById("tapBtn");
-
-const tapSound = document.getElementById("tapSound");
-const bonusSound = document.getElementById("bonusSound");
-const bgMusic = document.getElementById("bgMusic");
-
-document.body.addEventListener("click",()=>bgMusic.play(),{once:true});
-
-// ================= TAP =================
-
-tapBtn.addEventListener("click",(e)=>{
-
-    tapSound.currentTime=0;
-    tapSound.play();
-
-    let bonus = Math.random()<0.1 ? 5 : 1;
-    player.coins += bonus;
-    player.xp += bonus;
-    player.battleXP += bonus;
-
-    if(bonus>1){
-        bonusSound.play();
-        createFloating("+5 BONUS!",e);
-    }else{
-        createFloating("+1",e);
-    }
-
-    if(player.xp >= player.level*100){
-        player.xp=0;
-        player.level++;
-        alert("LEVEL UP!");
-    }
-
-    if(player.battleXP>=100){
-        player.battleXP=0;
-        player.coins+=500;
-        alert("Battle Pass Reward +500!");
-    }
-
-    updateLeaderboard();
-    updateUI();
-    save();
-});
-
-// ================= FLOATING TEXT =================
-
-function createFloating(text,e){
-    const div=document.createElement("div");
-    div.className="floating";
-    div.innerText=text;
-    div.style.left=e.clientX+"px";
-    div.style.top=e.clientY+"px";
-    document.body.appendChild(div);
-    setTimeout(()=>div.remove(),800);
+  const left = WITHDRAW_MIN - balance;
+  leftToWithdraw.textContent =
+    left > 0 ? `До виводу залишилось: ${left.toFixed(2)} $`
+             : "✅ Вивід доступний";
 }
-
-// ================= PRESTIGE =================
-
-function activatePrestige(){
-    if(player.level>=10){
-        player.level=1;
-        player.prestige++;
-        player.coins+=1000;
-        alert("Prestige Activated!");
-        updateUI();
-        save();
-    }
-}
-
-// ================= SKINS =================
-
-function buySkin(type){
-    if(type==="gold" && player.coins>=500){
-        player.coins-=500;
-        tapBtn.style.background="gold";
-    }
-    if(type==="galaxy" && player.coins>=1000){
-        player.coins-=1000;
-        tapBtn.style.background="linear-gradient(45deg,purple,black)";
-    }
-    updateUI();
-    save();
-}
-
-// ================= AD =================
-
-function watchAd(){
-    alert("Watching Ad...");
-    setTimeout(()=>{
-        player.coins+=200;
-        updateUI();
-        save();
-    },3000);
-}
-
-// ================= LEADERBOARD =================
-
-function updateLeaderboard(){
-    leaderboard.push({score:player.coins});
-    leaderboard.sort((a,b)=>b.score-a.score);
-    leaderboard=leaderboard.slice(0,5);
-    localStorage.setItem("leaderboard",JSON.stringify(leaderboard));
-    renderLeaderboard();
-}
-
-function renderLeaderboard(){
-    document.getElementById("leaderboard").innerHTML=
-    leaderboard.map((p,i)=>
-    `<div class="leaderboard-entry">
-        <span>#${i+1}</span>
-        <span>${p.score}</span>
-    </div>`).join("");
-}
-
-// ================= UI =================
-
-function updateUI(){
-    coinsEl.innerText=player.coins;
-    levelEl.innerText=player.level;
-    prestigeEl.innerText=player.prestige;
-    bpXPEl.innerText=player.battleXP;
-    xpBar.style.width=(player.xp/(player.level*100))*100+"%";
-}
-
-function save(){
-    localStorage.setItem("tapdayInfinity",JSON.stringify(player));
-}
-
-renderLeaderboard();
 updateUI();
 
+// ===== TAP =====
+coin.onclick = () => {
+  balance += 0.01 * multiplier;
+  updateUI();
+  navigator.vibrate?.(30);
+};
+
+// ===== MULT =====
+function activateMult(x) {
+  multiplier = x;
+  setTimeout(() => multiplier = 1, 600000);
+}
+x2.onclick = () => activateMult(2);
+x5.onclick = () => activateMult(5);
+
+// ===== SHOP =====
+shop.onclick = () => shopModal.style.display = "flex";
+function closeShop(){ shopModal.style.display="none"; }
+
+function buyBoost(x, cost){
+  if(coins < cost){
+    alert("❌ Недостатньо coins");
+    return;
+  }
+  coins -= cost;
+  activateMult(x);
+  updateUI();
+  alert(`✅ Активовано x${x}`);
+}
+
+function buyCoins(){
+  coins += 30;
+  updateUI();
+  alert("🎁 Ви отримали coins");
+}
+
+// ===== DAILY BONUS =====
+daily.onclick = () => {
+  const today = new Date().toDateString();
+  if(localStorage.getItem("dailyDate") === today){
+    alert("❌ Вже отримано");
+    return;
+  }
+  let day = parseInt(localStorage.getItem("dailyDay")) || 0;
+  let reward = DAILY_BONUSES[day] || 0;
+  balance += reward;
+  localStorage.setItem("dailyDay", day+1);
+  localStorage.setItem("dailyDate", today);
+  updateUI();
+  alert(`🎁 +${reward.toFixed(2)} $`);
+};
+
+// ===== SUBSCRIBE =====
+if(localStorage.getItem("subBonus")) subscribe.style.display="none";
+subscribe.onclick = () => {
+  window.open(CHANNEL_LINK,"_blank");
+  balance += 10;
+  localStorage.setItem("subBonus","1");
+  subscribe.style.display="none";
+  updateUI();
+};
+
+// ===== SHARE =====
+share.onclick = () => {
+  navigator.clipboard.writeText(GAME_LINK);
+  coins += 20;
+  updateUI();
+  alert("🔗 Посилання скопійовано, друг може перейти у гру +20 coins");
+};
+
+// ===== ONLINE + BONUS TODAY =====
+setInterval(()=>{
+  onlineCount.textContent = 3000 + Math.floor(Math.random()*500)-250;
+},3000);
+
+let bonusTodayValue = parseInt(localStorage.getItem("bonusToday"))||200;
+setInterval(()=>{
+  if(Math.random()>0.7){
+    bonusTodayValue++;
+    localStorage.setItem("bonusToday",bonusTodayValue);
+  }
+  bonusToday.textContent = bonusTodayValue;
+},6000);
 </script>
+
 </body>
 </html>
